@@ -2,67 +2,90 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>الإدارة | نظام العمل</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة النظام | صلاح الخليفة</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>.modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; z-index: 50; } .modal.active { display: flex; }</style>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Tajawal', sans-serif; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 50; padding: 1rem; }
+        .modal.active { display: flex; }
+        .glass-card { background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(226, 232, 240, 1); }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen pb-20">
-    <header class="bg-slate-800 text-white p-4 flex justify-between shadow-lg">
-        <h2 class="font-bold">لوحة التحكم المركزية</h2>
-        <button onclick="localStorage.clear(); location.href='index.html'" class="text-xs bg-red-600 px-3 py-1 rounded">خروج</button>
+<body class="bg-slate-50 min-h-screen pb-24">
+
+    <header class="bg-slate-900 text-white p-5 sticky top-0 z-40 shadow-xl flex justify-between items-center border-b border-slate-700">
+        <div>
+            <h2 class="font-bold text-lg text-blue-400">صلاح الخليفة</h2>
+            <p class="text-[10px] text-slate-400 uppercase tracking-widest">إدارة النظام المركزية</p>
+        </div>
+        <button onclick="localStorage.clear(); location.href='index.html'" class="bg-red-500/10 text-red-400 px-4 py-2 rounded-xl text-xs font-bold border border-red-500/20 active:scale-95 transition-all">خروج</button>
     </header>
 
-    <div class="p-4 max-w-6xl mx-auto space-y-6">
-        <div class="bg-white p-6 rounded-2xl shadow border">
-            <h3 class="font-bold mb-4 text-blue-600">➕ إضافة موظف</h3>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-                <input id="en" placeholder="الاسم" class="p-3 border rounded-xl">
-                <input id="ep" placeholder="كلمة المرور" class="p-3 border rounded-xl">
-                <input id="ec" placeholder="الرمز (مثلاً A01)" class="p-3 border rounded-xl font-bold">
-                <select id="er" onchange="ui()" class="p-3 border rounded-xl font-bold">
-                    <option value="">الدور</option>
-                    <option value="ردود">ردود</option>
-                    <option value="مروج">مروج</option>
-                    <option value="متابعة">متابعة</option>
-                </select>
-                <input id="et" placeholder="التيم" class="p-3 border rounded-xl hidden">
-                <select id="es" class="p-3 border rounded-xl hidden"><option value="صباحي">صباحي</option><option value="مسائي">مسائي</option></select>
-                <input id="ey" type="number" placeholder="الراتب" class="p-3 border rounded-xl">
-                <button onclick="save()" class="bg-blue-600 text-white font-bold rounded-xl">حفظ</button>
-            </div>
-        </div>
+    <div class="p-4 max-w-4xl mx-auto space-y-6">
+        
+        <button onclick="toggleModal('add_emp_modal')" class="w-full bg-blue-600 text-white p-4 rounded-2xl font-bold shadow-lg shadow-blue-200 flex items-center justify-center gap-2 active:scale-[0.98] transition-all">
+            <span class="text-xl">➕</span> إضافة موظف جديد
+        </button>
 
-        <div class="bg-white p-6 rounded-2xl shadow border">
-            <h3 class="font-bold mb-4 text-purple-600">📊 تقرير الأداء المجمع</h3>
-            <input type="date" id="rep_date" onchange="getRep()" class="mb-4 p-3 border rounded-xl text-center font-bold">
+        <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200">
+            <h3 class="font-bold mb-4 text-slate-800 flex items-center gap-2">
+                <span class="w-2 h-6 bg-purple-500 rounded-full"></span> 📊 تقرير الأداء المجمع
+            </h3>
+            <input type="date" id="rep_date" onchange="getRep()" class="w-full mb-4 p-4 bg-slate-50 border border-slate-200 rounded-2xl text-center font-bold text-slate-700 outline-none focus:ring-2 focus:ring-purple-500">
             <div class="overflow-x-auto">
                 <table class="w-full text-right text-sm">
-                    <thead class="bg-gray-100">
-                        <tr><th class="p-3">الموظف</th><th class="p-3 text-center">حجوزات</th><th class="p-3 text-center">واصل</th><th class="p-3 text-center">النسبة</th></tr>
+                    <thead class="text-slate-500 border-b">
+                        <tr><th class="p-3">الموظف</th><th class="p-3 text-center">حجوزات</th><th class="p-3 text-center">واصل</th><th class="p-3 text-center text-purple-600">النسبة</th></tr>
                     </thead>
-                    <tbody id="rep_body"></tbody>
+                    <tbody id="rep_body" class="divide-y divide-slate-100 text-slate-700 font-medium"></tbody>
                 </table>
             </div>
         </div>
 
-        <div class="bg-white rounded-2xl shadow border overflow-hidden">
-            <table class="w-full text-right text-xs">
-                <thead class="bg-slate-700 text-white">
-                    <tr><th class="p-4">الموظف</th><th class="p-4 text-center">الدور</th><th class="p-4 text-center">إجراءات</th></tr>
-                </thead>
-                <tbody id="emp_body" class="divide-y"></tbody>
-            </table>
+        <div class="space-y-3" id="emp_list_mobile">
+            </div>
+    </div>
+
+    <div id="add_emp_modal" class="modal">
+        <div class="glass-card p-6 rounded-[2.5rem] w-full max-w-md space-y-4 shadow-2xl overflow-y-auto max-h-[90vh]">
+            <h3 class="font-extrabold text-xl text-slate-800 text-center mb-2">إضافة موظف جديد</h3>
+            <div class="flex flex-col gap-3">
+                <input id="en" placeholder="اسم الموظف" class="p-4 bg-slate-50 border rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 font-bold text-center">
+                <input id="ep" type="password" placeholder="كلمة المرور" class="p-4 bg-slate-50 border rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 text-center">
+                <input id="ec" placeholder="الرمز الموحد (مثلاً A01)" class="p-4 bg-slate-50 border rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 font-black text-center text-blue-600">
+                <select id="er" onchange="ui_adjust()" class="p-4 bg-slate-50 border rounded-2xl font-bold text-center appearance-none">
+                    <option value="">حدد الدور الوظيفي</option>
+                    <option value="ردود">ردود</option>
+                    <option value="مروج">مروج</option>
+                    <option value="متابعة">متابعة</option>
+                </select>
+                <input id="et" placeholder="التيم الأساسي" class="p-4 bg-slate-50 border rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 text-center">
+                <select id="es" class="p-4 bg-slate-50 border rounded-2xl font-bold text-center hidden">
+                    <option value="صباحي">شفت صباحي</option>
+                    <option value="مسائي">شفت مسائي</option>
+                </select>
+                <input id="ey" type="number" placeholder="الراتب الأساسي" class="p-4 bg-slate-50 border rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 text-center font-bold">
+            </div>
+            <div class="grid grid-cols-2 gap-3 mt-4">
+                <button onclick="save()" class="bg-blue-600 text-white p-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-all">حفظ البيانات</button>
+                <button onclick="toggleModal('add_emp_modal')" class="bg-slate-200 text-slate-600 p-4 rounded-2xl font-bold active:scale-95 transition-all">إلغاء</button>
+            </div>
         </div>
     </div>
 
     <div id="m" class="modal">
-        <div class="bg-white p-6 rounded-3xl w-80 space-y-4">
-            <h4 id="mn" class="font-bold border-b pb-2 text-center"></h4>
-            <button onclick="adj('bonus')" class="w-full py-3 bg-green-50 text-green-700 rounded-xl font-bold border">+ مكافأة</button>
-            <button onclick="adj('absence')" class="w-full py-3 bg-orange-50 text-orange-700 rounded-xl font-bold border">- غياب</button>
-            <button onclick="kill()" class="w-full py-3 bg-red-600 text-white rounded-xl font-bold">🗑️ حذف الموظف</button>
-            <button onclick="document.getElementById('m').classList.remove('active')" class="w-full text-gray-400 text-xs">إلغاء</button>
+        <div class="glass-card p-8 rounded-[3rem] w-full max-w-[320px] space-y-4 shadow-2xl text-center">
+            <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto text-2xl mb-2">⚙️</div>
+            <h4 id="mn" class="font-black text-slate-800 text-lg border-b pb-3">اسم الموظف</h4>
+            <div class="space-y-3">
+                <button onclick="adj('bonus')" class="w-full py-4 bg-emerald-50 text-emerald-600 rounded-2xl font-bold border border-emerald-100 flex items-center justify-center gap-2 active:scale-95 transition-all italic">💰 إضافة مكافأة</button>
+                <button onclick="adj('absence')" class="w-full py-4 bg-orange-50 text-orange-600 rounded-2xl font-bold border border-orange-100 flex items-center justify-center gap-2 active:scale-95 transition-all italic">⏳ تسجيل غياب/خصم</button>
+                <button onclick="kill()" class="w-full py-4 bg-red-50 text-red-600 rounded-2xl font-bold border border-red-100 flex items-center justify-center gap-2 active:scale-95 transition-all">🗑️ حذف نهائي</button>
+            </div>
+            <button onclick="toggleModal('m')" class="text-slate-400 text-xs font-bold pt-4 block w-full uppercase tracking-widest">إغلاق النافذة</button>
         </div>
     </div>
 
@@ -70,19 +93,24 @@
         const sb = supabase.createClient('https://iqagigpqwwtvriqvlfbv.supabase.co', 'sb_publishable_5xbaPlWHgjeeaIwceEFRrQ_d9aZ6Zax');
         let cur = null;
 
-        function ui() {
+        function toggleModal(id) { document.getElementById(id).classList.toggle('active'); }
+
+        function ui_adjust() {
             const r = document.getElementById('er').value;
-            document.getElementById('et').style.display = (r==='ردود'||r==='مروج')?'block':'none';
-            document.getElementById('es').style.display = (r==='ردود')?'block':'none';
+            document.getElementById('es').classList.toggle('hidden', r !== 'ردود');
         }
 
         async function save() {
-            await sb.from('users').insert([{
-                username: document.getElementById('en').value, password: document.getElementById('ep').value,
-                employee_code: document.getElementById('ec').value, role: document.getElementById('er').value,
-                team: document.getElementById('et').value||null, shift: document.getElementById('es').value||null,
-                salary: document.getElementById('ey').value||0
-            }]); location.reload();
+            const { error } = await sb.from('users').insert([{
+                username: document.getElementById('en').value, 
+                password: document.getElementById('ep').value,
+                employee_code: document.getElementById('ec').value, 
+                role: document.getElementById('er').value,
+                team: document.getElementById('et').value || null, 
+                shift: document.getElementById('es').value || null,
+                salary: document.getElementById('ey').value || 0
+            }]);
+            if(error) alert("خطأ: " + error.message); else location.reload();
         }
 
         async function getRep() {
@@ -91,24 +119,39 @@
             const b = document.getElementById('rep_body'); b.innerHTML="";
             data.forEach(r => {
                 const p = r.bookings_count > 0 ? ((r.confirmed_count / r.bookings_count)*100).toFixed(1) : 0;
-                b.innerHTML += `<tr class="border-b"><td class="p-3">${r.employee_username}</td><td class="p-3 text-center">${r.bookings_count}</td><td class="p-3 text-center">${r.confirmed_count}</td><td class="p-3 text-center font-bold text-blue-600">${p}%</td></tr>`;
+                b.innerHTML += `<tr><td class="p-3 font-bold text-slate-800">${r.employee_username}</td><td class="p-3 text-center text-blue-600 font-bold">${r.bookings_count}</td><td class="p-3 text-center text-emerald-600 font-bold">${r.confirmed_count}</td><td class="p-3 text-center font-black text-purple-600">${p}%</td></tr>`;
             });
         }
 
         async function load() {
             const { data } = await sb.from('users').select('*').neq('role','مدير');
-            const b = document.getElementById('emp_body'); b.innerHTML="";
+            const list = document.getElementById('emp_list_mobile');
+            list.innerHTML = "";
             data.forEach(e => {
-                b.innerHTML += `<tr><td class="p-4 font-bold">${e.username}<br><span class="text-blue-500">${e.employee_code}</span></td><td class="p-4 text-center text-xs">${e.role}<br>${e.team||''}</td><td class="p-4 text-center"><button onclick="pop('${e.id}','${e.username}')" class="bg-slate-100 p-2 rounded-lg">⚙️</button></td></tr>`;
+                list.innerHTML += `
+                <div class="bg-white p-4 rounded-3xl border border-slate-200 flex justify-between items-center shadow-sm">
+                    <div>
+                        <p class="font-bold text-slate-800 text-md">${e.username} <span class="text-[10px] text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full">${e.employee_code}</span></p>
+                        <p class="text-[11px] text-slate-500 font-bold">${e.role} | ${e.team || 'عام'} ${e.shift ? '| '+e.shift : ''}</p>
+                    </div>
+                    <button onclick="pop('${e.id}','${e.username}')" class="w-12 h-12 bg-slate-50 text-slate-400 rounded-2xl border border-slate-100 flex items-center justify-center text-xl active:bg-slate-100 transition-all">⚙️</button>
+                </div>`;
             });
         }
 
-        function pop(id, n) { cur={id, n}; document.getElementById('mn').innerText=n; document.getElementById('m').classList.add('active'); }
-        async function kill() { if(confirm("حذف الموظف نهائياً؟")) { await sb.from('users').delete().eq('id', cur.id); location.reload(); } }
+        function pop(id, n) { cur={id, n}; document.getElementById('mn').innerText=n; toggleModal('m'); }
+
+        async function kill() { if(confirm("هل أنت متأكد من حذف الموظف نهائياً؟")) { await sb.from('users').delete().eq('id', cur.id); location.reload(); } }
+
         async function adj(t) { 
-            const a = prompt("أدخل القيمة:"); 
-            if(a) { await sb.from('adjustments').insert([{ user_id:cur.id, type:t, amount:a, reason:t }]); alert("تم بنجاح"); }
+            const a = prompt(t === 'bonus' ? "أدخل قيمة المكافأة:" : "أدخل قيمة الخصم:"); 
+            if(a) { 
+                await sb.from('adjustments').insert([{ user_id:cur.id, type:t, amount:a, reason:t }]); 
+                alert("تمت العملية المالية بنجاح ✅");
+                toggleModal('m');
+            }
         }
+
         window.onload = () => { load(); document.getElementById('rep_date').valueAsDate = new Date(); getRep(); };
     </script>
 </body>
