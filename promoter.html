@@ -1,36 +1,25 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>المروج | الربط التلقائي</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
-    <style>body { font-family: 'Tajawal', sans-serif; }</style>
-</head>
-<body class="bg-blue-50 min-h-screen pb-10">
-    <header class="bg-blue-600 text-white p-4 flex justify-between items-center shadow-lg">
-        <div><p id="p_name" class="font-bold"></p><p id="p_team" class="text-[10px]"></p></div>
-        <button onclick="localStorage.clear(); window.location.href='index.html'" class="text-xs bg-blue-800 px-2 py-1 rounded">خروج</button>
+<head><meta charset="UTF-8"><title>المروج</title><script src="https://cdn.tailwindcss.com"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head>
+<body class="bg-blue-50 min-h-screen font-sans">
+    <header class="bg-blue-600 text-white p-4 flex justify-between items-center shadow">
+        <span id="p_info" class="font-bold"></span>
+        <button onclick="location.href='index.html'" class="text-xs bg-blue-800 px-2 py-1 rounded">خروج</button>
     </header>
 
     <div class="p-4 max-w-lg mx-auto space-y-4">
-        <div class="bg-white p-4 rounded-2xl shadow-sm border space-y-3">
-            <label class="text-xs font-bold text-gray-500">اختر التاريخ للمراجعة:</label>
-            <input type="date" id="report_date" onchange="fetchData()" class="w-full p-3 bg-gray-50 border rounded-xl font-bold text-center">
-            
-            <div class="grid grid-cols-2 gap-2 text-center pt-2">
-                <div class="p-3 bg-blue-50 rounded-xl"><span class="block text-[10px] text-blue-400">حجوزات التيم</span><span id="t_books" class="text-xl font-bold">0</span></div>
-                <div class="p-3 bg-green-50 rounded-xl"><span class="block text-[10px] text-green-400">سعر الطلب CPL</span><span id="t_cpl" class="text-xl font-bold">0.00</span></div>
+        <div class="bg-white p-4 rounded-3xl shadow-sm border text-center space-y-3">
+            <input type="date" id="r_date" onchange="sync()" class="w-full p-3 border rounded-2xl text-center font-bold text-blue-600">
+            <div class="grid grid-cols-2 gap-2">
+                <div class="p-4 bg-blue-50 rounded-2xl"><span class="text-[10px] block">حجوزات التيم</span><span id="s_books" class="text-2xl font-bold text-blue-600">0</span></div>
+                <div class="p-4 bg-green-50 rounded-2xl"><span class="text-[10px] block">CPL</span><span id="s_cpl" class="text-2xl font-bold text-green-600">0.00</span></div>
             </div>
         </div>
 
-        <div class="bg-white p-6 rounded-2xl shadow-sm border space-y-4">
-            <h3 class="font-bold text-gray-700 border-r-4 border-blue-600 pr-2 italic">تسجيل صرف يومي</h3>
-            <input type="number" id="spend_amt" placeholder="المبلغ المصروف لهذا اليوم" class="w-full p-4 bg-gray-50 border rounded-xl text-2xl font-bold text-center text-green-600">
-            <input type="text" id="target_team" placeholder="صرف لتيم آخر (اختياري)" class="w-full p-3 bg-gray-50 border rounded-xl text-center">
-            <button onclick="saveSpend()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg">حفظ الصرف وتحديث التقرير</button>
+        <div class="bg-white p-6 rounded-3xl shadow-sm border space-y-4">
+            <h3 class="font-bold text-gray-600 border-r-4 border-blue-600 pr-2">تسجيل صرف</h3>
+            <input type="number" id="s_amt" placeholder="المبلغ المصروف" class="w-full p-4 border rounded-2xl text-center text-xl font-bold outline-none">
+            <button onclick="save()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold">حفظ وتحديث ✅</button>
         </div>
     </div>
 
@@ -40,41 +29,31 @@
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
         const user = JSON.parse(localStorage.getItem('user_session'));
 
-        window.onload = () => {
-            if(!user || user.role !== 'مروج') window.location.href='index.html';
-            document.getElementById('p_name').innerText = user.username;
-            document.getElementById('p_team').innerText = `قائد تيم: ${user.team}`;
-            document.getElementById('report_date').valueAsDate = new Date();
-            fetchData();
+        window.onload = () => { 
+            document.getElementById('p_info').innerText = `${user.username} - تيم ${user.team}`;
+            document.getElementById('r_date').valueAsDate = new Date();
+            sync();
         };
 
-        async function fetchData() {
-            const date = document.getElementById('report_date').value;
-            
-            // 1. جلب حجوزات تيمه تلقائياً
-            const { data: members } = await _supabase.from('users').select('username').eq('team', user.team).eq('role', 'ردود');
-            const names = members.map(m => m.username);
+        async function sync() {
+            const date = document.getElementById('r_date').value;
+            const { data: teamMembers } = await _supabase.from('users').select('username').eq('team', user.team).eq('role','ردود');
+            const names = teamMembers.map(m => m.username);
             const { data: books } = await _supabase.from('bookings_reports').select('bookings_count').in('employee_username', names).eq('report_date', date);
-            const totalB = books.reduce((s, r) => s + (r.bookings_count || 0), 0);
+            const tB = books.reduce((s,r) => s+(r.bookings_count||0), 0);
             
-            // 2. جلب المصاريف لهذا التيم
             const { data: exp } = await _supabase.from('marketing_expenses').select('amount_spent').eq('target_team', user.team).eq('expense_date', date);
-            const totalS = exp.reduce((s, r) => s + parseFloat(r.amount_spent), 0);
-
-            document.getElementById('t_books').innerText = totalB;
-            document.getElementById('t_cpl').innerText = totalB > 0 ? (totalS / totalB).toFixed(2) : "0.00";
+            const tS = exp.reduce((s,r) => s+parseFloat(r.amount_spent), 0);
+            
+            document.getElementById('s_books').innerText = tB;
+            document.getElementById('s_cpl').innerText = tB>0 ? (tS/tB).toFixed(2) : "0.00";
         }
 
-        async function saveSpend() {
-            const amt = document.getElementById('spend_amt').value;
-            const tTeam = document.getElementById('target_team').value || user.team;
-            const date = document.getElementById('report_date').value;
+        async function save() {
+            const amt = document.getElementById('s_amt').value;
             if(!amt) return alert("أدخل المبلغ");
-
-            await _supabase.from('marketing_expenses').insert([{
-                promoter_username: user.username, target_team: tTeam, amount_spent: amt, expense_date: date
-            }]);
-            alert("تم الحفظ"); fetchData();
+            await _supabase.from('marketing_expenses').insert([{ promoter_username:user.username, target_team:user.team, amount_spent:amt, expense_date:document.getElementById('r_date').value }]);
+            alert("تم الحفظ"); sync();
         }
     </script>
 </body>
