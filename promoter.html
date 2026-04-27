@@ -1,59 +1,148 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-<head><meta charset="UTF-8"><title>المروج</title><script src="https://cdn.tailwindcss.com"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head>
-<body class="bg-blue-50 min-h-screen font-sans">
-    <header class="bg-blue-600 text-white p-4 flex justify-between items-center shadow">
-        <span id="p_info" class="font-bold"></span>
-        <button onclick="location.href='index.html'" class="text-xs bg-blue-800 px-2 py-1 rounded">خروج</button>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>واجهة المروج | نظام الإعلانات</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Tajawal', sans-serif; }</style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+    <header class="bg-blue-700 text-white p-4 flex justify-between items-center shadow-md">
+        <div>
+            <h1 id="p_name" class="font-bold text-lg">تحميل...</h1>
+            <p id="p_team_info" class="text-[10px] opacity-80 uppercase tracking-wider"></p>
+        </div>
+        <button onclick="localStorage.clear(); window.location.href='index.html'" class="bg-blue-900 px-4 py-2 rounded-xl text-xs font-bold hover:bg-red-600 transition-all">خروج</button>
     </header>
 
-    <div class="p-4 max-w-lg mx-auto space-y-4">
-        <div class="bg-white p-4 rounded-3xl shadow-sm border text-center space-y-3">
-            <input type="date" id="r_date" onchange="sync()" class="w-full p-3 border rounded-2xl text-center font-bold text-blue-600">
-            <div class="grid grid-cols-2 gap-2">
-                <div class="p-4 bg-blue-50 rounded-2xl"><span class="text-[10px] block">حجوزات التيم</span><span id="s_books" class="text-2xl font-bold text-blue-600">0</span></div>
-                <div class="p-4 bg-green-50 rounded-2xl"><span class="text-[10px] block">CPL</span><span id="s_cpl" class="text-2xl font-bold text-green-600">0.00</span></div>
+    <div class="p-4 max-w-lg mx-auto space-y-6">
+        <div class="bg-white p-6 rounded-3xl shadow-sm border text-center space-y-4">
+            <div class="flex flex-col items-center">
+                <label class="text-xs font-bold text-gray-400 mb-2 italic underline">اختر التاريخ لمراقبة الأداء:</label>
+                <input type="date" id="target_date" onchange="syncPromoterData()" class="w-full p-4 bg-gray-50 border-2 border-blue-100 rounded-2xl text-center font-bold text-blue-700 outline-none focus:border-blue-500 transition-all">
             </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100 shadow-inner">
+                    <span class="block text-[10px] text-blue-500 font-bold mb-1">حجوزات التيم</span>
+                    <span id="stat_total_books" class="text-3xl font-black text-blue-800">0</span>
+                </div>
+                <div class="bg-emerald-50 p-4 rounded-2xl border border-emerald-100 shadow-inner">
+                    <span class="block text-[10px] text-emerald-500 font-bold mb-1">سعر الحجز (CPL)</span>
+                    <span id="stat_cpl_value" class="text-3xl font-black text-emerald-700">0.00</span>
+                </div>
+            </div>
+            <p class="text-[9px] text-gray-400 font-bold leading-tight">* يتم الربط تلقائياً مع موظفي الردود في تيمك بناءً على تقاريرهم لهذا اليوم.</p>
         </div>
 
-        <div class="bg-white p-6 rounded-3xl shadow-sm border space-y-4">
-            <h3 class="font-bold text-gray-600 border-r-4 border-blue-600 pr-2">تسجيل صرف</h3>
-            <input type="number" id="s_amt" placeholder="المبلغ المصروف" class="w-full p-4 border rounded-2xl text-center text-xl font-bold outline-none">
-            <button onclick="save()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold">حفظ وتحديث ✅</button>
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-blue-50 space-y-4">
+            <h3 class="font-bold text-gray-700 border-r-4 border-blue-600 pr-3">تسجيل المصاريف الإعلانية</h3>
+            <div class="relative">
+                <input type="number" id="spend_input" placeholder="المبلغ المصروف" class="w-full p-6 bg-blue-50 border-2 border-transparent rounded-3xl text-4xl font-black text-center text-blue-700 outline-none focus:border-blue-600 focus:bg-white transition-all">
+                <span class="absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px] font-bold text-blue-300">أدخل المبلغ الإجمالي لليوم</span>
+            </div>
+            <button onclick="handleSpendSubmission()" class="w-full bg-blue-600 text-white py-5 rounded-3xl font-bold text-lg shadow-xl shadow-blue-200 active:scale-95 transition-all">حفظ وتحديث النتائج ✅</button>
         </div>
     </div>
 
     <script>
+        // إعدادات الاتصال بـ Supabase
         const SB_URL = 'https://iqagigpqwwtvriqvlfbv.supabase.co';
         const SB_KEY = 'sb_publishable_5xbaPlWHgjeeaIwceEFRrQ_d9aZ6Zax';
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
+
+        // جلب بيانات الجلسة
         const user = JSON.parse(localStorage.getItem('user_session'));
 
-        window.onload = () => { 
-            document.getElementById('p_info').innerText = `${user.username} - تيم ${user.team}`;
-            document.getElementById('r_date').valueAsDate = new Date();
-            sync();
+        window.onload = () => {
+            if (!user || user.role !== 'مروج') {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            document.getElementById('p_name').innerText = `أهلاً، ${user.username}`;
+            document.getElementById('p_team_info').innerText = `مسؤول إعلانات تيم: ${user.team || 'غير محدد'}`;
+            document.getElementById('target_date').valueAsDate = new Date();
+            
+            syncPromoterData();
         };
 
-        async function sync() {
-            const date = document.getElementById('r_date').value;
-            const { data: teamMembers } = await _supabase.from('users').select('username').eq('team', user.team).eq('role','ردود');
-            const names = teamMembers.map(m => m.username);
-            const { data: books } = await _supabase.from('bookings_reports').select('bookings_count').in('employee_username', names).eq('report_date', date);
-            const tB = books.reduce((s,r) => s+(r.bookings_count||0), 0);
+        async function syncPromoterData() {
+            const date = document.getElementById('target_date').value;
+            if (!date) return;
+
+            // 1. جلب أسماء موظفي الردود الذين ينتمون لنفس تيم المروج
+            const { data: members, error: userError } = await _supabase
+                .from('users')
+                .select('username')
+                .eq('team', user.team)
+                .eq('role', 'ردود');
+
+            if (userError) { console.error(userError); return; }
             
-            const { data: exp } = await _supabase.from('marketing_expenses').select('amount_spent').eq('target_team', user.team).eq('expense_date', date);
-            const tS = exp.reduce((s,r) => s+parseFloat(r.amount_spent), 0);
+            const staffNames = members.map(m => m.username);
+
+            // 2. جلب مجموع حجوزات هؤلاء الموظفين لهذا التاريخ من جدول التقارير
+            const { data: reports, error: reportError } = await _supabase
+                .from('bookings_reports')
+                .select('bookings_count')
+                .in('employee_username', staffNames)
+                .eq('report_date', date);
+
+            if (reportError) { console.error(reportError); return; }
+
+            const totalBookings = reports.reduce((sum, record) => sum + (record.bookings_count || 0), 0);
+
+            // 3. جلب إجمالي الصرف المسجل لهذا التيم في هذا اليوم
+            const { data: expenses, error: expError } = await _supabase
+                .from('marketing_expenses')
+                .select('amount_spent')
+                .eq('target_team', user.team)
+                .eq('expense_date', date);
+
+            if (expError) { console.error(expError); return; }
+
+            const totalSpend = expenses.reduce((sum, record) => sum + parseFloat(record.amount_spent || 0), 0);
+
+            // 4. تحديث الواجهة
+            document.getElementById('stat_total_books').innerText = totalBookings;
             
-            document.getElementById('s_books').innerText = tB;
-            document.getElementById('s_cpl').innerText = tB>0 ? (tS/tB).toFixed(2) : "0.00";
+            if (totalBookings > 0) {
+                document.getElementById('stat_cpl_value').innerText = (totalSpend / totalBookings).toFixed(2);
+            } else {
+                document.getElementById('stat_cpl_value').innerText = "0.00";
+            }
         }
 
-        async function save() {
-            const amt = document.getElementById('s_amt').value;
-            if(!amt) return alert("أدخل المبلغ");
-            await _supabase.from('marketing_expenses').insert([{ promoter_username:user.username, target_team:user.team, amount_spent:amt, expense_date:document.getElementById('r_date').value }]);
-            alert("تم الحفظ"); sync();
+        async function handleSpendSubmission() {
+            const amount = document.getElementById('spend_input').value;
+            const date = document.getElementById('target_date').value;
+
+            if (!amount || amount <= 0) {
+                alert("يرجى إدخال مبلغ صرف صحيح");
+                return;
+            }
+
+            // إرسال الصرف إلى جدول المصاريف
+            const { error } = await _supabase
+                .from('marketing_expenses')
+                .insert([{
+                    promoter_username: user.username,
+                    target_team: user.team,
+                    amount_spent: parseFloat(amount),
+                    expense_date: date
+                }]);
+
+            if (error) {
+                alert("❌ حدث خطأ أثناء الحفظ: " + error.message);
+            } else {
+                alert("✅ تم تسجيل الصرف وتحديث البيانات بنجاح");
+                document.getElementById('spend_input').value = "";
+                syncPromoterData(); // تحديث الإحصائيات فوراً بعد الحفظ
+            }
         }
     </script>
 </body>
