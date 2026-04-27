@@ -12,7 +12,6 @@
         .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
         .stat-card-blue { border-right: 4px solid #2563eb; }
         .stat-card-emerald { border-right: 4px solid #10b981; }
-        .stat-card-amber { border-right: 4px solid #f59e0b; }
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 min-h-screen pb-10">
@@ -38,7 +37,7 @@
         
         <div class="glass p-6 rounded-[2.5rem] shadow-xl border border-white space-y-4">
             <div class="flex flex-col items-center">
-                <span class="text-[10px] font-black text-blue-600 mb-2 uppercase italic">عرض بيانات يوم محدد</span>
+                <span class="text-[10px] font-black text-blue-600 mb-2 uppercase italic text-center">عرض بيانات يوم محدد لمراقبة الأداء</span>
                 <input type="date" id="target_date" onchange="syncData()" class="w-full p-4 bg-blue-50 border-2 border-transparent rounded-2xl text-center font-bold text-blue-900 outline-none focus:border-blue-500 transition-all">
             </div>
 
@@ -56,23 +55,25 @@
 
         <div class="glass p-8 rounded-[3rem] shadow-xl border border-white space-y-5">
             <div class="text-center">
-                <h3 class="text-lg font-black text-slate-800 italic">إضافة مصاريف التيم</h3>
+                <h3 class="text-lg font-black text-slate-800 italic">إضافة مصاريف الحملة</h3>
                 <div class="h-1 w-10 bg-blue-600 mx-auto mt-1 rounded-full"></div>
             </div>
 
             <div class="space-y-4">
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 gap-4">
                     <div>
-                        <label class="text-[10px] font-black text-slate-400 mr-2 uppercase">اسم التيم</label>
-                        <input type="text" id="team_name_input" placeholder="مثلاً: A" class="w-full p-4 bg-slate-50 border rounded-2xl text-center font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                        <label class="text-[10px] font-black text-slate-400 mr-2 uppercase italic">اختر التيم المستهدف (يجلب تلقائياً):</label>
+                        <select id="team_select" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-center font-bold text-slate-700 outline-none focus:border-blue-500 appearance-none shadow-inner">
+                            <option value="">جاري تحميل التيمات...</option>
+                        </select>
                     </div>
                     <div>
-                        <label class="text-[10px] font-black text-slate-400 mr-2 uppercase">المبلغ المصروف</label>
-                        <input type="number" id="spend_input" placeholder="0.00" class="w-full p-4 bg-slate-50 border rounded-2xl text-center font-bold text-blue-600 outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                        <label class="text-[10px] font-black text-slate-400 mr-2 uppercase italic">المبلغ المصروف لهذا التيم:</label>
+                        <input type="number" id="spend_input" placeholder="0.00" class="w-full p-6 bg-blue-50 border-2 border-dashed border-blue-200 rounded-[2rem] text-center text-4xl font-black text-blue-700 outline-none focus:border-blue-600 focus:bg-white transition-all shadow-inner">
                     </div>
                 </div>
 
-                <button onclick="saveExpense()" class="w-full bg-blue-600 text-white py-5 rounded-[2rem] font-black text-lg shadow-xl shadow-blue-200 active:scale-[0.97] transition-all flex items-center justify-center gap-3 border-b-4 border-blue-800">
+                <button onclick="saveExpense()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-5 rounded-[2rem] font-black text-lg shadow-xl shadow-blue-200 active:scale-[0.97] transition-all flex items-center justify-center gap-3 border-b-4 border-blue-800">
                     حفظ وتحديث الإحصائيات 🚀
                 </button>
             </div>
@@ -80,7 +81,7 @@
 
         <div class="glass rounded-[2.5rem] shadow-xl border border-white overflow-hidden">
             <div class="bg-slate-900 p-4">
-                <h3 class="text-white text-center font-bold text-sm">تحليل الأداء لكل تيم</h3>
+                <h3 class="text-white text-center font-bold text-sm tracking-widest">تحليل الأداء التفصيلي لكل تيم</h3>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-right">
@@ -89,7 +90,7 @@
                             <th class="p-4">التيم</th>
                             <th class="p-4 text-center">الحجوزات</th>
                             <th class="p-4 text-center">المصاريف</th>
-                            <th class="p-4 text-center text-blue-600">CPL</th>
+                            <th class="p-4 text-center text-blue-600 italic underline">سعر الطلب (CPL)</th>
                         </tr>
                     </thead>
                     <tbody id="team_table_body" class="text-sm font-bold divide-y divide-slate-100">
@@ -103,31 +104,44 @@
         const sb = supabase.createClient('https://iqagigpqwwtvriqvlfbv.supabase.co', 'sb_publishable_5xbaPlWHgjeeaIwceEFRrQ_d9aZ6Zax');
         const user = JSON.parse(localStorage.getItem('user_session'));
 
-        window.onload = () => {
+        window.onload = async () => {
             if (!user || user.role !== 'مروج') { window.location.href = 'index.html'; return; }
             document.getElementById('p_name_display').innerText = user.username;
             document.getElementById('target_date').valueAsDate = new Date();
+            
+            await fetchTeams(); // جلب التيمات تلقائياً
             syncData();
         };
+
+        // دالة لجلب التيمات الفريدة من جدول المستخدمين تلقائياً
+        async function fetchTeams() {
+            const { data, error } = await sb.from('users').select('team').not('team', 'is', null);
+            if (error) return;
+
+            // تصفية القيم المكررة واستخراج أسماء التيمات فقط
+            const uniqueTeams = [...new Set(data.map(item => item.team))].sort();
+            const teamSelect = document.getElementById('team_select');
+            
+            teamSelect.innerHTML = '<option value="">-- اختر التيم --</option>';
+            uniqueTeams.forEach(team => {
+                let o = document.createElement('option');
+                o.value = team;
+                o.text = `تيم ( ${team} )`;
+                teamSelect.add(o);
+            });
+        }
 
         async function syncData() {
             const date = document.getElementById('target_date').value;
             const tableBody = document.getElementById('team_table_body');
-            tableBody.innerHTML = `<tr><td colspan="4" class="p-10 text-center animate-pulse text-slate-400 font-bold">جاري جلب البيانات...</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="4" class="p-10 text-center animate-pulse text-slate-400 font-bold italic">جاري جلب وتحليل البيانات...</td></tr>`;
 
-            // 1. جلب كافة المصاريف لهذا المروج في هذا التاريخ
             const { data: expenses } = await sb.from('marketing_expenses').select('*').eq('expense_date', date);
-            
-            // 2. جلب كافة حجوزات الموظفين لهذا التاريخ
             const { data: reports } = await sb.from('bookings_reports').select('bookings_count, employee_username').eq('report_date', date);
-            
-            // 3. جلب بيانات الموظفين لمعرفة تيماتهم
             const { data: allUsers } = await sb.from('users').select('username, team').eq('role', 'ردود');
 
-            // --- معالجة البيانات ---
-            let teamData = {}; // سنقوم بتجميع البيانات لكل تيم هنا
+            let teamData = {};
 
-            // أ. حساب الحجوزات لكل تيم
             if (reports && allUsers) {
                 reports.forEach(rep => {
                     const staff = allUsers.find(u => u.username === rep.employee_username);
@@ -138,7 +152,6 @@
                 });
             }
 
-            // ب. حساب المصاريف لكل تيم
             if (expenses) {
                 expenses.forEach(exp => {
                     if (exp.target_team) {
@@ -148,7 +161,6 @@
                 });
             }
 
-            // --- عرض البيانات في الجدول والبطاقات ---
             tableBody.innerHTML = "";
             let totalAllBooks = 0;
             let totalAllSpend = 0;
@@ -161,28 +173,27 @@
                 totalAllSpend += data.spend;
 
                 tableBody.innerHTML += `
-                    <tr class="hover:bg-blue-50 transition-colors">
-                        <td class="p-4"><span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-black">TEAM ${teamName}</span></td>
+                    <tr class="hover:bg-blue-50/50 transition-colors">
+                        <td class="p-4"><span class="bg-indigo-900 text-white px-3 py-1 rounded-lg text-[10px] font-black">TEAM ${teamName}</span></td>
                         <td class="p-4 text-center text-slate-700">${data.books}</td>
                         <td class="p-4 text-center text-slate-700 font-black">${data.spend.toLocaleString()}</td>
-                        <td class="p-4 text-center text-blue-600 font-black italic">${cpl}</td>
+                        <td class="p-4 text-center text-blue-600 font-black italic underline">${cpl}</td>
                     </tr>
                 `;
             });
 
-            // تحديث البطاقات العلوية
             document.getElementById('total_books_all').innerText = totalAllBooks;
             const avgCPL = totalAllBooks > 0 ? (totalAllSpend / totalAllBooks).toFixed(2) : "0.00";
             document.getElementById('avg_cpl_all').innerText = avgCPL;
         }
 
         async function saveExpense() {
-            const team = document.getElementById('team_name_input').value.toUpperCase().trim();
+            const team = document.getElementById('team_select').value;
             const amount = document.getElementById('spend_input').value;
             const date = document.getElementById('target_date').value;
 
             if (!team || !amount || amount <= 0) {
-                alert("يرجى إدخال اسم التيم والمبلغ بشكل صحيح");
+                alert("يرجى اختيار التيم وإدخال المبلغ المصروف");
                 return;
             }
 
@@ -194,9 +205,9 @@
             }]);
 
             if (error) {
-                alert("❌ خطأ: " + error.message);
+                alert("❌ حدث خطأ: " + error.message);
             } else {
-                alert("✅ تم حفظ المصاريف لتيم " + team);
+                alert("✅ تم تسجيل صرف تيم " + team + " بنجاح");
                 document.getElementById('spend_input').value = "";
                 syncData();
             }
