@@ -1,62 +1,49 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head><meta charset="UTF-8"><script src="https://cdn.tailwindcss.com"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head>
-<body class="bg-gray-50 min-h-screen">
-    <header class="bg-indigo-600 text-white p-4 flex justify-between items-center shadow-lg">
-        <div><p id="u_info" class="font-bold"></p><p id="u_meta" class="text-[10px] opacity-70"></p></div>
-        <button onclick="location.href='index.html'" class="text-xs bg-indigo-800 px-3 py-1 rounded-lg">خروج</button>
+<body class="bg-indigo-50 min-h-screen">
+    <header class="bg-indigo-600 text-white p-4 flex justify-between">
+        <div id="uinf"></div><button onclick="location.href='index.html'" class="text-xs">خروج</button>
     </header>
-
     <div class="p-4 max-w-lg mx-auto space-y-4">
-        <div class="bg-white p-6 rounded-3xl shadow-sm border space-y-4">
-            <h3 id="u_title" class="font-bold border-r-4 border-indigo-600 pr-2">تقرير اليوم</h3>
-            <input type="date" id="u_date" class="w-full p-3 border rounded-2xl text-center font-bold">
-            
-            <div id="u_followup" class="hidden">
-                <label class="text-[10px] text-gray-400">اختر موظف الردود:</label>
-                <select id="u_staff_list" class="w-full p-3 border rounded-2xl bg-white font-bold"></select>
+        <div class="bg-white p-6 rounded-3xl shadow border">
+            <h3 id="ttl" class="font-bold border-r-4 border-indigo-600 pr-2 mb-4">إرسال التقرير</h3>
+            <input type="date" id="dt" class="w-full p-3 border rounded-2xl text-center font-bold mb-4">
+            <div id="fol" class="hidden mb-4">
+                <select id="slst" class="w-full p-3 border rounded-2xl bg-gray-50 font-bold"></select>
             </div>
-
-            <input type="number" id="u_count" placeholder="العدد" class="w-full p-5 border rounded-3xl text-center text-3xl font-bold text-indigo-600">
-            <button onclick="sendReport()" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold shadow-lg">إرسال الآن ✅</button>
-            <p id="st" class="text-center text-xs hidden"></p>
+            <input type="number" id="cnt" placeholder="العدد" class="w-full p-6 border rounded-3xl text-center text-3xl font-bold text-indigo-600 outline-none">
+            <button onclick="send()" class="w-full bg-indigo-600 text-white py-4 mt-4 rounded-2xl font-bold">إرسال البيانات ✅</button>
+            <p id="msg" class="text-center mt-3 font-bold hidden"></p>
         </div>
     </div>
-
     <script>
-        const SB_URL = 'https://iqagigpqwwtvriqvlfbv.supabase.co';
-        const SB_KEY = 'sb_publishable_5xbaPlWHgjeeaIwceEFRrQ_d9aZ6Zax';
-        const _supabase = supabase.createClient(SB_URL, SB_KEY);
-        const user = JSON.parse(localStorage.getItem('user_session'));
+        const sb = supabase.createClient('https://iqagigpqwwtvriqvlfbv.supabase.co', 'sb_publishable_5xbaPlWHgjeeaIwceEFRrQ_d9aZ6Zax');
+        const u = JSON.parse(localStorage.getItem('user_session'));
 
         window.onload = async () => {
-            document.getElementById('u_info').innerText = user.username;
-            document.getElementById('u_meta').innerText = `${user.role} | ${user.shift||'--'}`;
-            document.getElementById('u_date').valueAsDate = new Date();
-            
-            if(user.role === 'متابعة') {
-                document.getElementById('u_followup').classList.remove('hidden');
-                document.getElementById('u_title').innerText = "تأكيد الواصل";
-                const { data } = await _supabase.from('users').select('username').eq('role','ردود');
-                data.forEach(s => { let o = document.createElement('option'); o.value=s.username; o.text=s.username; document.getElementById('u_staff_list').add(o); });
+            document.getElementById('uinf').innerHTML = `<p class="font-bold">${u.username}</p><p class="text-[10px] opacity-70">${u.role} | ${u.shift||''}</p>`;
+            document.getElementById('dt').valueAsDate = new Date();
+            if(u.role === 'متابعة') {
+                document.getElementById('fol').classList.remove('hidden');
+                document.getElementById('ttl').innerText = "تأكيد الواصل";
+                const { data } = await sb.from('users').select('username').eq('role','ردود');
+                data.forEach(s => { let o = document.createElement('option'); o.value=s.username; o.text=s.username; document.getElementById('slst').add(o); });
             }
         };
 
-        async function sendReport() {
-            const count = parseInt(document.getElementById('u_count').value);
-            const date = document.getElementById('u_date').value;
-            const target = (user.role === 'متابعة') ? document.getElementById('u_staff_list').value : user.username;
-            
-            let pts = 0;
-            if(user.role === 'ردود') { if(count >= 35) pts=2; else if(count>=25) pts=1; }
+        async function send() {
+            const c = parseInt(document.getElementById('cnt').value);
+            const d = document.getElementById('dt').value;
+            const t = (u.role === 'متابعة') ? document.getElementById('slst').value : u.username;
+            let p = (u.role === 'ردود' && c >= 35) ? 2 : (u.role === 'ردود' && c >= 25 ? 1 : 0);
 
-            const d = { employee_username: target, report_date: date };
-            if(user.role === 'ردود') { d.bookings_count = count; d.bonus_points = pts; }
-            else { d.confirmed_count = count; }
+            const r = { employee_username: t, report_date: d };
+            if(u.role === 'ردود') { r.bookings_count = c; r.bonus_points = p; } else { r.confirmed_count = c; }
 
-            const { error } = await _supabase.from('bookings_reports').upsert([d], { onConflict: 'employee_username,report_date' });
-            document.getElementById('st').innerText = error ? "❌ خطأ في الحفظ" : "✅ تم الإرسال بنجاح";
-            document.getElementById('st').classList.remove('hidden');
+            const { error } = await sb.from('bookings_reports').upsert([r], { onConflict: 'employee_username,report_date' });
+            document.getElementById('msg').innerText = error ? "❌ فشل" : "✅ تم بنجاح";
+            document.getElementById('msg').classList.remove('hidden');
         }
     </script>
 </body>
