@@ -1,60 +1,33 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>دخول النظام | Business System</title>
+    <meta charset="UTF-8"><title>تسجيل الدخول</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
-    <style>body { font-family: 'Tajawal', sans-serif; }</style>
 </head>
-<body class="bg-slate-900 flex items-center justify-center min-h-screen p-4">
-    <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-sm">
-        <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-slate-800">مرحباً بك</h1>
-            <p class="text-slate-500 mt-2">نظام الإدارة المتكامل</p>
-        </div>
-        
-        <div class="space-y-4">
-            <input type="text" id="user" placeholder="اسم المستخدم أو الرمز" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all text-center">
-            <input type="password" id="pass" placeholder="كلمة المرور" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all text-center">
-            <button onclick="handleLogin()" id="loginBtn" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-blue-700 active:scale-95 transition-all">دخول</button>
-        </div>
-        <p id="err" class="text-red-500 text-center mt-4 hidden font-bold">بيانات الدخول غير صحيحة!</p>
+<body class="bg-slate-900 flex items-center justify-center min-h-screen font-sans">
+    <div class="bg-white p-8 rounded-3xl shadow-2xl w-96 space-y-6">
+        <h1 class="text-2xl font-bold text-center text-slate-800">نظام إدارة العمل</h1>
+        <input type="text" id="login_id" placeholder="الاسم أو الرمز" class="w-full p-4 border rounded-2xl text-center outline-none focus:ring-2 focus:ring-blue-500">
+        <input type="password" id="login_pass" placeholder="كلمة المرور" class="w-full p-4 border rounded-2xl text-center outline-none">
+        <button onclick="login()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold hover:bg-blue-700 transition-all">دخول</button>
     </div>
-
     <script>
         const SB_URL = 'https://iqagigpqwwtvriqvlfbv.supabase.co';
         const SB_KEY = 'sb_publishable_5xbaPlWHgjeeaIwceEFRrQ_d9aZ6Zax';
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-        async function handleLogin() {
-            const u = document.getElementById('user').value;
-            const p = document.getElementById('pass').value;
-            const btn = document.getElementById('loginBtn');
+        async function login() {
+            const id = document.getElementById('login_id').value;
+            const pass = document.getElementById('login_pass').value;
+            const { data } = await _supabase.from('users').select('*').or(`username.eq.${id},employee_code.eq.${id}`).eq('password', pass).single();
             
-            btn.innerText = "جاري التحقق...";
-            
-            const { data, error } = await _supabase
-                .from('users')
-                .select('*')
-                .or(`username.eq.${u},employee_code.eq.${u}`)
-                .eq('password', p)
-                .single();
-
-            if (data) {
-                // حفظ بيانات الجلسة في المتصفح
+            if(data) {
                 localStorage.setItem('user_session', JSON.stringify(data));
-                
-                // التحويل حسب الرتبة
-                if (data.role === 'مدير') window.location.href = 'admin.html';
-                else if (data.role === 'مروج') window.location.href = 'promoter.html';
+                if(data.role === 'مدير') window.location.href = 'admin.html';
+                else if(data.role === 'مروج') window.location.href = 'promoter.html';
                 else window.location.href = 'staff.html';
-            } else {
-                document.getElementById('err').classList.remove('hidden');
-                btn.innerText = "دخول";
-            }
+            } else alert("بيانات الدخول غير صحيحة");
         }
     </script>
 </body>
