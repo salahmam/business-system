@@ -22,13 +22,13 @@
             <button onclick="location.reload()" class="bg-blue-600 text-white px-3 py-2 rounded-xl text-xs font-bold shadow-lg active:scale-95 transition-all">🔄 تحديث</button>
             <div>
                 <h2 class="font-bold text-sm text-blue-400">صلاح الخليفة</h2>
-                <p class="text-[9px] text-slate-400 uppercase italic">التحكم المركزي</p>
+                <p class="text-[9px] text-slate-400 uppercase italic text-right">التحكم المركزي</p>
             </div>
         </div>
         <button onclick="localStorage.clear(); location.href='index.html'" class="bg-red-500/20 text-red-400 px-4 py-2 rounded-xl text-xs font-bold border border-red-500/20">خروج</button>
     </header>
 
-    <div class="p-4 max-w-4xl mx-auto space-y-6">
+    <div class="p-4 max-w-4xl mx-auto space-y-6 text-right">
         
         <div class="grid grid-cols-2 gap-3">
             <button onclick="openAddModal()" class="bg-blue-600 text-white p-4 rounded-2xl font-bold shadow-lg text-sm active:scale-95">➕ إضافة موظف</button>
@@ -42,14 +42,15 @@
 
         <div class="bg-slate-900 p-5 rounded-3xl shadow-2xl border border-slate-800">
             <h3 class="font-bold mb-4 text-white flex items-center gap-2 text-sm">
-                <span class="w-2 h-5 bg-blue-500 rounded-full"></span> 💵 إجمالي الصرف حسب التيم
+                <span class="w-2 h-5 bg-blue-500 rounded-full"></span> 💵 أداء التيمات (تجميع مالي)
             </h3>
             <div class="overflow-x-auto">
                 <table class="w-full text-right text-xs">
                     <thead class="text-slate-500 border-b border-slate-800">
                         <tr>
-                            <th class="p-3">اسم التيم</th>
-                            <th class="p-3 text-center">المبلغ المصروف</th>
+                            <th class="p-3">التيم</th>
+                            <th class="p-3 text-center">الصرف</th>
+                            <th class="p-3 text-center text-emerald-400">الحجوزات</th>
                         </tr>
                     </thead>
                     <tbody id="team_body" class="text-slate-300 font-bold"></tbody>
@@ -86,33 +87,33 @@
         <div class="bg-white p-6 rounded-[2rem] w-full max-w-md space-y-4 shadow-2xl">
             <h3 id="modal_title" class="font-black text-center border-b pb-2">بيانات الموظف</h3>
             <div class="flex flex-col gap-2">
-                <input id="en" placeholder="اسم المستخدم (Username)" class="p-4 bg-slate-50 border rounded-2xl text-center font-bold outline-none">
+                <input id="en" placeholder="الاسم (Username)" class="p-4 bg-slate-50 border rounded-2xl text-center font-bold outline-none">
                 <input id="ep" placeholder="الباسورد" class="p-4 bg-slate-50 border rounded-2xl text-center outline-none">
-                <input id="ec" placeholder="كود الموظف" class="p-4 bg-slate-50 border rounded-2xl text-center font-black text-blue-600 outline-none">
+                <input id="ec" placeholder="الكود" class="p-4 bg-slate-50 border rounded-2xl text-center font-black text-blue-600 outline-none">
                 <select id="er" class="p-4 bg-slate-50 border rounded-2xl font-bold text-center outline-none">
                     <option value="ردود">ردود</option>
                     <option value="مروج">مروج</option>
                 </select>
                 <input id="et" placeholder="التيم" class="p-4 bg-slate-50 border rounded-2xl text-center font-bold outline-none">
-                <input id="ey" type="number" placeholder="الراتب الأساسي" class="p-4 bg-slate-50 border rounded-2xl text-center font-bold outline-none">
+                <input id="ey" type="number" placeholder="الراتب" class="p-4 bg-slate-50 border rounded-2xl text-center font-bold outline-none">
             </div>
             <div class="grid grid-cols-2 gap-3 pt-2">
-                <button onclick="save()" class="bg-blue-600 text-white p-4 rounded-2xl font-bold active:scale-95">حفظ البيانات</button>
-                <button onclick="toggleModal('add_emp_modal')" class="bg-slate-200 p-4 rounded-2xl font-bold active:scale-95">إغلاق</button>
+                <button onclick="save()" class="bg-blue-600 text-white p-4 rounded-2xl font-bold">حفظ</button>
+                <button onclick="toggleModal('add_emp_modal')" class="bg-slate-200 p-4 rounded-2xl font-bold">إلغاء</button>
             </div>
         </div>
     </div>
 
     <div id="m" class="modal">
         <div class="bg-white p-8 rounded-[2.5rem] w-full max-w-[320px] space-y-3 text-center shadow-2xl">
-            <h4 id="mn" class="font-black text-lg border-b pb-3 uppercase tracking-tighter">الموظف</h4>
+            <h4 id="mn" class="font-black text-lg border-b pb-3 uppercase">الموظف</h4>
             <div class="flex flex-col gap-2">
-                <button onclick="editEmp()" class="w-full py-3 bg-blue-50 text-blue-600 rounded-xl font-bold border border-blue-100 active:scale-95">✏️ تعديل</button>
-                <button onclick="adj('bonus')" class="w-full py-3 bg-emerald-50 text-emerald-600 rounded-xl font-bold border border-emerald-100 active:scale-95">💰 مكافأة</button>
-                <button onclick="adj('absence')" class="w-full py-3 bg-orange-50 text-orange-600 rounded-xl font-bold border border-orange-100 active:scale-95">⏳ خصم</button>
-                <button onclick="kill()" class="w-full py-3 bg-red-50 text-red-600 rounded-xl font-bold border border-red-100 active:scale-95">🗑️ حذف</button>
+                <button onclick="editEmp()" class="w-full py-3 bg-blue-50 text-blue-600 rounded-xl font-bold border border-blue-100">✏️ تعديل</button>
+                <button onclick="adj('bonus')" class="w-full py-3 bg-emerald-50 text-emerald-600 rounded-xl font-bold border border-emerald-100">💰 مكافأة</button>
+                <button onclick="adj('absence')" class="w-full py-3 bg-orange-50 text-orange-600 rounded-xl font-bold border border-orange-100">⏳ خصم</button>
+                <button onclick="kill()" class="w-full py-3 bg-red-50 text-red-600 rounded-xl font-bold border border-red-100">🗑️ حذف</button>
             </div>
-            <button onclick="toggleModal('m')" class="text-slate-400 text-xs mt-2">إغلاق النافذة</button>
+            <button onclick="toggleModal('m')" class="text-slate-400 text-xs mt-2 underline">إغلاق</button>
         </div>
     </div>
 
@@ -126,8 +127,8 @@
 
         async function getRep() {
             const d = document.getElementById('rep_date').value;
-            
-            // جلب البيانات من جدول الحجوزات وجدول المصاريف بناءً على التاريخ المختار
+            if(!d) return;
+
             const { data: reports } = await sb.from('bookings_reports').select('*').eq('report_date', d);
             const { data: expenses } = await sb.from('marketing_expenses').select('*').eq('expense_date', d);
             
@@ -135,21 +136,18 @@
             const empBody = document.getElementById('emp_report_body');
             teamBody.innerHTML = ""; empBody.innerHTML = "";
 
-            // 1. معالجة الصرف (حسب التيم)
             const teamSummary = {};
+
+            // 1. جمع الصرف
             if (expenses) {
                 expenses.forEach(ex => {
                     const t = ex.target_team || "بدون تيم";
-                    if (!teamSummary[t]) teamSummary[t] = 0;
-                    teamSummary[t] += Number(ex.amount_spent) || 0;
+                    if (!teamSummary[t]) teamSummary[t] = { spent: 0, books: 0 };
+                    teamSummary[t].spent += Number(ex.amount_spent) || 0;
                 });
             }
-            
-            for (let t in teamSummary) {
-                teamBody.innerHTML += `<tr class="border-b border-slate-800"><td class="p-4 text-blue-400">${t}</td><td class="p-4 text-center text-red-400 font-black">${teamSummary[t].toLocaleString()} د.ع</td></tr>`;
-            }
 
-            // 2. معالجة الأداء (حسب الموظف)
+            // 2. جمع الحجوزات
             if (reports) {
                 reports.forEach(r => {
                     const user = allUsers.find(u => u.username === r.employee_username);
@@ -157,6 +155,9 @@
                     const b = Number(r.bookings_count) || 0;
                     const c = Number(r.confirmed_count) || 0;
                     const ratio = b > 0 ? ((c / b) * 100).toFixed(1) : "0.0";
+
+                    if (!teamSummary[tName]) teamSummary[tName] = { spent: 0, books: 0 };
+                    teamSummary[tName].books += b;
 
                     empBody.innerHTML += `
                     <tr class="border-b border-slate-50">
@@ -166,6 +167,38 @@
                         <td class="p-3 text-center text-purple-600 font-black">${ratio}%</td>
                     </tr>`;
                 });
+            }
+
+            // 3. عرض النتائج والإجمالي العام
+            let totalAllS = 0; let totalAllB = 0;
+            for (let t in teamSummary) {
+                const s = teamSummary[t].spent;
+                const b = teamSummary[t].books;
+                const cpl = b > 0 ? (s / b).toFixed(0) : 0;
+                totalAllS += s; totalAllB += b;
+
+                teamBody.innerHTML += `
+                <tr class="border-b border-slate-800">
+                    <td class="p-4 font-bold text-blue-400 italic">${t}</td>
+                    <td class="p-4 text-center">
+                        <div class="text-red-400 font-black text-sm">${s.toLocaleString()} د.ع</div>
+                        <div class="text-[9px] text-slate-500">سعر الطلب: ${Number(cpl).toLocaleString()}</div>
+                    </td>
+                    <td class="p-4 text-center text-emerald-400 font-black text-lg">${b}</td>
+                </tr>`;
+            }
+
+            if (totalAllB > 0 || totalAllS > 0) {
+                const avg = totalAllB > 0 ? (totalAllS / totalAllB).toFixed(0) : 0;
+                teamBody.innerHTML += `
+                <tr class="bg-slate-800 font-black shadow-inner">
+                    <td class="p-4 text-white">الإجمالي العام</td>
+                    <td class="p-4 text-center">
+                        <div class="text-red-400 text-lg">${totalAllS.toLocaleString()}</div>
+                        <div class="text-[9px] text-slate-300">معدل الطلب: ${Number(avg).toLocaleString()}</div>
+                    </td>
+                    <td class="p-4 text-center text-emerald-400 text-2xl">${totalAllB}</td>
+                </tr>`;
             }
         }
 
@@ -177,7 +210,7 @@
             allUsers.forEach(e => {
                 list.innerHTML += `
                 <div class="bg-white p-3 rounded-2xl border border-slate-200 flex justify-between items-center shadow-sm">
-                    <div><p class="font-bold text-slate-800 text-sm">${e.username}</p><p class="text-[10px] text-slate-500">${e.role} | ${e.team || 'عام'}</p></div>
+                    <div class="text-right"><p class="font-bold text-slate-800 text-sm">${e.username}</p><p class="text-[10px] text-slate-500">${e.role} | ${e.team || 'عام'}</p></div>
                     <button onclick="pop('${e.id}')" class="w-10 h-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center border">⚙️</button>
                 </div>`;
             });
@@ -185,33 +218,11 @@
         }
 
         function pop(id) { cur = allUsers.find(u => u.id == id); document.getElementById('mn').innerText = cur.username; toggleModal('m'); }
-
-        function openAddModal() {
-            cur = null; document.getElementById('modal_title').innerText = "إضافة موظف جديد";
-            ['en','ep','ec','et','ey'].forEach(id => document.getElementById(id).value = "");
-            toggleModal('add_emp_modal');
-        }
-
-        function editEmp() {
-            toggleModal('m'); document.getElementById('modal_title').innerText = "تعديل: " + cur.username;
-            document.getElementById('en').value = cur.username; document.getElementById('ep').value = cur.password;
-            document.getElementById('ec').value = cur.employee_code; document.getElementById('er').value = cur.role;
-            document.getElementById('et').value = cur.team || ""; document.getElementById('ey').value = cur.salary || 0;
-            toggleModal('add_emp_modal');
-        }
-
-        async function save() {
-            const obj = { username: document.getElementById('en').value, password: document.getElementById('ep').value, employee_code: document.getElementById('ec').value, role: document.getElementById('er').value, team: document.getElementById('et').value, salary: document.getElementById('ey').value };
-            const res = cur ? await sb.from('users').update(obj).eq('id', cur.id) : await sb.from('users').insert([obj]);
-            location.reload();
-        }
-
-        async function kill() { if(confirm('حذف الموظف نهائياً؟')) { await sb.from('users').delete().eq('id',cur.id); location.reload(); } }
-
-        async function adj(t) {
-            const { value: val } = await Swal.fire({ title:'أدخل المبلغ', input:'number', showCancelButton:true });
-            if(val) { await sb.from('adjustments').insert([{ user_id:cur.id, type:t, amount:val, reason:t }]); Swal.fire('تم الحفظ', '', 'success'); toggleModal('m'); }
-        }
+        function openAddModal() { cur = null; document.getElementById('modal_title').innerText = "إضافة موظف جديد"; ['en','ep','ec','et','ey'].forEach(id => document.getElementById(id).value = ""); toggleModal('add_emp_modal'); }
+        function editEmp() { toggleModal('m'); document.getElementById('modal_title').innerText = "تعديل: " + cur.username; document.getElementById('en').value = cur.username; document.getElementById('ep').value = cur.password; document.getElementById('ec').value = cur.employee_code; document.getElementById('er').value = cur.role; document.getElementById('et').value = cur.team || ""; document.getElementById('ey').value = cur.salary || 0; toggleModal('add_emp_modal'); }
+        async function save() { const obj = { username: document.getElementById('en').value, password: document.getElementById('ep').value, employee_code: document.getElementById('ec').value, role: document.getElementById('er').value, team: document.getElementById('et').value, salary: document.getElementById('ey').value }; await (cur ? sb.from('users').update(obj).eq('id', cur.id) : sb.from('users').insert([obj])); location.reload(); }
+        async function kill() { if(confirm('حذف نهائي؟')) { await sb.from('users').delete().eq('id',cur.id); location.reload(); } }
+        async function adj(t) { const { value: val } = await Swal.fire({ title:'أدخل المبلغ', input:'number', showCancelButton:true }); if(val) { await sb.from('adjustments').insert([{ user_id:cur.id, type:t, amount:val, reason:t }]); Swal.fire('تم', '', 'success'); toggleModal('m'); } }
 
         window.onload = () => { document.getElementById('rep_date').valueAsDate = new Date(); load(); };
     </script>
