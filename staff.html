@@ -3,53 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>واجهة العمل | Business System</title>
+    <title>الموظف | نظام الحجوزات</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <style>body { font-family: 'Tajawal', sans-serif; }</style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-
-    <header class="bg-indigo-700 text-white p-4 flex justify-between items-center shadow-lg">
-        <div>
-            <span id="user_info" class="font-bold block text-sm italic">جاري التحميل...</span>
-            <span id="user_code" class="text-[10px] opacity-80">الرمز الموحد: --</span>
-        </div>
-        <button onclick="logout()" class="bg-indigo-900 px-3 py-1 rounded-lg text-xs">خروج</button>
+<body class="bg-slate-50 min-h-screen">
+    <header class="bg-indigo-600 text-white p-4 flex justify-between items-center shadow-lg">
+        <div><p id="u_name" class="font-bold text-sm"></p><p id="u_shift" class="text-[10px] opacity-70"></p></div>
+        <button onclick="localStorage.clear(); window.location.href='index.html'" class="text-xs bg-indigo-800 px-2 py-1 rounded">خروج</button>
     </header>
 
     <div class="p-4 max-w-lg mx-auto space-y-4">
-        
-        <div class="bg-white p-4 rounded-2xl shadow-sm border grid grid-cols-2 gap-3 text-center">
-            <div class="border-l">
-                <span class="block text-[10px] text-gray-500">أيام العمل</span>
-                <span id="work_days" class="font-bold text-indigo-600 text-xl">0</span>
-            </div>
-            <div>
-                <span class="block text-[10px] text-gray-500">المكافآت</span>
-                <span id="total_bonus" class="font-bold text-green-600 text-xl">0</span>
-            </div>
+        <div class="bg-white p-4 rounded-2xl shadow-sm border grid grid-cols-2 text-center divide-x divide-x-reverse">
+            <div><span class="block text-[10px] text-gray-400">أيام العمل</span><span id="days" class="text-xl font-bold text-indigo-600">0</span></div>
+            <div><span class="block text-[10px] text-gray-400">المكافآت</span><span id="bonus" class="text-xl font-bold text-green-600">0</span></div>
         </div>
 
         <div class="bg-white p-6 rounded-2xl shadow-sm border space-y-4">
-            <h2 id="action_title" class="font-bold text-gray-700 border-r-4 border-indigo-600 pr-2">إرسال التقرير اليومي</h2>
+            <h3 id="title" class="font-bold text-gray-700 border-r-4 border-indigo-600 pr-2">إرسال تقرير اليوم</h3>
+            <input type="date" id="r_date" class="w-full p-3 bg-gray-50 border rounded-xl text-center font-bold">
             
-            <input type="date" id="report_date" class="w-full p-3 bg-gray-50 border rounded-xl outline-none text-center font-bold">
-
-            <div id="count_input_area">
-                <label id="label_text" class="block text-xs text-gray-400 mb-1 mr-1">عدد الحجوزات اليوم</label>
-                <input type="number" id="daily_count" placeholder="0" class="w-full p-4 bg-gray-50 border rounded-xl outline-none text-2xl font-bold text-center text-indigo-600">
+            <div id="f_list_div" class="hidden">
+                <label class="text-xs text-gray-400 mr-1">اختر الموظف (للمتابعة):</label>
+                <select id="staff_list" class="w-full p-3 bg-gray-50 border rounded-xl font-bold"></select>
             </div>
 
-            <div id="followup_area" class="hidden space-y-2">
-                <label class="block text-xs text-gray-400 mb-1 mr-1">اختر موظف الردود</label>
-                <select id="staff_list" class="w-full p-3 bg-gray-50 border rounded-xl outline-none font-bold text-gray-700"></select>
-            </div>
-
-            <button onclick="submitReport()" id="subBtn" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg active:scale-95 transition-all">إرسال البيانات الآن</button>
-            
-            <div id="status" class="text-center text-sm font-bold hidden p-2 rounded-lg"></div>
+            <input type="number" id="r_count" placeholder="العدد" class="w-full p-4 bg-gray-50 border rounded-xl text-center text-2xl font-bold text-indigo-600">
+            <button onclick="send()" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold">إرسال الآن ✅</button>
+            <p id="msg" class="text-center text-xs font-bold hidden"></p>
         </div>
     </div>
 
@@ -57,88 +40,46 @@
         const SB_URL = 'https://iqagigpqwwtvriqvlfbv.supabase.co';
         const SB_KEY = 'sb_publishable_5xbaPlWHgjeeaIwceEFRrQ_d9aZ6Zax';
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
-
-        let user = JSON.parse(localStorage.getItem('user_session'));
+        const user = JSON.parse(localStorage.getItem('user_session'));
 
         window.onload = async () => {
-            if (!user) { window.location.href = 'index.html'; return; }
-            
-            document.getElementById('user_info').innerText = `${user.username} (${user.role})`;
-            document.getElementById('user_code').innerText = `الرمز الموحد: ${user.employee_code || user.team}`;
-            document.getElementById('report_date').valueAsDate = new Date();
-
-            if (user.role === 'متابعة') {
-                document.getElementById('action_title').innerText = "تأكيد الواصل (متابعة)";
-                document.getElementById('label_text').innerText = "عدد الواصل الفعلي";
-                document.getElementById('followup_area').classList.remove('hidden');
-                loadStaffList();
+            if(!user) window.location.href='index.html';
+            document.getElementById('u_name').innerText = user.username;
+            document.getElementById('u_shift').innerText = `تيم ${user.team || '--'} | ${user.shift || '--'}`;
+            document.getElementById('r_date').valueAsDate = new Date();
+            if(user.role === 'متابعة') {
+                document.getElementById('f_list_div').classList.remove('hidden');
+                document.getElementById('title').innerText = "تأكيد الواصل";
+                const { data } = await _supabase.from('users').select('username').eq('role', 'ردود');
+                data.forEach(s => { let o = document.createElement('option'); o.value=s.username; o.text=s.username; document.getElementById('staff_list').add(o); });
             }
-            loadUserStats();
+            loadStats();
         };
 
-        async function loadStaffList() {
-            const { data } = await _supabase.from('users').select('username, employee_code').eq('role', 'ردود');
-            const select = document.getElementById('staff_list');
-            if(data) data.forEach(s => {
-                let opt = document.createElement('option');
-                opt.value = s.username;
-                opt.text = `${s.username} (${s.employee_code})`;
-                select.add(opt);
-            });
+        async function send() {
+            const count = parseInt(document.getElementById('r_count').value);
+            const date = document.getElementById('r_date').value;
+            const target = (user.role === 'متابعة') ? document.getElementById('staff_list').value : user.username;
+
+            let pts = 0;
+            if(user.role === 'ردود') { if(count > 35) pts=2; else if(count>=25) pts=1; }
+
+            const d = { employee_username: target, report_date: date };
+            if(user.role === 'ردود') { d.bookings_count = count; d.bonus_points = pts; }
+            else { d.confirmed_count = count; }
+
+            const { error } = await _supabase.from('bookings_reports').upsert([d], { onConflict: 'employee_username,report_date' });
+            const msg = document.getElementById('msg');
+            msg.classList.remove('hidden');
+            if(error) { msg.innerText = "❌ خطأ"; msg.className="text-red-500 text-center text-xs font-bold"; }
+            else { msg.innerText = "✅ تم الحفظ"; msg.className="text-green-500 text-center text-xs font-bold"; loadStats(); }
         }
 
-        async function submitReport() {
-            const btn = document.getElementById('subBtn');
-            const status = document.getElementById('status');
-            const date = document.getElementById('report_date').value;
-            const count = parseInt(document.getElementById('daily_count').value);
-            const targetUser = (user.role === 'متابعة') ? document.getElementById('staff_list').value : user.username;
-
-            if (!count || !targetUser) return alert("يرجى إكمال البيانات!");
-
-            btn.disabled = true;
-            btn.innerText = "جاري الحفظ...";
-
-            let points = 0;
-            if (user.role === 'ردود') {
-                if (count > 35) points = 2; else if (count >= 25) points = 1;
-            }
-
-            // التأكد من أسماء الأعمدة كما في جداولك
-            const reportData = {
-                employee_username: targetUser,
-                report_date: date,
-                bookings_count: (user.role === 'ردود') ? count : 0,
-                confirmed_count: (user.role === 'متابعة') ? count : 0,
-                bonus_points: points
-            };
-
-            const { error } = await _supabase.from('bookings_reports').insert([reportData]);
-
-            status.classList.remove('hidden');
-            if (error) {
-                status.innerText = "❌ خطأ: " + (error.message || "فشل الإرسال");
-                status.className = "text-red-500 text-center font-bold bg-red-50 p-2 rounded-lg";
-            } else {
-                status.innerText = "✅ تم الحفظ بنجاح!";
-                status.className = "text-green-600 text-center font-bold bg-green-50 p-2 rounded-lg";
-                document.getElementById('daily_count').value = "";
-                loadUserStats();
-            }
-            btn.disabled = false;
-            btn.innerText = "إرسال البيانات الآن";
-        }
-
-        async function loadUserStats() {
+        async function loadStats() {
             const { data } = await _supabase.from('bookings_reports').select('*').eq('employee_username', user.username);
-            if (data) {
-                document.getElementById('work_days').innerText = data.length;
-                const totalBonus = data.reduce((sum, row) => sum + (row.bonus_points || 0), 0);
-                document.getElementById('total_bonus').innerText = totalBonus;
-            }
+            document.getElementById('days').innerText = data.length;
+            document.getElementById('bonus').innerText = data.reduce((s, r) => s + (r.bonus_points || 0), 0);
         }
-
-        function logout() { localStorage.clear(); window.location.href = 'index.html'; }
     </script>
 </body>
 </html>
