@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة العمليات</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Tajawal', sans-serif; }</style>
+</head>
+<body class="bg-gray-50 text-gray-800 pb-10">
+
+    <header class="bg-blue-600 text-white p-4 shadow-md text-center">
+        <h1 class="text-xl font-bold">لوحة تحكم النظام</h1>
+    </header>
+
+    <div class="max-w-md mx-auto mt-6 px-4">
+        
+        <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+            <h2 class="text-lg font-bold mb-4 border-b pb-2 text-blue-600">إدخال تقرير اليوم</h2>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm mb-1 font-medium text-gray-600">اسم الموظف</label>
+                    <input type="text" id="emp_name" placeholder="مثال: أحمد" class="w-full p-3 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-blue-400">
+                </div>
+
+                <div>
+                    <label class="block text-sm mb-1 font-medium text-gray-600">نوع التيم</label>
+                    <select id="team_name" class="w-full p-3 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-blue-400">
+                        <option value="A">تيم A</option>
+                        <option value="B">تيم B</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm mb-1 font-medium text-gray-600">عدد الحجوزات</label>
+                    <input type="number" id="bookings" placeholder="0" class="w-full p-3 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-blue-400">
+                </div>
+
+                <button onclick="sendData()" id="submitBtn" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg active:scale-95">
+                    إرسال التقرير بنجاح ✅
+                </button>
+            </div>
+
+            <div id="statusMsg" class="mt-4 text-center hidden p-3 rounded-lg"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- ضع بياناتك هنا ---
+        const SB_URL = 'https://iqagigpqwwtvriqvlfbv.supabase.co';
+        const SB_KEY = sb_publishable_5xbaPlWHgjeeaIwceEFRrQ_d9aZ6Zax;
+        const _supabase = supabase.createClient(SB_URL, SB_KEY);
+
+        async function sendData() {
+            const name = document.getElementById('emp_name').value;
+            const team = document.getElementById('team_name').value;
+            const count = document.getElementById('bookings').value;
+            const btn = document.getElementById('submitBtn');
+            const msg = document.getElementById('statusMsg');
+
+            if(!name || !count) {
+                alert("أكمل البيانات أولاً يا بطل!");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "جاري الحفظ في SQL...";
+
+            // حساب المكافأة (نظام الـ 25 والـ 35)
+            let bonus = 0;
+            if(count > 35) bonus = 2;
+            else if(count >= 25) bonus = 1;
+
+            const { error } = await _supabase
+                .from('daily_reports')
+                .insert([{ 
+                    employee_name: name, 
+                    team_name: team,
+                    bookings_count: parseInt(count),
+                    bonus_points: bonus
+                }]);
+
+            msg.classList.remove('hidden');
+            if (error) {
+                msg.innerText = "فشل الإرسال: " + error.message;
+                msg.className = "mt-4 text-center p-3 rounded-lg bg-red-100 text-red-700 font-bold";
+            } else {
+                msg.innerText = `تم الحفظ! مكافأتك اليوم: ${bonus} نقطة 🚀`;
+                msg.className = "mt-4 text-center p-3 rounded-lg bg-green-100 text-green-700 font-bold";
+                document.getElementById('bookings').value = '';
+            }
+            
+            btn.disabled = false;
+            btn.innerText = "إرسال التقرير بنجاح ✅";
+        }
+    </script>
+</body>
+</html>
