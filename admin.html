@@ -6,12 +6,15 @@
     <title>إدارة النظام | صلاح الخليفة</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Tajawal', sans-serif; }
         .modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 50; padding: 1rem; }
         .modal.active { display: flex; }
         .glass-card { background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(226, 232, 240, 1); }
+        /* تحسين مظهر SweetAlert ليتناسب مع نظامك */
+        .swal2-popup { border-radius: 2rem !important; font-family: 'Tajawal', sans-serif !important; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen pb-24">
@@ -110,7 +113,12 @@
                 shift: document.getElementById('es').value || null,
                 salary: document.getElementById('ey').value || 0
             }]);
-            if(error) alert("خطأ: " + error.message); else location.reload();
+            if(error) {
+                Swal.fire({ icon: 'error', title: 'خطأ في الحفظ', text: error.message, confirmButtonText: 'حسناً' });
+            } else {
+                Swal.fire({ icon: 'success', title: 'تمت الإضافة', text: 'تم تسجيل الموظف بنجاح ✅', showConfirmButton: false, timer: 1500 })
+                .then(() => location.reload());
+            }
         }
 
         async function getRep() {
@@ -141,13 +149,42 @@
 
         function pop(id, n) { cur={id, n}; document.getElementById('mn').innerText=n; toggleModal('m'); }
 
-        async function kill() { if(confirm("هل أنت متأكد من حذف الموظف نهائياً؟")) { await sb.from('users').delete().eq('id', cur.id); location.reload(); } }
+        async function kill() { 
+            Swal.fire({
+                title: 'هل أنت متأكد؟',
+                text: "سيتم حذف الموظف (" + cur.n + ") نهائياً!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'نعم، حذف نهائي',
+                cancelButtonText: 'إلغاء'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    await sb.from('users').delete().eq('id', cur.id);
+                    Swal.fire({ title: 'تم الحذف!', icon: 'success', showConfirmButton: false, timer: 1000 })
+                    .then(() => location.reload());
+                }
+            });
+        }
 
         async function adj(t) { 
-            const a = prompt(t === 'bonus' ? "أدخل قيمة المكافأة:" : "أدخل قيمة الخصم:"); 
-            if(a) { 
-                await sb.from('adjustments').insert([{ user_id:cur.id, type:t, amount:a, reason:t }]); 
-                alert("تمت العملية المالية بنجاح ✅");
+            const title = (t === 'bonus' ? "إضافة مكافأة" : "تسجيل خصم");
+            const label = (t === 'bonus' ? "أدخل قيمة المكافأة (د.ع):" : "أدخل قيمة الخصم (د.ع):");
+            
+            const { value: amount } = await Swal.fire({
+                title: title,
+                input: 'number',
+                inputLabel: label,
+                inputPlaceholder: '0',
+                showCancelButton: true,
+                confirmButtonText: 'تأكيد',
+                cancelButtonText: 'إلغاء'
+            });
+
+            if(amount) { 
+                await sb.from('adjustments').insert([{ user_id:cur.id, type:t, amount:amount, reason:t }]); 
+                Swal.fire({ title: 'نجاح!', text: 'تمت العملية المالية بنجاح ✅', icon: 'success', showConfirmButton: false, timer: 1500 });
                 toggleModal('m');
             }
         }
