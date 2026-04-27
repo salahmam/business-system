@@ -1,141 +1,46 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>واجهة المروج | Business System</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
-    <style>body { font-family: 'Tajawal', sans-serif; }</style>
-</head>
-<body class="bg-blue-50 min-h-screen">
+<div class="bg-white p-4 rounded-xl shadow-sm border mb-4">
+    <label class="block text-xs text-gray-400 mb-1">عرض تقرير يوم سابق:</label>
+    <input type="date" id="filter_date" onchange="calculateCPL()" class="w-full p-2 bg-gray-50 border rounded-lg outline-none text-sm">
+</div>
 
-    <header class="bg-blue-600 text-white p-4 flex justify-between items-center shadow-md">
-        <div>
-            <span id="user_display" class="font-bold">مرحباً مروج..</span>
-            <span id="team_display" class="block text-[10px] bg-blue-700 px-2 py-1 rounded mt-1 text-center">تيم --</span>
-        </div>
-        <button onclick="logout()" class="bg-blue-800 px-3 py-1 rounded-lg text-xs">خروج</button>
-    </header>
+<script>
+// الدالة المحدثة لجلب البيانات تلقائياً
+async function calculateCPL() {
+    const selectedDate = document.getElementById('filter_date').value || new Date().toISOString().split('T')[0];
+    
+    // 1. جلب مجموع الصرف لتيم المروج في التاريخ المحدد
+    const { data: expData } = await _supabase
+        .from('marketing_expenses')
+        .select('amount_spent')
+        .eq('target_team', currentUser.team)
+        .eq('expense_date', selectedDate);
 
-    <div class="p-4 max-w-lg mx-auto space-y-4">
-        
-        <div class="bg-white p-6 rounded-2xl shadow-sm border text-center">
-            <h3 class="text-gray-500 text-sm mb-2">سعر الطلب اليومي (CPL)</h3>
-            <div id="cpl_display" class="text-4xl font-bold text-blue-600">0.00</div>
-            <p class="text-[10px] text-gray-400 mt-2">مجموع الصرف ÷ مجموع حجوزات التيم</p>
-        </div>
+    // 2. جلب الموظفين (الردود) الذين ينتمون لنفس تيم المروج
+    const { data: teamUsers } = await _supabase
+        .from('users')
+        .select('username')
+        .eq('team', currentUser.team)
+        .eq('role', 'ردود');
 
-        <div class="bg-white p-6 rounded-2xl shadow-sm border space-y-4">
-            <h2 class="font-bold text-gray-700 border-r-4 border-blue-600 pr-2">إدارة المصاريف اليومية</h2>
-            
-            <div>
-                <label class="block text-xs text-gray-500 mb-1">التاريخ</label>
-                <input type="date" id="exp_date" class="w-full p-3 bg-gray-50 border rounded-xl outline-none">
-            </div>
+    const userNames = teamUsers.map(u => u.username);
 
-            <div>
-                <label class="block text-xs text-gray-500 mb-1">المبلغ المصروف لهذا اليوم</label>
-                <input type="number" id="exp_amount" placeholder="0.00" class="w-full p-4 bg-gray-50 border rounded-xl outline-none text-2xl font-bold text-green-600 text-center">
-            </div>
+    // 3. جلب مجموع حجوزاتهم في ذلك التاريخ
+    const { data: bookData } = await _supabase
+        .from('bookings_reports')
+        .select('bookings_count')
+        .in('employee_username', userNames)
+        .eq('report_date', selectedDate);
 
-            <div>
-                <label class="block text-xs text-gray-500 mb-1">توجيه الصرف لتيم (اختياري)</label>
-                <input type="text" id="target_team" placeholder="مثلاً: تيم B" class="w-full p-3 bg-gray-50 border rounded-xl outline-none">
-                <p class="text-[9px] text-gray-400 mr-1 mt-1">* اتركه فارغاً إذا كان الصرف لتيمك الأساسي</p>
-            </div>
+    const totalSpend = expData.reduce((sum, item) => sum + parseFloat(item.amount_spent), 0);
+    const totalBooks = bookData.reduce((sum, item) => sum + (item.bookings_count || 0), 0);
 
-            <button onclick="saveExpense()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg active:scale-95 transition-all">حفظ وإرسال المصاريف</button>
-        </div>
+    document.getElementById('total_spend').innerText = totalSpend.toFixed(2);
+    document.getElementById('total_bookings').innerText = totalBooks;
 
-        <div class="grid grid-cols-2 gap-3">
-            <div class="bg-white p-4 rounded-xl shadow-sm border text-center">
-                <span class="block text-[10px] text-gray-500">إجمالي الصرف اليوم</span>
-                <span id="total_spend" class="font-bold text-gray-800">0</span>
-            </div>
-            <div class="bg-white p-4 rounded-xl shadow-sm border text-center">
-                <span class="block text-[10px] text-gray-500">إجمالي الحجوزات</span>
-                <span id="total_bookings" class="font-bold text-gray-800">0</span>
-            </div>
-        </div>
-
-    </div>
-
-    <script>
-        const SB_URL = 'https://iqagigpqwwtvriqvlfbv.supabase.co';
-        const SB_KEY = 'sb_publishable_5xbaPlWHgjeeaIwceEFRrQ_d9aZ6Zax';
-        const _supabase = supabase.createClient(SB_URL, SB_KEY);
-
-        let currentUser = null;
-
-        window.onload = async () => {
-            const session = JSON.parse(localStorage.getItem('user_session'));
-            if (!session || session.role !== 'مروج') window.location.href = 'index.html';
-            
-            currentUser = session;
-            document.getElementById('user_display').innerText = `مرحباً ${session.username}`;
-            document.getElementById('team_display').innerText = `تيم ${session.team}`;
-            document.getElementById('exp_date').valueAsDate = new Date();
-            
-            calculateCPL();
-        };
-
-        async function saveExpense() {
-            const amount = document.getElementById('exp_amount').value;
-            const date = document.getElementById('exp_date').value;
-            const tTeam = document.getElementById('target_team').value || currentUser.team;
-
-            if(!amount) return alert("يرجى إدخال المبلغ!");
-
-            const { error } = await _supabase.from('marketing_expenses').insert([{
-                promoter_username: currentUser.username,
-                target_team: tTeam,
-                amount_spent: parseFloat(amount),
-                expense_date: date
-            }]);
-
-            if(error) alert("خطأ في الحفظ");
-            else {
-                alert("تم حفظ المصاريف وتحديث سعر الطلب!");
-                location.reload();
-            }
-        }
-
-        async function calculateCPL() {
-            const today = new Date().toISOString().split('T')[0];
-            
-            // 1. جلب مجموع الصرف لتيم المروج اليوم
-            const { data: expData } = await _supabase
-                .from('marketing_expenses')
-                .select('amount_spent')
-                .eq('target_team', currentUser.team)
-                .eq('expense_date', today);
-
-            // 2. جلب مجموع حجوزات تيم المروج اليوم (من موظفي الردود)
-            // ملاحظة: سنحتاج لجلب المستخدمين الذين ينتمون لنفس التيم أولاً
-            const { data: teamUsers } = await _supabase.from('users').select('username').eq('team', currentUser.team);
-            const userNames = teamUsers.map(u => u.username);
-
-            const { data: bookData } = await _supabase
-                .from('bookings_reports')
-                .select('bookings_count')
-                .in('employee_username', userNames)
-                .eq('report_date', today);
-
-            const totalSpend = expData.reduce((sum, item) => sum + parseFloat(item.amount_spent), 0);
-            const totalBooks = bookData.reduce((sum, item) => sum + item.bookings_count, 0);
-
-            document.getElementById('total_spend').innerText = totalSpend;
-            document.getElementById('total_bookings').innerText = totalBooks;
-
-            if(totalBooks > 0) {
-                const cpl = (totalSpend / totalBooks).toFixed(2);
-                document.getElementById('cpl_display').innerText = cpl;
-            }
-        }
-
-        function logout() { localStorage.clear(); window.location.href = 'index.html'; }
-    </script>
-</body>
-</html>
+    if(totalBooks > 0) {
+        document.getElementById('cpl_display').innerText = (totalSpend / totalBooks).toFixed(2);
+    } else {
+        document.getElementById('cpl_display').innerText = "0.00";
+    }
+}
+</script>
