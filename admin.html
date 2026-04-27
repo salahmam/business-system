@@ -1,54 +1,54 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الإدارة | النظام المتكامل</title>
+    <meta charset="UTF-8"><title>لوحة المدير</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
-    <style>body { font-family: 'Tajawal', sans-serif; }</style>
+    <style>.modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 100; } .modal.active { display: flex; }</style>
 </head>
 <body class="bg-gray-100 min-h-screen">
     <header class="bg-slate-800 text-white p-4 flex justify-between items-center shadow-lg">
-        <h1 class="font-bold">لوحة التحكم المركزية</h1>
-        <button onclick="localStorage.clear(); window.location.href='index.html'" class="bg-red-600 px-4 py-2 rounded-lg text-sm">خروج</button>
+        <span class="font-bold">الإدارة العامة</span>
+        <button onclick="location.href='index.html'" class="bg-red-600 px-4 py-1 rounded text-xs">خروج</button>
     </header>
 
     <div class="p-4 max-w-6xl mx-auto space-y-6">
-        <div class="bg-white p-6 rounded-2xl shadow-sm border">
-            <h2 class="font-bold text-blue-600 mb-4 border-r-4 border-blue-600 pr-2">إضافة موظف جديد</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="add_form">
-                <input type="text" id="new_name" placeholder="الاسم الكامل" class="p-3 border rounded-xl">
-                <input type="text" id="new_pass" placeholder="كلمة المرور" class="p-3 border rounded-xl text-center">
-                <input type="text" id="new_code" placeholder="الرمز (مثال: B01)" class="p-3 border rounded-xl text-center">
-                <select id="new_role" onchange="toggleFields()" class="p-3 border rounded-xl bg-white font-bold">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border space-y-4">
+            <h2 class="font-bold border-r-4 border-blue-500 pr-2">إضافة موظف جديد</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <input id="n_name" placeholder="الاسم" class="p-3 border rounded-xl">
+                <input id="n_pass" placeholder="كلمة المرور" class="p-3 border rounded-xl">
+                <input id="n_code" placeholder="الرمز (A01)" class="p-3 border rounded-xl">
+                <select id="n_role" onchange="toggleInputs()" class="p-3 border rounded-xl bg-white font-bold">
                     <option value="">اختر الدور</option>
-                    <option value="مروج">مروج</option>
                     <option value="ردود">موظف ردود</option>
+                    <option value="مروج">مروج</option>
                     <option value="متابعة">موظف متابعة</option>
                 </select>
-                <input type="text" id="new_team" placeholder="التيم (A, B, C...)" class="p-3 border rounded-xl text-center" style="display:none">
-                <select id="new_shift" class="p-3 border rounded-xl bg-white font-bold" style="display:none">
-                    <option value="صباحي">شفت صباحي</option>
-                    <option value="مسائي">شفت مسائي</option>
-                </select>
-                <input type="number" id="new_salary" placeholder="الراتب الشهري" class="p-3 border rounded-xl text-center">
-                <button onclick="addEmployee()" class="md:col-span-3 bg-blue-600 text-white py-3 rounded-xl font-bold">حفظ الموظف ✅</button>
+                <input id="n_team" placeholder="التيم (A, B)" class="p-3 border rounded-xl hidden">
+                <select id="n_shift" class="p-3 border rounded-xl bg-white hidden"><option value="صباحي">صباحي</option><option value="مسائي">مسائي</option></select>
+                <input id="n_salary" type="number" placeholder="الراتب" class="p-3 border rounded-xl">
+                <button onclick="addEmp()" class="md:col-span-1 bg-blue-600 text-white rounded-xl font-bold">حفظ ✅</button>
             </div>
         </div>
 
         <div class="bg-white rounded-2xl shadow-sm border overflow-x-auto">
-            <div class="p-4 border-b bg-gray-50 flex gap-2">
-                <select id="f_role" onchange="loadEmployees()" class="p-2 border rounded-lg text-xs"><option value="">كل الأدوار</option><option value="مروج">مروج</option><option value="ردود">ردود</option></select>
-                <input type="text" id="f_team" oninput="loadEmployees()" placeholder="فلتر بالتيم" class="p-2 border rounded-lg text-xs w-24">
-            </div>
             <table class="w-full text-right text-sm">
-                <thead class="bg-gray-100">
-                    <tr><th class="p-3">الموظف</th><th class="p-3">الدور/التيم</th><th class="p-3">الشفت</th><th class="p-3 text-center">إجراءات</th></tr>
+                <thead class="bg-gray-50 border-b text-gray-500">
+                    <tr><th class="p-4">الموظف</th><th class="p-4">الدور/التيم</th><th class="p-4">الشفت</th><th class="p-4 text-center">إجراءات</th></tr>
                 </thead>
-                <tbody id="emp_table"></tbody>
+                <tbody id="emp_table" class="divide-y"></tbody>
             </table>
+        </div>
+    </div>
+
+    <div id="actionModal" class="modal">
+        <div class="bg-white p-6 rounded-3xl w-80 space-y-3">
+            <h3 id="target_name" class="font-bold border-b pb-2"></h3>
+            <button onclick="adjust('bonus')" class="w-full p-3 bg-green-50 text-green-700 rounded-xl font-bold border border-green-200">+ مكافأة</button>
+            <button onclick="adjust('absence')" class="w-full p-3 bg-orange-50 text-orange-700 rounded-xl font-bold border border-orange-200">- غياب</button>
+            <button onclick="delUser()" class="w-full p-3 bg-red-50 text-red-600 rounded-xl font-bold border border-red-100">حذف نهائي</button>
+            <button onclick="closeModal()" class="w-full text-gray-400 pt-2 text-sm">إغلاق</button>
         </div>
     </div>
 
@@ -56,47 +56,49 @@
         const SB_URL = 'https://iqagigpqwwtvriqvlfbv.supabase.co';
         const SB_KEY = 'sb_publishable_5xbaPlWHgjeeaIwceEFRrQ_d9aZ6Zax';
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
+        let selected = null;
 
-        function toggleFields() {
-            const role = document.getElementById('new_role').value;
-            document.getElementById('new_team').style.display = (role === 'ردود' || role === 'مروج') ? 'block' : 'none';
-            document.getElementById('new_shift').style.display = (role === 'ردود') ? 'block' : 'none';
+        function toggleInputs() {
+            const r = document.getElementById('n_role').value;
+            document.getElementById('n_team').style.display = (r==='ردود'||r==='مروج')?'block':'none';
+            document.getElementById('n_shift').style.display = (r==='ردود')?'block':'none';
         }
 
-        async function addEmployee() {
-            const d = {
-                username: document.getElementById('new_name').value,
-                password: document.getElementById('new_pass').value,
-                employee_code: document.getElementById('new_code').value,
-                role: document.getElementById('new_role').value,
-                team: document.getElementById('new_team').value,
-                shift: document.getElementById('new_shift').value,
-                salary: parseFloat(document.getElementById('new_salary').value)
+        async function addEmp() {
+            const d = { 
+                username: document.getElementById('n_name').value, 
+                password: document.getElementById('n_pass').value,
+                employee_code: document.getElementById('n_code').value,
+                role: document.getElementById('n_role').value,
+                team: document.getElementById('n_team').value || null,
+                shift: document.getElementById('n_shift').value || null,
+                salary: document.getElementById('n_salary').value || 0
             };
-            const { error } = await _supabase.from('users').insert([d]);
-            if(error) alert(error.message); else { alert("تم الحفظ!"); location.reload(); }
+            await _supabase.from('users').insert([d]); location.reload();
         }
 
-        async function loadEmployees() {
-            let q = _supabase.from('users').select('*').neq('role', 'مدير');
-            if(document.getElementById('f_role').value) q = q.eq('role', document.getElementById('f_role').value);
-            if(document.getElementById('f_team').value) q = q.ilike('team', `%${document.getElementById('f_team').value}%`);
-            
-            const { data } = await q;
-            const table = document.getElementById('emp_table');
-            table.innerHTML = "";
-            data.forEach(emp => {
-                table.innerHTML += `<tr class="border-b hover:bg-gray-50">
-                    <td class="p-3 font-bold">${emp.username}<br><span class="text-xs text-blue-500">${emp.employee_code}</span></td>
-                    <td class="p-3">${emp.role} / ${emp.team || '--'}</td>
-                    <td class="p-3">${emp.shift || '--'}</td>
-                    <td class="p-3 text-center">
-                        <button onclick="deleteUser('${emp.id}')" class="text-red-500 text-xs">حذف</button>
-                    </td>
-                </tr>`;
+        async function load() {
+            const { data } = await _supabase.from('users').select('*').neq('role','مدير');
+            const tb = document.getElementById('emp_table'); tb.innerHTML="";
+            data.forEach(e => {
+                tb.innerHTML += `<tr class="hover:bg-gray-50"><td class="p-4 font-bold">${e.username}<br><span class="text-blue-500 text-[10px]">${e.employee_code}</span></td>
+                <td class="p-4 text-xs">${e.role}<br>${e.team||'--'}</td><td class="p-4">${e.shift||'--'}</td>
+                <td class="p-4 text-center"><button onclick="openM('${e.id}','${e.username}')" class="bg-slate-700 text-white px-3 py-1 rounded text-[10px]">إجراء</button></td></tr>`;
             });
         }
-        window.onload = loadEmployees;
+
+        function openM(id, n) { selected={id, n}; document.getElementById('target_name').innerText=n; document.getElementById('actionModal').classList.add('active'); }
+        function closeModal() { document.getElementById('actionModal').classList.remove('active'); }
+
+        async function adjust(type) {
+            const val = prompt("أدخل القيمة:");
+            if(!val) return;
+            await _supabase.from('adjustments').insert([{ user_id:selected.id, type, amount:val, reason:type }]);
+            alert("تم بنجاح"); closeModal();
+        }
+
+        async function delUser() { if(confirm("حذف؟")) { await _supabase.from('users').delete().eq('id', selected.id); location.reload(); } }
+        window.onload = load;
     </script>
 </body>
 </html>
