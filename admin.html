@@ -1,104 +1,115 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8"><title>لوحة المدير</title>
+    <meta charset="UTF-8">
+    <title>الإدارة | نظام العمل</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>.modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 100; } .modal.active { display: flex; }</style>
+    <style>.modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; z-index: 50; } .modal.active { display: flex; }</style>
 </head>
-<body class="bg-gray-100 min-h-screen">
-    <header class="bg-slate-800 text-white p-4 flex justify-between items-center shadow-lg">
-        <span class="font-bold">الإدارة العامة</span>
-        <button onclick="location.href='index.html'" class="bg-red-600 px-4 py-1 rounded text-xs">خروج</button>
+<body class="bg-gray-100 min-h-screen pb-20">
+    <header class="bg-slate-800 text-white p-4 flex justify-between shadow-lg">
+        <h2 class="font-bold">لوحة التحكم المركزية</h2>
+        <button onclick="localStorage.clear(); location.href='index.html'" class="text-xs bg-red-600 px-3 py-1 rounded">خروج</button>
     </header>
 
     <div class="p-4 max-w-6xl mx-auto space-y-6">
-        <div class="bg-white p-6 rounded-2xl shadow-sm border space-y-4">
-            <h2 class="font-bold border-r-4 border-blue-500 pr-2">إضافة موظف جديد</h2>
+        <div class="bg-white p-6 rounded-2xl shadow border">
+            <h3 class="font-bold mb-4 text-blue-600">➕ إضافة موظف</h3>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-                <input id="n_name" placeholder="الاسم" class="p-3 border rounded-xl">
-                <input id="n_pass" placeholder="كلمة المرور" class="p-3 border rounded-xl">
-                <input id="n_code" placeholder="الرمز (A01)" class="p-3 border rounded-xl">
-                <select id="n_role" onchange="toggleInputs()" class="p-3 border rounded-xl bg-white font-bold">
-                    <option value="">اختر الدور</option>
-                    <option value="ردود">موظف ردود</option>
+                <input id="en" placeholder="الاسم" class="p-3 border rounded-xl">
+                <input id="ep" placeholder="كلمة المرور" class="p-3 border rounded-xl">
+                <input id="ec" placeholder="الرمز (مثلاً A01)" class="p-3 border rounded-xl font-bold">
+                <select id="er" onchange="ui()" class="p-3 border rounded-xl font-bold">
+                    <option value="">الدور</option>
+                    <option value="ردود">ردود</option>
                     <option value="مروج">مروج</option>
-                    <option value="متابعة">موظف متابعة</option>
+                    <option value="متابعة">متابعة</option>
                 </select>
-                <input id="n_team" placeholder="التيم (A, B)" class="p-3 border rounded-xl hidden">
-                <select id="n_shift" class="p-3 border rounded-xl bg-white hidden"><option value="صباحي">صباحي</option><option value="مسائي">مسائي</option></select>
-                <input id="n_salary" type="number" placeholder="الراتب" class="p-3 border rounded-xl">
-                <button onclick="addEmp()" class="md:col-span-1 bg-blue-600 text-white rounded-xl font-bold">حفظ ✅</button>
+                <input id="et" placeholder="التيم" class="p-3 border rounded-xl hidden">
+                <select id="es" class="p-3 border rounded-xl hidden"><option value="صباحي">صباحي</option><option value="مسائي">مسائي</option></select>
+                <input id="ey" type="number" placeholder="الراتب" class="p-3 border rounded-xl">
+                <button onclick="save()" class="bg-blue-600 text-white font-bold rounded-xl">حفظ</button>
             </div>
         </div>
 
-        <div class="bg-white rounded-2xl shadow-sm border overflow-x-auto">
-            <table class="w-full text-right text-sm">
-                <thead class="bg-gray-50 border-b text-gray-500">
-                    <tr><th class="p-4">الموظف</th><th class="p-4">الدور/التيم</th><th class="p-4">الشفت</th><th class="p-4 text-center">إجراءات</th></tr>
+        <div class="bg-white p-6 rounded-2xl shadow border">
+            <h3 class="font-bold mb-4 text-purple-600">📊 تقرير الأداء المجمع</h3>
+            <input type="date" id="rep_date" onchange="getRep()" class="mb-4 p-3 border rounded-xl text-center font-bold">
+            <div class="overflow-x-auto">
+                <table class="w-full text-right text-sm">
+                    <thead class="bg-gray-100">
+                        <tr><th class="p-3">الموظف</th><th class="p-3 text-center">حجوزات</th><th class="p-3 text-center">واصل</th><th class="p-3 text-center">النسبة</th></tr>
+                    </thead>
+                    <tbody id="rep_body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow border overflow-hidden">
+            <table class="w-full text-right text-xs">
+                <thead class="bg-slate-700 text-white">
+                    <tr><th class="p-4">الموظف</th><th class="p-4 text-center">الدور</th><th class="p-4 text-center">إجراءات</th></tr>
                 </thead>
-                <tbody id="emp_table" class="divide-y"></tbody>
+                <tbody id="emp_body" class="divide-y"></tbody>
             </table>
         </div>
     </div>
 
-    <div id="actionModal" class="modal">
-        <div class="bg-white p-6 rounded-3xl w-80 space-y-3">
-            <h3 id="target_name" class="font-bold border-b pb-2"></h3>
-            <button onclick="adjust('bonus')" class="w-full p-3 bg-green-50 text-green-700 rounded-xl font-bold border border-green-200">+ مكافأة</button>
-            <button onclick="adjust('absence')" class="w-full p-3 bg-orange-50 text-orange-700 rounded-xl font-bold border border-orange-200">- غياب</button>
-            <button onclick="delUser()" class="w-full p-3 bg-red-50 text-red-600 rounded-xl font-bold border border-red-100">حذف نهائي</button>
-            <button onclick="closeModal()" class="w-full text-gray-400 pt-2 text-sm">إغلاق</button>
+    <div id="m" class="modal">
+        <div class="bg-white p-6 rounded-3xl w-80 space-y-4">
+            <h4 id="mn" class="font-bold border-b pb-2 text-center"></h4>
+            <button onclick="adj('bonus')" class="w-full py-3 bg-green-50 text-green-700 rounded-xl font-bold border">+ مكافأة</button>
+            <button onclick="adj('absence')" class="w-full py-3 bg-orange-50 text-orange-700 rounded-xl font-bold border">- غياب</button>
+            <button onclick="kill()" class="w-full py-3 bg-red-600 text-white rounded-xl font-bold">🗑️ حذف الموظف</button>
+            <button onclick="document.getElementById('m').classList.remove('active')" class="w-full text-gray-400 text-xs">إلغاء</button>
         </div>
     </div>
 
     <script>
-        const SB_URL = 'https://iqagigpqwwtvriqvlfbv.supabase.co';
-        const SB_KEY = 'sb_publishable_5xbaPlWHgjeeaIwceEFRrQ_d9aZ6Zax';
-        const _supabase = supabase.createClient(SB_URL, SB_KEY);
-        let selected = null;
+        const sb = supabase.createClient('https://iqagigpqwwtvriqvlfbv.supabase.co', 'sb_publishable_5xbaPlWHgjeeaIwceEFRrQ_d9aZ6Zax');
+        let cur = null;
 
-        function toggleInputs() {
-            const r = document.getElementById('n_role').value;
-            document.getElementById('n_team').style.display = (r==='ردود'||r==='مروج')?'block':'none';
-            document.getElementById('n_shift').style.display = (r==='ردود')?'block':'none';
+        function ui() {
+            const r = document.getElementById('er').value;
+            document.getElementById('et').style.display = (r==='ردود'||r==='مروج')?'block':'none';
+            document.getElementById('es').style.display = (r==='ردود')?'block':'none';
         }
 
-        async function addEmp() {
-            const d = { 
-                username: document.getElementById('n_name').value, 
-                password: document.getElementById('n_pass').value,
-                employee_code: document.getElementById('n_code').value,
-                role: document.getElementById('n_role').value,
-                team: document.getElementById('n_team').value || null,
-                shift: document.getElementById('n_shift').value || null,
-                salary: document.getElementById('n_salary').value || 0
-            };
-            await _supabase.from('users').insert([d]); location.reload();
+        async function save() {
+            await sb.from('users').insert([{
+                username: document.getElementById('en').value, password: document.getElementById('ep').value,
+                employee_code: document.getElementById('ec').value, role: document.getElementById('er').value,
+                team: document.getElementById('et').value||null, shift: document.getElementById('es').value||null,
+                salary: document.getElementById('ey').value||0
+            }]); location.reload();
         }
 
-        async function load() {
-            const { data } = await _supabase.from('users').select('*').neq('role','مدير');
-            const tb = document.getElementById('emp_table'); tb.innerHTML="";
-            data.forEach(e => {
-                tb.innerHTML += `<tr class="hover:bg-gray-50"><td class="p-4 font-bold">${e.username}<br><span class="text-blue-500 text-[10px]">${e.employee_code}</span></td>
-                <td class="p-4 text-xs">${e.role}<br>${e.team||'--'}</td><td class="p-4">${e.shift||'--'}</td>
-                <td class="p-4 text-center"><button onclick="openM('${e.id}','${e.username}')" class="bg-slate-700 text-white px-3 py-1 rounded text-[10px]">إجراء</button></td></tr>`;
+        async function getRep() {
+            const d = document.getElementById('rep_date').value;
+            const { data } = await sb.from('bookings_reports').select('*').eq('report_date', d);
+            const b = document.getElementById('rep_body'); b.innerHTML="";
+            data.forEach(r => {
+                const p = r.bookings_count > 0 ? ((r.confirmed_count / r.bookings_count)*100).toFixed(1) : 0;
+                b.innerHTML += `<tr class="border-b"><td class="p-3">${r.employee_username}</td><td class="p-3 text-center">${r.bookings_count}</td><td class="p-3 text-center">${r.confirmed_count}</td><td class="p-3 text-center font-bold text-blue-600">${p}%</td></tr>`;
             });
         }
 
-        function openM(id, n) { selected={id, n}; document.getElementById('target_name').innerText=n; document.getElementById('actionModal').classList.add('active'); }
-        function closeModal() { document.getElementById('actionModal').classList.remove('active'); }
-
-        async function adjust(type) {
-            const val = prompt("أدخل القيمة:");
-            if(!val) return;
-            await _supabase.from('adjustments').insert([{ user_id:selected.id, type, amount:val, reason:type }]);
-            alert("تم بنجاح"); closeModal();
+        async function load() {
+            const { data } = await sb.from('users').select('*').neq('role','مدير');
+            const b = document.getElementById('emp_body'); b.innerHTML="";
+            data.forEach(e => {
+                b.innerHTML += `<tr><td class="p-4 font-bold">${e.username}<br><span class="text-blue-500">${e.employee_code}</span></td><td class="p-4 text-center text-xs">${e.role}<br>${e.team||''}</td><td class="p-4 text-center"><button onclick="pop('${e.id}','${e.username}')" class="bg-slate-100 p-2 rounded-lg">⚙️</button></td></tr>`;
+            });
         }
 
-        async function delUser() { if(confirm("حذف؟")) { await _supabase.from('users').delete().eq('id', selected.id); location.reload(); } }
-        window.onload = load;
+        function pop(id, n) { cur={id, n}; document.getElementById('mn').innerText=n; document.getElementById('m').classList.add('active'); }
+        async function kill() { if(confirm("حذف الموظف نهائياً؟")) { await sb.from('users').delete().eq('id', cur.id); location.reload(); } }
+        async function adj(t) { 
+            const a = prompt("أدخل القيمة:"); 
+            if(a) { await sb.from('adjustments').insert([{ user_id:cur.id, type:t, amount:a, reason:t }]); alert("تم بنجاح"); }
+        }
+        window.onload = () => { load(); document.getElementById('rep_date').valueAsDate = new Date(); getRep(); };
     </script>
 </body>
 </html>
