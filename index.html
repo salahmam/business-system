@@ -26,13 +26,13 @@
     <div class="glass w-full max-w-[380px] p-8 rounded-[2.5rem] shadow-2xl space-y-6 transform transition-all">
         
         <div class="text-center space-y-2">
-            <div class="inline-block p-4 bg-blue-600 rounded-2xl shadow-lg shadow-blue-500/30 mb-1">
+            <div class="inline-block p-4 bg-gradient-to-tr from-blue-600 to-indigo-700 rounded-2xl shadow-lg shadow-blue-500/30 mb-1">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
             </div>
-            <h1 class="text-2xl font-black text-slate-800 tracking-tight">BUSINESS SYSTEM</h1>
-            <p class="text-slate-500 text-[11px] font-bold opacity-70 italic uppercase tracking-wider">Secure Access Point</p>
+            <h1 class="text-2xl font-black text-slate-800 tracking-tight italic">BUSINESS SYSTEM</h1>
+            <p class="text-slate-500 text-[12px] font-bold opacity-80">نظام الإدارة المتكامل</p>
         </div>
 
         <div class="space-y-3">
@@ -43,13 +43,13 @@
                 class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-right outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all placeholder:text-slate-400 font-bold text-sm">
 
             <button id="loginBtn" onclick="doLogin()" 
-                class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-2xl font-bold text-lg shadow-xl shadow-blue-500/40 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-                دخول آمن
+                class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-2xl font-black text-lg shadow-xl shadow-blue-500/40 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                دخول آمن 🛡️
             </button>
         </div>
 
-        <div class="text-center">
-            <p class="text-slate-400 text-[9px] font-black uppercase tracking-[0.3em]">Protected Infrastructure</p>
+        <div class="text-center border-t border-slate-100 pt-4">
+            <p class="text-slate-400 text-[9px] font-black uppercase tracking-[0.3em]">Protected & Secure</p>
         </div>
     </div>
 
@@ -91,7 +91,7 @@
             } catch (err) {
                 Swal.fire({ icon: 'error', title: 'خطأ', text: 'بيانات الدخول غير صحيحة', confirmButtonText: 'إعادة محاولة' });
                 btn.disabled = false;
-                btn.innerHTML = 'دخول آمن';
+                btn.innerHTML = 'دخول آمن 🛡️';
             }
         }
     </script>
