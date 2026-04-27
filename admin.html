@@ -3,60 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم | المدير</title>
+    <title>الإدارة | النظام المتكامل</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <style>body { font-family: 'Tajawal', sans-serif; }</style>
 </head>
 <body class="bg-gray-100 min-h-screen">
-
     <header class="bg-slate-800 text-white p-4 flex justify-between items-center shadow-lg">
-        <h1 class="font-bold">لوحة الإدارة الشاملة</h1>
-        <button onclick="logout()" class="bg-red-600 px-4 py-2 rounded-lg text-sm">خروج</button>
+        <h1 class="font-bold">لوحة التحكم المركزية</h1>
+        <button onclick="localStorage.clear(); window.location.href='index.html'" class="bg-red-600 px-4 py-2 rounded-lg text-sm">خروج</button>
     </header>
 
     <div class="p-4 max-w-6xl mx-auto space-y-6">
-        
         <div class="bg-white p-6 rounded-2xl shadow-sm border">
             <h2 class="font-bold text-blue-600 mb-4 border-r-4 border-blue-600 pr-2">إضافة موظف جديد</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <input type="text" id="new_name" placeholder="اسم الموظف" class="p-3 border rounded-xl">
-                <input type="text" id="new_pass" placeholder="كلمة المرور" class="p-3 border rounded-xl">
-                <input type="text" id="new_code" placeholder="رمز الموظف (مثلاً: E101)" class="p-3 border rounded-xl">
-                <select id="new_role" class="p-3 border rounded-xl bg-white text-gray-500">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="add_form">
+                <input type="text" id="new_name" placeholder="الاسم الكامل" class="p-3 border rounded-xl">
+                <input type="text" id="new_pass" placeholder="كلمة المرور" class="p-3 border rounded-xl text-center">
+                <input type="text" id="new_code" placeholder="الرمز (مثال: B01)" class="p-3 border rounded-xl text-center">
+                <select id="new_role" onchange="toggleFields()" class="p-3 border rounded-xl bg-white font-bold">
                     <option value="">اختر الدور</option>
                     <option value="مروج">مروج</option>
                     <option value="ردود">موظف ردود</option>
                     <option value="متابعة">موظف متابعة</option>
                 </select>
-                <input type="text" id="new_team" placeholder="التيم (A, B, C...)" class="p-3 border rounded-xl text-center">
-                <input type="number" id="new_salary" placeholder="الراتب الشهري" class="p-3 border rounded-xl">
-                <button onclick="addEmployee()" class="md:col-span-3 bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition">إنشاء حساب الموظف ✅</button>
+                <input type="text" id="new_team" placeholder="التيم (A, B, C...)" class="p-3 border rounded-xl text-center" style="display:none">
+                <select id="new_shift" class="p-3 border rounded-xl bg-white font-bold" style="display:none">
+                    <option value="صباحي">شفت صباحي</option>
+                    <option value="مسائي">شفت مسائي</option>
+                </select>
+                <input type="number" id="new_salary" placeholder="الراتب الشهري" class="p-3 border rounded-xl text-center">
+                <button onclick="addEmployee()" class="md:col-span-3 bg-blue-600 text-white py-3 rounded-xl font-bold">حفظ الموظف ✅</button>
             </div>
         </div>
 
-        <div class="flex flex-wrap gap-2 items-center bg-white p-4 rounded-xl shadow-sm border text-sm">
-            <span class="font-bold ml-2">فلترة حسب:</span>
-            <select id="filter_role" onchange="loadEmployees()" class="p-2 border rounded-lg bg-gray-50"><option value="">كل الأدوار</option><option value="مروج text-gray-500">مروج</option><option value="ردود">ردود</option><option value="متابعة text-gray-500">متابعة</option></select>
-            <input type="text" id="filter_team" oninput="loadEmployees()" placeholder="اسم التيم" class="p-2 border rounded-lg bg-gray-50 w-24">
-        </div>
-
-        <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
-            <table class="w-full text-sm text-right">
-                <thead class="bg-slate-50 border-b">
-                    <tr>
-                        <th class="p-4">الموظف (الرمز)</th>
-                        <th class="p-4 text-center">الدور / التيم</th>
-                        <th class="p-4 text-center">الراتب / اليومي</th>
-                        <th class="p-4 text-center">إجراءات</th>
-                    </tr>
+        <div class="bg-white rounded-2xl shadow-sm border overflow-x-auto">
+            <div class="p-4 border-b bg-gray-50 flex gap-2">
+                <select id="f_role" onchange="loadEmployees()" class="p-2 border rounded-lg text-xs"><option value="">كل الأدوار</option><option value="مروج">مروج</option><option value="ردود">ردود</option></select>
+                <input type="text" id="f_team" oninput="loadEmployees()" placeholder="فلتر بالتيم" class="p-2 border rounded-lg text-xs w-24">
+            </div>
+            <table class="w-full text-right text-sm">
+                <thead class="bg-gray-100">
+                    <tr><th class="p-3">الموظف</th><th class="p-3">الدور/التيم</th><th class="p-3">الشفت</th><th class="p-3 text-center">إجراءات</th></tr>
                 </thead>
-                <tbody id="emp_table" class="divide-y divide-gray-100">
-                    </tbody>
+                <tbody id="emp_table"></tbody>
             </table>
         </div>
-
     </div>
 
     <script>
@@ -64,78 +57,46 @@
         const SB_KEY = 'sb_publishable_5xbaPlWHgjeeaIwceEFRrQ_d9aZ6Zax';
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-        // التأكد من أن الداخل هو المدير
-        window.onload = () => {
-            const session = JSON.parse(localStorage.getItem('user_session'));
-            if (!session || session.role !== 'مدير') window.location.href = 'index.html';
-            loadEmployees();
-        };
-
-        // إضافة موظف
-        async function addEmployee() {
-            const name = document.getElementById('new_name').value;
-            const pass = document.getElementById('new_pass').value;
+        function toggleFields() {
             const role = document.getElementById('new_role').value;
-            const team = document.getElementById('new_team').value;
-            const code = document.getElementById('new_code').value;
-            const salary = document.getElementById('new_salary').value;
-
-            if(!name || !pass || !role) return alert("أكمل البيانات الأساسية!");
-
-            const { error } = await _supabase.from('users').insert([{
-                username: name, password: pass, role: role, team: team, employee_code: code, salary: parseFloat(salary)
-            }]);
-
-            if(error) alert("خطأ: " + error.message);
-            else { alert("تمت الإضافة!"); location.reload(); }
+            document.getElementById('new_team').style.display = (role === 'ردود' || role === 'مروج') ? 'block' : 'none';
+            document.getElementById('new_shift').style.display = (role === 'ردود') ? 'block' : 'none';
         }
 
-        // جلب الموظفين مع الفلاتر
-        async function loadEmployees() {
-            let query = _supabase.from('users').select('*').neq('role', 'مدير');
-            
-            const fRole = document.getElementById('filter_role').value;
-            const fTeam = document.getElementById('filter_team').value;
-            
-            if(fRole) query = query.eq('role', fRole);
-            if(fTeam) query = query.ilike('team', `%${fTeam}%`);
+        async function addEmployee() {
+            const d = {
+                username: document.getElementById('new_name').value,
+                password: document.getElementById('new_pass').value,
+                employee_code: document.getElementById('new_code').value,
+                role: document.getElementById('new_role').value,
+                team: document.getElementById('new_team').value,
+                shift: document.getElementById('new_shift').value,
+                salary: parseFloat(document.getElementById('new_salary').value)
+            };
+            const { error } = await _supabase.from('users').insert([d]);
+            if(error) alert(error.message); else { alert("تم الحفظ!"); location.reload(); }
+        }
 
-            const { data } = await query;
+        async function loadEmployees() {
+            let q = _supabase.from('users').select('*').neq('role', 'مدير');
+            if(document.getElementById('f_role').value) q = q.eq('role', document.getElementById('f_role').value);
+            if(document.getElementById('f_team').value) q = q.ilike('team', `%${document.getElementById('f_team').value}%`);
+            
+            const { data } = await q;
             const table = document.getElementById('emp_table');
             table.innerHTML = "";
-
             data.forEach(emp => {
-                const dayRate = (emp.salary / 30).toFixed(2);
-                table.innerHTML += `
-                    <tr class="hover:bg-gray-50">
-                        <td class="p-4 font-bold text-slate-800">${emp.username} <br> <span class="text-blue-500 text-xs font-normal">${emp.employee_code || '--'}</span></td>
-                        <td class="p-4 text-center"><span class="bg-gray-100 px-2 py-1 rounded text-xs">${emp.role}</span> <br> <span class="text-xs text-gray-400">${emp.team || 'بدون تيم'}</span></td>
-                        <td class="p-4 text-center font-bold text-green-600">${emp.salary} <br> <span class="text-[10px] text-gray-400">اليومي: ${dayRate}</span></td>
-                        <td class="p-4 text-center space-y-1">
-                            <button onclick="registerAction('${emp.username}', 'غياب')" class="bg-orange-100 text-orange-600 px-2 py-1 rounded text-[10px] font-bold w-full hover:bg-orange-200">تسجيل غياب (خصم)</button>
-                            <button onclick="registerAction('${emp.username}', 'مكافأة')" class="bg-green-100 text-green-600 px-2 py-1 rounded text-[10px] font-bold w-full hover:bg-green-200">إضافة مكافأة</button>
-                            <button onclick="deleteUser('${emp.id}')" class="bg-red-50 text-red-500 px-2 py-1 rounded text-[10px] w-full mt-1">حذف 🗑️</button>
-                        </td>
-                    </tr>
-                `;
+                table.innerHTML += `<tr class="border-b hover:bg-gray-50">
+                    <td class="p-3 font-bold">${emp.username}<br><span class="text-xs text-blue-500">${emp.employee_code}</span></td>
+                    <td class="p-3">${emp.role} / ${emp.team || '--'}</td>
+                    <td class="p-3">${emp.shift || '--'}</td>
+                    <td class="p-3 text-center">
+                        <button onclick="deleteUser('${emp.id}')" class="text-red-500 text-xs">حذف</button>
+                    </td>
+                </tr>`;
             });
         }
-
-        // تسجيل غياب أو مكافأة
-        async function registerAction(user, type) {
-            const { error } = await _supabase.from('adjustments').insert([{ employee_username: user, type: type }]);
-            if(!error) alert(`تم تسجيل ${type} للموظف ${user}`);
-        }
-
-        // حذف موظف
-        async function deleteUser(id) {
-            if(confirm('هل أنت متأكد من حذف هذا الموظف نهائياً؟')) {
-                await _supabase.from('users').delete().eq('id', id);
-                loadEmployees();
-            }
-        }
-
-        function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+        window.onload = loadEmployees;
     </script>
 </body>
 </html>
