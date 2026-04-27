@@ -40,8 +40,8 @@
         </button>
 
         <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-200">
-            <label class="block text-xs font-black text-slate-400 mb-2 mr-2 uppercase">اختر تاريخ التقرير</label>
-            <input type="date" id="rep_date" onchange="getRep()" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-center font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500">
+            <label class="block text-xs font-black text-slate-400 mb-2 mr-2">اختر تاريخ التقرير</label>
+            <input type="date" id="rep_date" onchange="getRep()" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-center font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 font-black">
         </div>
 
         <div class="bg-slate-900 p-5 rounded-3xl shadow-2xl border border-slate-800">
@@ -53,12 +53,12 @@
                     <thead class="text-slate-400 border-b border-slate-800">
                         <tr>
                             <th class="p-3">التيم</th>
-                            <th class="p-3 text-center">الصرف</th>
-                            <th class="p-3 text-center text-emerald-400">إجمالي الحجوزات</th>
+                            <th class="p-3 text-center">الصرف المالي</th>
+                            <th class="p-3 text-center text-emerald-400">الحجوزات</th>
                         </tr>
                     </thead>
                     <tbody id="fin_body" class="text-slate-300 font-medium"></tbody>
-                    <tfoot id="fin_foot" class="bg-slate-800/50 text-white font-black"></tfoot>
+                    <tfoot id="fin_foot" class="bg-slate-800/50 text-white font-black border-t border-slate-700"></tfoot>
                 </table>
             </div>
         </div>
@@ -72,13 +72,13 @@
             <div class="flex flex-col gap-3">
                 <input id="en" placeholder="اسم الموظف" class="p-4 bg-slate-50 border rounded-2xl outline-none font-bold text-center">
                 <input id="ep" type="text" placeholder="كلمة المرور" class="p-4 bg-slate-50 border rounded-2xl outline-none text-center">
-                <input id="ec" placeholder="الرمز الموحد" class="p-4 bg-slate-50 border rounded-2xl outline-none font-black text-center text-blue-600">
+                <input id="ec" placeholder="الرمز الموحد (مثلاً A01)" class="p-4 bg-slate-50 border rounded-2xl outline-none font-black text-center text-blue-600">
                 <select id="er" onchange="ui_adjust()" class="p-4 bg-slate-50 border rounded-2xl font-bold text-center">
                     <option value="ردود">ردود</option>
                     <option value="مروج">مروج</option>
                     <option value="متابعة">متابعة</option>
                 </select>
-                <input id="et" placeholder="اسم التيم" class="p-4 bg-slate-50 border rounded-2xl outline-none text-center">
+                <input id="et" placeholder="اسم التيم (مثلاً Team R)" class="p-4 bg-slate-50 border rounded-2xl outline-none text-center font-bold">
                 <select id="es" class="p-4 bg-slate-50 border rounded-2xl font-bold text-center hidden">
                     <option value="صباحي">شفت صباحي</option>
                     <option value="مسائي">شفت مسائي</option>
@@ -94,14 +94,14 @@
 
     <div id="m" class="modal">
         <div class="glass-card p-8 rounded-[3rem] w-full max-w-[320px] space-y-4 shadow-2xl text-center">
-            <h4 id="mn" class="font-black text-slate-800 text-lg border-b pb-3">اسم الموظف</h4>
+            <h4 id="mn" class="font-black text-slate-800 text-lg border-b pb-3 uppercase tracking-tighter">اسم الموظف</h4>
             <div class="space-y-3">
-                <button onclick="editEmp()" class="w-full py-4 bg-blue-50 text-blue-600 rounded-2xl font-bold border border-blue-100 flex items-center justify-center gap-2 active:scale-95">✏️ تعديل المعلومات</button>
-                <button onclick="adj('bonus')" class="w-full py-4 bg-emerald-50 text-emerald-600 rounded-2xl font-bold border border-emerald-100 flex items-center justify-center gap-2 active:scale-95">💰 إضافة مكافأة</button>
-                <button onclick="adj('absence')" class="w-full py-4 bg-orange-50 text-orange-600 rounded-2xl font-bold border border-orange-100 flex items-center justify-center gap-2 active:scale-95">⏳ تسجيل خصم</button>
-                <button onclick="kill()" class="w-full py-4 bg-red-50 text-red-600 rounded-2xl font-bold border border-red-100 flex items-center justify-center gap-2 active:scale-95">🗑️ حذف نهائي</button>
+                <button onclick="editEmp()" class="w-full py-4 bg-blue-50 text-blue-600 rounded-2xl font-bold border border-blue-100 flex items-center justify-center gap-2 active:scale-95 transition-all">✏️ تعديل البيانات</button>
+                <button onclick="adj('bonus')" class="w-full py-4 bg-emerald-50 text-emerald-600 rounded-2xl font-bold border border-emerald-100 flex items-center justify-center gap-2 active:scale-95 transition-all italic">💰 مكافأة</button>
+                <button onclick="adj('absence')" class="w-full py-4 bg-orange-50 text-orange-600 rounded-2xl font-bold border border-orange-100 flex items-center justify-center gap-2 active:scale-95 transition-all italic">⏳ خصم / غياب</button>
+                <button onclick="kill()" class="w-full py-4 bg-red-50 text-red-600 rounded-2xl font-bold border border-red-100 flex items-center justify-center gap-2 active:scale-95 transition-all">🗑️ حذف الموظف</button>
             </div>
-            <button onclick="toggleModal('m')" class="text-slate-400 text-xs font-bold pt-2 block w-full">إغلاق النافذة</button>
+            <button onclick="toggleModal('m')" class="text-slate-400 text-[10px] font-black pt-2 block w-full uppercase">إغلاق</button>
         </div>
     </div>
 
@@ -111,23 +111,22 @@
         let allUsers = [];
 
         function toggleModal(id) { document.getElementById(id).classList.toggle('active'); }
-        
         function ui_adjust() {
             const r = document.getElementById('er').value;
             document.getElementById('es').classList.toggle('hidden', r !== 'ردود');
         }
 
-        // دالة عرض تقارير التيمات المجمعة
+        // دالة جلب التقارير وتجميعها حسب التيم مع معالجة مبالغ الصرف
         async function getRep() {
             const d = document.getElementById('rep_date').value;
-            const { data: reports } = await sb.from('bookings_reports').select('*').eq('report_date', d);
+            const { data: reports, error } = await sb.from('bookings_reports').select('*').eq('report_date', d);
             
             const fin_b = document.getElementById('fin_body');
             const fin_f = document.getElementById('fin_foot');
             fin_b.innerHTML = ""; fin_f.innerHTML = "";
 
             if (!reports || reports.length === 0) {
-                fin_b.innerHTML = `<tr><td colspan="3" class="p-8 text-center text-slate-500 font-bold italic">لا توجد بيانات مسجلة لهذا اليوم</td></tr>`;
+                fin_b.innerHTML = `<tr><td colspan="3" class="p-8 text-center text-slate-500 font-bold italic">لا توجد بيانات لهذا التاريخ</td></tr>`;
                 return;
             }
 
@@ -138,8 +137,13 @@
                 const tName = user && user.team ? user.team : "بدون تيم";
 
                 if (!teamSummary[tName]) teamSummary[tName] = { spent: 0, books: 0 };
-                teamSummary[tName].spent += (r.total_spent || 0);
-                teamSummary[tName].books += (r.bookings_count || 0);
+                
+                // تحويل القيم إلى أرقام بشكل صريح لضمان الجمع الصحيح
+                const s = Number(r.total_spent) || 0;
+                const b = Number(r.bookings_count) || 0;
+
+                teamSummary[tName].spent += s;
+                teamSummary[tName].books += b;
             });
 
             let tAllS = 0; let tAllB = 0;
@@ -151,37 +155,40 @@
 
                 fin_b.innerHTML += `
                 <tr class="border-b border-slate-800 hover:bg-slate-800/40">
-                    <td class="p-4 font-bold text-blue-400">${team}</td>
+                    <td class="p-4 font-bold text-blue-400 text-sm italic underline decoration-blue-900">${team}</td>
                     <td class="p-4 text-center">
-                        <div class="text-red-400 font-bold">${spent.toLocaleString()}</div>
-                        <div class="text-[9px] text-slate-500">سعر الطلب: ${Number(cpl).toLocaleString()}</div>
+                        <div class="text-red-500 font-black text-base">${spent.toLocaleString()}</div>
+                        <div class="text-[9px] text-slate-500 font-bold tracking-widest">سعر الطلب: ${Number(cpl).toLocaleString()}</div>
                     </td>
-                    <td class="p-4 text-center text-emerald-400 font-black text-lg">${books}</td>
+                    <td class="p-4 text-center text-emerald-400 font-black text-xl">${books}</td>
                 </tr>`;
             });
 
             const avg = tAllB > 0 ? (tAllS / tAllB).toFixed(0) : 0;
             fin_f.innerHTML = `
-                <tr class="bg-slate-800">
-                    <td class="p-4 uppercase">الإجمالي</td>
-                    <td class="p-4 text-center text-red-400 font-bold">${tAllS.toLocaleString()}<br><span class="text-[9px] text-slate-300">معدل: ${Number(avg).toLocaleString()}</span></td>
-                    <td class="p-4 text-center text-emerald-400 text-xl">${tAllB}</td>
+                <tr class="bg-slate-800 shadow-inner">
+                    <td class="p-4 font-black text-white text-sm">الإجمالي العام</td>
+                    <td class="p-4 text-center">
+                        <div class="text-red-400 font-black text-lg">${tAllS.toLocaleString()}</div>
+                        <div class="text-[9px] text-slate-300 font-bold">معدل الطلب: ${Number(avg).toLocaleString()}</div>
+                    </td>
+                    <td class="p-4 text-center text-emerald-400 text-2xl font-black">${tAllB}</td>
                 </tr>`;
         }
 
         async function load() {
             const { data } = await sb.from('users').select('*').neq('role','مدير');
-            allUsers = data;
+            allUsers = data || [];
             const list = document.getElementById('emp_list_mobile');
             list.innerHTML = "";
-            data.forEach(e => {
+            allUsers.forEach(e => {
                 list.innerHTML += `
-                <div class="bg-white p-4 rounded-3xl border border-slate-200 flex justify-between items-center shadow-sm">
+                <div class="bg-white p-4 rounded-3xl border border-slate-200 flex justify-between items-center shadow-sm active:scale-[0.98] transition-all">
                     <div>
-                        <p class="font-bold text-slate-800">${e.username} <span class="text-[10px] text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full">${e.employee_code}</span></p>
-                        <p class="text-[11px] text-slate-500 font-bold">${e.role} | ${e.team || 'عام'}</p>
+                        <p class="font-bold text-slate-800 text-md">${e.username} <span class="text-[9px] text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">${e.employee_code}</span></p>
+                        <p class="text-[11px] text-slate-500 font-bold">${e.role} | ${e.team || 'غير محدد'}</p>
                     </div>
-                    <button onclick="pop('${e.id}')" class="w-12 h-12 bg-slate-50 text-slate-400 rounded-2xl border border-slate-100 flex items-center justify-center text-xl active:bg-slate-100 transition-all">⚙️</button>
+                    <button onclick="pop('${e.id}')" class="w-12 h-12 bg-slate-50 text-slate-400 rounded-2xl border border-slate-100 flex items-center justify-center text-xl shadow-inner active:bg-slate-100">⚙️</button>
                 </div>`;
             });
             getRep();
@@ -215,29 +222,38 @@
 
         async function save() {
             const obj = {
-                username: document.getElementById('en').value, password: document.getElementById('ep').value,
-                employee_code: document.getElementById('ec').value, role: document.getElementById('er').value,
-                team: document.getElementById('et').value, shift: document.getElementById('es').value, salary: document.getElementById('ey').value
+                username: document.getElementById('en').value, 
+                password: document.getElementById('ep').value,
+                employee_code: document.getElementById('ec').value, 
+                role: document.getElementById('er').value,
+                team: document.getElementById('et').value, 
+                shift: document.getElementById('es').value, 
+                salary: document.getElementById('ey').value
             };
+            
             const res = cur ? await sb.from('users').update(obj).eq('id', cur.id) : await sb.from('users').insert([obj]);
+            
             if(res.error) Swal.fire('خطأ', res.error.message, 'error');
-            else Swal.fire({icon:'success', title:'تم الحفظ', showConfirmButton:false, timer:1000}).then(()=>location.reload());
+            else Swal.fire({icon:'success', title:'تم بنجاح', showConfirmButton:false, timer:1000}).then(()=>location.reload());
         }
 
         async function kill() {
-            Swal.fire({title:'حذف نهائي؟', text:'لن يمكنك التراجع!', icon:'warning', showCancelButton:true, confirmButtonColor:'#ef4444'})
+            Swal.fire({title:'حذف نهائي؟', text:'سيتم مسح الموظف وجميع سجلاته!', icon:'warning', showCancelButton:true, confirmButtonColor:'#ef4444', confirmButtonText: 'نعم، حذف'})
             .then(async (r) => { if(r.isConfirmed){ await sb.from('users').delete().eq('id',cur.id); location.reload(); }});
         }
 
         async function adj(t) {
-            const { value: val } = await Swal.fire({ title:'أدخل المبلغ', input:'number', showCancelButton:true });
+            const { value: val } = await Swal.fire({ title:'أدخل المبلغ (د.ع)', input:'number', showCancelButton:true });
             if(val) {
                 await sb.from('adjustments').insert([{ user_id:cur.id, type:t, amount:val, reason:t }]);
-                Swal.fire('تمت الإضافة', '', 'success'); toggleModal('m');
+                Swal.fire('تم الحفظ ✅', '', 'success'); toggleModal('m');
             }
         }
 
-        window.onload = () => { document.getElementById('rep_date').valueAsDate = new Date(); load(); };
+        window.onload = () => { 
+            document.getElementById('rep_date').valueAsDate = new Date(); 
+            load(); 
+        };
     </script>
 </body>
 </html>
