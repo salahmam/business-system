@@ -39,16 +39,19 @@
         </div>
 
         <div class="bg-slate-900 p-6 rounded-[2.5rem] shadow-2xl border border-slate-800">
-            <div class="flex justify-between items-center mb-4">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
                 <h3 class="font-bold text-white flex items-center gap-2 text-sm">
                     <span class="w-2 h-5 bg-blue-500 rounded-full"></span> 💵 أداء التيمات (مالي)
                 </h3>
-                <div id="total_stats_header" class="flex gap-3 text-[10px] font-bold text-slate-400">
-                    <div class="bg-slate-800/50 p-2 rounded-lg border border-slate-700">
+                <div id="total_stats_header" class="flex flex-wrap gap-2 text-[9px] font-bold text-slate-400">
+                    <div class="bg-slate-800 p-2 rounded-lg border border-slate-700">
                         الطلبات: <span id="total_books_sum" class="text-blue-400">0</span>
                     </div>
-                    <div class="bg-slate-800/50 p-2 rounded-lg border border-slate-700">
+                    <div class="bg-slate-800 p-2 rounded-lg border border-slate-700">
                         الصرف: <span id="total_spent_sum" class="text-red-400">0</span>
+                    </div>
+                    <div class="bg-blue-900/30 p-2 rounded-lg border border-blue-500/30">
+                        متوسط السعر العام: <span id="overall_avg_cpl" class="text-emerald-400">0</span>
                     </div>
                 </div>
             </div>
@@ -125,11 +128,10 @@
                     <button onclick="adj('bonus')" class="py-3 bg-emerald-50 text-emerald-600 rounded-xl font-bold border border-emerald-100 text-xs active:scale-95">⭐ إضافة نقاط</button>
                     <button onclick="adj('absence')" class="py-3 bg-orange-50 text-orange-600 rounded-xl font-bold border border-orange-100 text-xs active:scale-95">💰 تسجيل خصم</button>
                 </div>
-                <button onclick="removeLastAdj()" class="w-full py-3 bg-white text-red-500 border border-red-200 rounded-xl font-bold text-[10px] active:scale-95">🔄 تراجع عن آخر (خصم/مكافأة)</button>
-                
-                <button onclick="resetUserAdj()" class="w-full py-2 bg-slate-100 text-slate-500 rounded-xl font-bold text-[10px] active:scale-95 border border-slate-200 italic">🗑️ تصفير السجل بالكامل للموظف</button>
+                <button onclick="removeLastAdj()" class="w-full py-3 bg-white text-red-500 border border-red-200 rounded-xl font-bold text-[10px] active:scale-95 transition-all">🔄 تراجع عن آخر (خصم/مكافأة)</button>
+                <button onclick="resetUserAdj()" class="w-full py-2 bg-slate-100 text-slate-500 rounded-xl font-bold text-[10px] active:scale-95 border border-slate-200 italic">🗑️ تصفير الموظف فقط</button>
                 <button onclick="editEmp()" class="w-full py-3 bg-blue-50 text-blue-600 rounded-xl font-bold border border-blue-100 text-sm active:scale-95">✏️ تعديل البيانات</button>
-                <button onclick="kill()" class="w-full py-3 bg-red-50 text-red-600 rounded-xl font-bold border border-red-100 text-xs active:scale-95">🗑️ حذف الموظف نهائياً</button>
+                <button onclick="kill()" class="w-full py-3 bg-red-50 text-red-600 rounded-xl font-bold border border-red-100 text-xs active:scale-95">🗑️ حذف الموظف</button>
             </div>
             <button onclick="toggleModal('m')" class="text-slate-400 text-[10px] font-bold block w-full text-center underline">إغلاق</button>
         </div>
@@ -138,7 +140,7 @@
     <div id="add_emp_modal" class="modal">
         <div class="glass-card p-6 rounded-[2.5rem] w-full max-w-md space-y-4 shadow-2xl">
             <h3 id="modal_title" class="font-extrabold text-xl text-slate-800 text-center mb-2 text-right">بيانات الموظف</h3>
-            <div class="flex flex-col gap-3">
+            <div class="flex flex-col gap-3 text-right">
                 <input id="en" placeholder="الاسم (Username)" class="p-4 bg-slate-50 border rounded-2xl outline-none text-center font-bold">
                 <input id="ep" type="password" placeholder="الباسورد" class="p-4 bg-slate-50 border rounded-2xl outline-none text-center">
                 <input id="ec" placeholder="الكود (A01)" class="p-4 bg-slate-50 border rounded-2xl outline-none text-center font-black text-blue-600 uppercase">
@@ -174,7 +176,6 @@
             teamBody.innerHTML = ""; empBody.innerHTML = "";
             const teamSum = {};
             
-            // متغيرات لحساب الإجمالي العام
             let overallSpent = 0;
             let overallBooks = 0;
 
@@ -184,7 +185,7 @@
                     if (!teamSum[t]) teamSum[t] = { spent: 0, books: 0 };
                     const amt = Number(ex.amount_spent) || 0;
                     teamSum[t].spent += amt;
-                    overallSpent += amt; // إضافة للصرف الكلي
+                    overallSpent += amt;
                 });
             }
 
@@ -195,7 +196,7 @@
                     const b = Number(r.bookings_count) || 0;
                     const c = Number(r.confirmed_count) || 0;
                     
-                    overallBooks += b; // إضافة للطلبات الكلية
+                    overallBooks += b;
 
                     const p = b > 0 ? ((c / b) * 100).toFixed(1) : "0.0";
                     let autoPoint = b >= 35 ? " (+2 ⭐)" : (b >= 25 ? " (+1 ⭐)" : "");
@@ -207,9 +208,12 @@
                 });
             }
 
-            // عرض الإجماليات في الهيدر
+            // حساب متوسط سعر الطلب العام من كل التيمات
+            const overallAvg = overallBooks > 0 ? (overallSpent / overallBooks).toFixed(0) : 0;
+
             document.getElementById('total_books_sum').innerText = overallBooks;
             document.getElementById('total_spent_sum').innerText = overallSpent.toLocaleString() + " د.ع";
+            document.getElementById('overall_avg_cpl').innerText = Number(overallAvg).toLocaleString() + " د.ع";
 
             for (let t in teamSum) {
                 const s = teamSum[t].spent; const b = teamSum[t].books;
@@ -259,7 +263,6 @@
             if(v) { await sb.from('adjustments').insert([{ user_id:cur.id, type:t, amount:v, reason: isPoint ? 'يدوي' : 'خصم' }]); toggleModal('m'); Swal.fire('تم الحفظ', '', 'success'); load(); } 
         }
 
-        // دالة حذف آخر خصم أو مكافأة
         async function removeLastAdj() {
             const { data } = await sb.from('adjustments').select('*').eq('user_id', cur.id).order('created_at', { ascending: false }).limit(1);
             if(data && data.length > 0) {
