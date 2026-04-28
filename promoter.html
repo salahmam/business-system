@@ -72,7 +72,7 @@
                 <div class="grid grid-cols-1 gap-4">
                     <div>
                         <label class="text-[10px] font-black text-slate-400 mr-2 uppercase italic">اختر التيم المستهدف :</label>
-                        <select id="team_select" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-center font-bold text-slate-700 outline-none focus:border-blue-500 appearance-none shadow-inner">
+                        <select id="team_select" onchange="fetchExistingAmount()" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-center font-bold text-slate-700 outline-none focus:border-blue-500 appearance-none shadow-inner">
                             <option value="">جاري تحميل التيمات...</option>
                         </select>
                     </div>
@@ -82,7 +82,7 @@
                     </div>
                 </div>
 
-                <button onclick="saveExpense()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-5 rounded-[2rem] font-black text-lg shadow-xl shadow-blue-200 active:scale-[0.97] transition-all flex items-center justify-center gap-3 border-b-4 border-blue-800">
+                <button id="save_btn" onclick="saveExpense()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-5 rounded-[2rem] font-black text-lg shadow-xl shadow-blue-200 active:scale-[0.97] transition-all flex items-center justify-center gap-3 border-b-4 border-blue-800">
                     حفظ وتحديث الإحصائيات 🚀
                 </button>
             </div>
@@ -118,19 +118,15 @@
             document.getElementById('p_name_display').innerText = user.username;
             document.getElementById('target_date').valueAsDate = new Date();
             
-            await fetchTeams(); // جلب التيمات تلقائياً
+            await fetchTeams(); 
             syncData();
         };
 
-        // دالة لجلب التيمات الفريدة من جدول المستخدمين تلقائياً
         async function fetchTeams() {
             const { data, error } = await sb.from('users').select('team').not('team', 'is', null);
             if (error) return;
-
-            // تصفية القيم المكررة واستخراج أسماء التيمات فقط
             const uniqueTeams = [...new Set(data.map(item => item.team))].sort();
             const teamSelect = document.getElementById('team_select');
-            
             teamSelect.innerHTML = '<option value="">-- اختر التيم --</option>';
             uniqueTeams.forEach(team => {
                 let o = document.createElement('option');
@@ -140,8 +136,36 @@
             });
         }
 
+        // --- الدالة الجديدة لجلب المبلغ المكتوب سابقاً ---
+        async function fetchExistingAmount() {
+            const team = document.getElementById('team_select').value;
+            const date = document.getElementById('target_date').value;
+            const spendInput = document.getElementById('spend_input');
+            const saveBtn = document.getElementById('save_btn');
+
+            if (!team || !date) { spendInput.value = ""; return; }
+
+            const { data, error } = await sb.from('marketing_expenses')
+                .select('amount_spent')
+                .eq('expense_date', date)
+                .eq('target_team', team)
+                .maybeSingle();
+
+            if (data) {
+                spendInput.value = data.amount_spent;
+                saveBtn.innerText = "تعديل المبلغ المسجل سابقاً ✏️";
+                saveBtn.classList.replace('from-blue-600', 'from-amber-500');
+            } else {
+                spendInput.value = "";
+                saveBtn.innerText = "حفظ وتحديث الإحصائيات 🚀";
+                saveBtn.classList.replace('from-amber-500', 'from-blue-600');
+            }
+        }
+
         async function syncData() {
             const date = document.getElementById('target_date').value;
+            fetchExistingAmount(); // تحديث الحقل إذا كان التيم مختاراً عند تغيير التاريخ
+            
             const tableBody = document.getElementById('team_table_body');
             tableBody.innerHTML = `<tr><td colspan="4" class="p-10 text-center animate-pulse text-slate-400 font-bold italic">جاري جلب وتحليل البيانات...</td></tr>`;
 
@@ -177,7 +201,6 @@
             Object.keys(teamData).forEach(teamName => {
                 const data = teamData[teamName];
                 const cpl = data.books > 0 ? (data.spend / data.books).toFixed(2) : "0.00";
-                
                 totalAllBooks += data.books;
                 totalAllSpend += data.spend;
 
@@ -201,23 +224,38 @@
             const amount = document.getElementById('spend_input').value;
             const date = document.getElementById('target_date').value;
 
-            if (!team || !amount || amount <= 0) {
+            if (!team || !amount || amount < 0) {
                 alert("يرجى اختيار التيم وإدخال المبلغ المصروف");
                 return;
             }
 
-            const { error } = await sb.from('marketing_expenses').insert([{
-                promoter_username: user.username,
-                target_team: team,
-                amount_spent: parseFloat(amount),
-                expense_date: date
-            }]);
+            // التحقق أولاً إذا كان السجل موجوداً (لتجنب التكرار والتحديث بدلاً من الإضافة)
+            const { data: existing } = await sb.from('marketing_expenses')
+                .select('id')
+                .eq('expense_date', date)
+                .eq('target_team', team)
+                .maybeSingle();
 
-            if (error) {
-                alert("❌ حدث خطأ: " + error.message);
+            let result;
+            if (existing) {
+                // تحديث السجل الحالي
+                result = await sb.from('marketing_expenses')
+                    .update({ amount_spent: parseFloat(amount), promoter_username: user.username })
+                    .eq('id', existing.id);
             } else {
-                alert("✅ تم تسجيل صرف تيم " + team + " بنجاح");
-                document.getElementById('spend_input').value = "";
+                // إضافة سجل جديد
+                result = await sb.from('marketing_expenses').insert([{
+                    promoter_username: user.username,
+                    target_team: team,
+                    amount_spent: parseFloat(amount),
+                    expense_date: date
+                }]);
+            }
+
+            if (result.error) {
+                alert("❌ حدث خطأ: " + result.error.message);
+            } else {
+                alert("✅ تم تحديث البيانات بنجاح");
                 syncData();
             }
         }
