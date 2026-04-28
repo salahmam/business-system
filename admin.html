@@ -15,6 +15,8 @@
         .glass-card { background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(226, 232, 240, 1); }
         .swal2-popup { border-radius: 2rem !important; font-family: 'Tajawal', sans-serif !important; }
         .hidden-list { display: none; }
+        /* تحسين صندوق التاريخ */
+        .date-center-box { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
     </style>
 </head>
 <body class="min-h-screen pb-24 text-right">
@@ -31,9 +33,9 @@
     </header>
 
     <div class="p-4 max-w-4xl mx-auto space-y-6">
-        <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200">
-            <label class="block text-[10px] font-black text-slate-400 mb-2 mr-2">تاريخ التقرير اليومي</label>
-            <input type="date" id="rep_date" onchange="getRep()" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-center font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500">
+        <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-200 date-center-box">
+            <label class="block text-xs font-black text-blue-500 mb-3 uppercase tracking-tighter">تاريخ التقرير اليومي</label>
+            <input type="date" id="rep_date" onchange="getRep()" class="w-full max-w-[250px] p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-center font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-inner">
         </div>
 
         <div class="bg-slate-900 p-6 rounded-[2.5rem] shadow-2xl border border-slate-800">
@@ -105,10 +107,12 @@
 
             <div class="grid grid-cols-1 gap-2 pt-2">
                 <div class="grid grid-cols-2 gap-2">
-                    <button onclick="adj('bonus')" class="py-3 bg-emerald-50 text-emerald-600 rounded-xl font-bold border border-emerald-100 text-xs active:scale-95">⭐ إضافة نقاط</button>
-                    <button onclick="adj('absence')" class="py-3 bg-orange-50 text-orange-600 rounded-xl font-bold border border-orange-100 text-xs active:scale-95">💰 تسجيل خصم</button>
+                    <button onclick="adj('bonus')" class="py-3 bg-emerald-50 text-emerald-600 rounded-xl font-bold border border-emerald-100 text-xs active:scale-95 transition-all hover:bg-emerald-100">⭐ إضافة نقاط</button>
+                    <button onclick="adj('absence')" class="py-3 bg-orange-50 text-orange-600 rounded-xl font-bold border border-orange-100 text-xs active:scale-95 transition-all hover:bg-orange-100">💰 تسجيل خصم</button>
                 </div>
-                <button onclick="resetUserAdj()" class="w-full py-2 bg-slate-100 text-slate-500 rounded-xl font-bold text-[10px] active:scale-95 border border-slate-200 italic">🗑️ تصفير (نقاط/خصم) الموظف فقط</button>
+                <button onclick="removeLastAdj()" class="w-full py-3 bg-white text-red-500 border border-red-200 rounded-xl font-bold text-[10px] active:scale-95 transition-all flex items-center justify-center gap-2">🔄 تراجع عن آخر (خصم/مكافأة)</button>
+                
+                <button onclick="resetUserAdj()" class="w-full py-2 bg-slate-100 text-slate-500 rounded-xl font-bold text-[10px] active:scale-95 border border-slate-200 italic">🗑️ تصفير السجل بالكامل للموظف</button>
                 <button onclick="editEmp()" class="w-full py-3 bg-blue-50 text-blue-600 rounded-xl font-bold border border-blue-100 text-sm active:scale-95">✏️ تعديل البيانات</button>
                 <button onclick="kill()" class="w-full py-3 bg-red-50 text-red-600 rounded-xl font-bold border border-red-100 text-xs active:scale-95">🗑️ حذف الموظف نهائياً</button>
             </div>
@@ -189,7 +193,7 @@
             const list = document.getElementById('emp_list_mobile');
             list.innerHTML = "";
             allUsers.forEach(e => {
-                list.innerHTML += `<div class="bg-white p-4 rounded-3xl border border-slate-200 flex justify-between items-center shadow-sm"><div class="text-right"><p class="font-bold text-slate-800 text-right">${e.username} <span class="text-[9px] text-blue-500 bg-blue-50 px-2 rounded-full font-black">${e.employee_code}</span></p><p class="text-[10px] text-slate-500 font-bold text-right">${e.role} | ${e.team || 'عام'}</p></div><button onclick="pop('${e.id}','${e.username}')" class="w-12 h-12 bg-slate-50 text-slate-400 rounded-2xl border flex items-center justify-center text-xl shadow-inner active:scale-90">⚙️</button></div>`;
+                list.innerHTML += `<div class="bg-white p-4 rounded-3xl border border-slate-200 flex justify-between items-center shadow-sm"><div class="text-right"><p class="font-bold text-slate-800 text-right">${e.username} <span class="text-[9px] text-blue-500 bg-blue-50 px-2 rounded-full font-black">${e.employee_code}</span></p><p class="text-[10px] text-slate-500 font-bold text-right">${e.role} | ${e.team || 'عام'}</p></div><button onclick="pop('${e.id}','${e.username}')" class="w-12 h-12 bg-slate-50 text-slate-400 rounded-2xl border flex items-center justify-center text-xl shadow-inner active:scale-90 transition-all hover:bg-slate-100">⚙️</button></div>`;
             });
             getRep();
         }
@@ -220,14 +224,40 @@
 
         async function adj(t) { 
             const isPoint = (t === 'bonus');
-            const { value: v } = await Swal.fire({ title: isPoint ? 'إضافة نقاط ⭐' : 'تسجيل خصم 💰', input: 'number', showCancelButton: true });
-            if(v) { await sb.from('adjustments').insert([{ user_id:cur.id, type:t, amount:v, reason: isPoint ? 'يدوي' : 'خصم' }]); toggleModal('m'); Swal.fire('تم', '', 'success'); } 
+            const { value: v } = await Swal.fire({ title: isPoint ? 'إضافة نقاط ⭐' : 'تسجيل خصم 💰', input: 'number', showCancelButton: true, confirmButtonText: 'تأكيد', cancelButtonText: 'إلغاء' });
+            if(v) { await sb.from('adjustments').insert([{ user_id:cur.id, type:t, amount:v, reason: isPoint ? 'يدوي' : 'خصم' }]); toggleModal('m'); Swal.fire('تمت العملية', '', 'success'); load(); } 
+        }
+
+        // دالة جديدة لحذف آخر سجل (مكافأة أو خصم) للموظف
+        async function removeLastAdj() {
+            const { data } = await sb.from('adjustments').select('*').eq('user_id', cur.id).order('created_at', { ascending: false }).limit(1);
+            if(data && data.length > 0) {
+                const item = data[0];
+                const confirm = await Swal.fire({
+                    title: 'حذف آخر سجل؟',
+                    text: `هل تريد حذف ${item.type === 'bonus' ? 'المكافأة' : 'الخصم'} بقيمة (${item.amount})؟`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'نعم، احذف',
+                    cancelButtonText: 'تراجع'
+                });
+                
+                if(confirm.isConfirmed) {
+                    await sb.from('adjustments').delete().eq('id', item.id);
+                    toggleModal('m');
+                    Swal.fire('تم الحذف بنجاح', '', 'success');
+                    load();
+                }
+            } else {
+                Swal.fire('لا يوجد سجلات', 'الموظف ليس لديه أي مكافآت أو خصومات يدوية لحذفها', 'info');
+            }
         }
 
         async function resetUserAdj() {
-            if(confirm('سيتم حذف كافة المكافآت والخصومات المسجلة لهذا الموظف فقط، هل أنت متأكد؟')) {
+            const confirm = await Swal.fire({ title: 'تنبيه!', text: 'سيتم حذف كافة المكافآت والخصومات المسجلة لهذا الموظف فقط، هل أنت متأكد؟', icon: 'warning', showCancelButton: true });
+            if(confirm.isConfirmed) {
                 await sb.from('adjustments').delete().eq('user_id', cur.id);
-                toggleModal('m'); Swal.fire('تم التصفير');
+                toggleModal('m'); Swal.fire('تم التصفير'); load();
             }
         }
 
