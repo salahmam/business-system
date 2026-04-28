@@ -15,7 +15,6 @@
         .glass-card { background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(226, 232, 240, 1); }
         .swal2-popup { border-radius: 2rem !important; font-family: 'Tajawal', sans-serif !important; }
         .hidden-list { display: none; }
-        /* تحسين صندوق التاريخ */
         .date-center-box { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
     </style>
 </head>
@@ -33,19 +32,35 @@
     </header>
 
     <div class="p-4 max-w-4xl mx-auto space-y-6">
-        <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-200 date-center-box">
-            <label class="block text-xs font-black text-blue-500 mb-3 uppercase tracking-tighter">تاريخ التقرير اليومي</label>
-            <input type="date" id="rep_date" onchange="getRep()" class="w-full max-w-[250px] p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-center font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-inner">
+        
+        <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-200 date-center-box">
+            <label class="block text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest">تاريخ التقرير اليومي</label>
+            <input type="date" id="rep_date" onchange="getRep()" class="w-full max-w-[220px] p-4 bg-slate-50 border border-slate-200 rounded-2xl text-center font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 shadow-inner transition-all">
         </div>
 
         <div class="bg-slate-900 p-6 rounded-[2.5rem] shadow-2xl border border-slate-800">
-            <h3 class="font-bold mb-4 text-white flex items-center gap-2 text-sm text-right">
-                <span class="w-2 h-5 bg-blue-500 rounded-full"></span> 💵 أداء التيمات (مالي)
-            </h3>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-white flex items-center gap-2 text-sm">
+                    <span class="w-2 h-5 bg-blue-500 rounded-full"></span> 💵 أداء التيمات (مالي)
+                </h3>
+                <div id="total_stats_header" class="flex gap-3 text-[10px] font-bold text-slate-400">
+                    <div class="bg-slate-800/50 p-2 rounded-lg border border-slate-700">
+                        الطلبات: <span id="total_books_sum" class="text-blue-400">0</span>
+                    </div>
+                    <div class="bg-slate-800/50 p-2 rounded-lg border border-slate-700">
+                        الصرف: <span id="total_spent_sum" class="text-red-400">0</span>
+                    </div>
+                </div>
+            </div>
+            
             <div class="overflow-x-auto">
                 <table class="w-full text-right text-xs text-white">
                     <thead class="text-slate-500 border-b border-slate-800">
-                        <tr><th class="p-3 text-right">التيم</th><th class="p-3 text-center">الصرف / الطلب</th><th class="p-3 text-center text-emerald-400">الحجوزات</th></tr>
+                        <tr>
+                            <th class="p-3 text-right">التيم</th>
+                            <th class="p-3 text-center">الصرف / الطلب</th>
+                            <th class="p-3 text-center text-emerald-400">الحجوزات</th>
+                        </tr>
                     </thead>
                     <tbody id="team_body" class="font-bold"></tbody>
                 </table>
@@ -107,10 +122,10 @@
 
             <div class="grid grid-cols-1 gap-2 pt-2">
                 <div class="grid grid-cols-2 gap-2">
-                    <button onclick="adj('bonus')" class="py-3 bg-emerald-50 text-emerald-600 rounded-xl font-bold border border-emerald-100 text-xs active:scale-95 transition-all hover:bg-emerald-100">⭐ إضافة نقاط</button>
-                    <button onclick="adj('absence')" class="py-3 bg-orange-50 text-orange-600 rounded-xl font-bold border border-orange-100 text-xs active:scale-95 transition-all hover:bg-orange-100">💰 تسجيل خصم</button>
+                    <button onclick="adj('bonus')" class="py-3 bg-emerald-50 text-emerald-600 rounded-xl font-bold border border-emerald-100 text-xs active:scale-95">⭐ إضافة نقاط</button>
+                    <button onclick="adj('absence')" class="py-3 bg-orange-50 text-orange-600 rounded-xl font-bold border border-orange-100 text-xs active:scale-95">💰 تسجيل خصم</button>
                 </div>
-                <button onclick="removeLastAdj()" class="w-full py-3 bg-white text-red-500 border border-red-200 rounded-xl font-bold text-[10px] active:scale-95 transition-all flex items-center justify-center gap-2">🔄 تراجع عن آخر (خصم/مكافأة)</button>
+                <button onclick="removeLastAdj()" class="w-full py-3 bg-white text-red-500 border border-red-200 rounded-xl font-bold text-[10px] active:scale-95">🔄 تراجع عن آخر (خصم/مكافأة)</button>
                 
                 <button onclick="resetUserAdj()" class="w-full py-2 bg-slate-100 text-slate-500 rounded-xl font-bold text-[10px] active:scale-95 border border-slate-200 italic">🗑️ تصفير السجل بالكامل للموظف</button>
                 <button onclick="editEmp()" class="w-full py-3 bg-blue-50 text-blue-600 rounded-xl font-bold border border-blue-100 text-sm active:scale-95">✏️ تعديل البيانات</button>
@@ -158,12 +173,18 @@
             const empBody = document.getElementById('rep_body');
             teamBody.innerHTML = ""; empBody.innerHTML = "";
             const teamSum = {};
+            
+            // متغيرات لحساب الإجمالي العام
+            let overallSpent = 0;
+            let overallBooks = 0;
 
             if (expenses) {
                 expenses.forEach(ex => {
                     const t = ex.target_team || "بدون تيم";
                     if (!teamSum[t]) teamSum[t] = { spent: 0, books: 0 };
-                    teamSum[t].spent += Number(ex.amount_spent) || 0;
+                    const amt = Number(ex.amount_spent) || 0;
+                    teamSum[t].spent += amt;
+                    overallSpent += amt; // إضافة للصرف الكلي
                 });
             }
 
@@ -173,13 +194,23 @@
                     const tName = user && user.team ? user.team : "بدون تيم";
                     const b = Number(r.bookings_count) || 0;
                     const c = Number(r.confirmed_count) || 0;
+                    
+                    overallBooks += b; // إضافة للطلبات الكلية
+
                     const p = b > 0 ? ((c / b) * 100).toFixed(1) : "0.0";
                     let autoPoint = b >= 35 ? " (+2 ⭐)" : (b >= 25 ? " (+1 ⭐)" : "");
+                    
                     if (!teamSum[tName]) teamSum[tName] = { spent: 0, books: 0 };
                     teamSum[tName].books += b;
+                    
                     empBody.innerHTML += `<tr class="border-b border-slate-50"><td class="p-4 text-right font-bold">${r.employee_username} <span class="text-blue-500 font-black text-[9px]">${autoPoint}</span><br><span class="text-[9px] text-slate-400 italic">(${tName})</span></td><td class="p-4 text-center text-blue-600 font-bold">${b}</td><td class="p-4 text-center text-emerald-600 font-bold">${c}</td><td class="p-4 text-center text-purple-600 font-black">${p}%</td></tr>`;
                 });
             }
+
+            // عرض الإجماليات في الهيدر
+            document.getElementById('total_books_sum').innerText = overallBooks;
+            document.getElementById('total_spent_sum').innerText = overallSpent.toLocaleString() + " د.ع";
+
             for (let t in teamSum) {
                 const s = teamSum[t].spent; const b = teamSum[t].books;
                 const cpl = b > 0 ? (s / b).toFixed(0) : 0;
@@ -193,7 +224,7 @@
             const list = document.getElementById('emp_list_mobile');
             list.innerHTML = "";
             allUsers.forEach(e => {
-                list.innerHTML += `<div class="bg-white p-4 rounded-3xl border border-slate-200 flex justify-between items-center shadow-sm"><div class="text-right"><p class="font-bold text-slate-800 text-right">${e.username} <span class="text-[9px] text-blue-500 bg-blue-50 px-2 rounded-full font-black">${e.employee_code}</span></p><p class="text-[10px] text-slate-500 font-bold text-right">${e.role} | ${e.team || 'عام'}</p></div><button onclick="pop('${e.id}','${e.username}')" class="w-12 h-12 bg-slate-50 text-slate-400 rounded-2xl border flex items-center justify-center text-xl shadow-inner active:scale-90 transition-all hover:bg-slate-100">⚙️</button></div>`;
+                list.innerHTML += `<div class="bg-white p-4 rounded-3xl border border-slate-200 flex justify-between items-center shadow-sm"><div class="text-right"><p class="font-bold text-slate-800 text-right">${e.username} <span class="text-[9px] text-blue-500 bg-blue-50 px-2 rounded-full font-black">${e.employee_code}</span></p><p class="text-[10px] text-slate-500 font-bold text-right">${e.role} | ${e.team || 'عام'}</p></div><button onclick="pop('${e.id}','${e.username}')" class="w-12 h-12 bg-slate-50 text-slate-400 rounded-2xl border flex items-center justify-center text-xl shadow-inner active:scale-90 transition-all">⚙️</button></div>`;
             });
             getRep();
         }
@@ -224,38 +255,36 @@
 
         async function adj(t) { 
             const isPoint = (t === 'bonus');
-            const { value: v } = await Swal.fire({ title: isPoint ? 'إضافة نقاط ⭐' : 'تسجيل خصم 💰', input: 'number', showCancelButton: true, confirmButtonText: 'تأكيد', cancelButtonText: 'إلغاء' });
-            if(v) { await sb.from('adjustments').insert([{ user_id:cur.id, type:t, amount:v, reason: isPoint ? 'يدوي' : 'خصم' }]); toggleModal('m'); Swal.fire('تمت العملية', '', 'success'); load(); } 
+            const { value: v } = await Swal.fire({ title: isPoint ? 'إضافة نقاط ⭐' : 'تسجيل خصم 💰', input: 'number', showCancelButton: true });
+            if(v) { await sb.from('adjustments').insert([{ user_id:cur.id, type:t, amount:v, reason: isPoint ? 'يدوي' : 'خصم' }]); toggleModal('m'); Swal.fire('تم الحفظ', '', 'success'); load(); } 
         }
 
-        // دالة جديدة لحذف آخر سجل (مكافأة أو خصم) للموظف
+        // دالة حذف آخر خصم أو مكافأة
         async function removeLastAdj() {
             const { data } = await sb.from('adjustments').select('*').eq('user_id', cur.id).order('created_at', { ascending: false }).limit(1);
             if(data && data.length > 0) {
                 const item = data[0];
-                const confirm = await Swal.fire({
-                    title: 'حذف آخر سجل؟',
+                const res = await Swal.fire({
+                    title: 'تأكيد الحذف',
                     text: `هل تريد حذف ${item.type === 'bonus' ? 'المكافأة' : 'الخصم'} بقيمة (${item.amount})؟`,
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: 'نعم، احذف',
-                    cancelButtonText: 'تراجع'
+                    cancelButtonText: 'إلغاء'
                 });
-                
-                if(confirm.isConfirmed) {
+                if(res.isConfirmed) {
                     await sb.from('adjustments').delete().eq('id', item.id);
                     toggleModal('m');
-                    Swal.fire('تم الحذف بنجاح', '', 'success');
+                    Swal.fire('تم الحذف', '', 'success');
                     load();
                 }
             } else {
-                Swal.fire('لا يوجد سجلات', 'الموظف ليس لديه أي مكافآت أو خصومات يدوية لحذفها', 'info');
+                Swal.fire('لا يوجد سجلات لحذفها');
             }
         }
 
         async function resetUserAdj() {
-            const confirm = await Swal.fire({ title: 'تنبيه!', text: 'سيتم حذف كافة المكافآت والخصومات المسجلة لهذا الموظف فقط، هل أنت متأكد؟', icon: 'warning', showCancelButton: true });
-            if(confirm.isConfirmed) {
+            if(confirm('سيتم حذف كافة المكافآت والخصومات المسجلة لهذا الموظف فقط، هل أنت متأكد؟')) {
                 await sb.from('adjustments').delete().eq('user_id', cur.id);
                 toggleModal('m'); Swal.fire('تم التصفير'); load();
             }
