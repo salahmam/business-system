@@ -16,10 +16,8 @@
         .swal2-popup { border-radius: 2rem !important; font-family: 'Tajawal', sans-serif !important; }
         .hidden-list { display: none; }
         .date-center-box { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        /* ستايل لجعل الأرقام تظهر كأنها قابلة للنقر */
-        .editable-cell { cursor: pointer; position: relative; }
-        .editable-cell:hover { background: rgba(59, 130, 246, 0.05); }
-        .editable-cell::after { content: '✎'; position: absolute; top: 0; left: 0; font-size: 8px; color: #cbd5e1; }
+        /* إضافة لمسة بسيطة لتمييز الأرقام القابلة للتعديل دون تغيير التصميم */
+        .editable { cursor: pointer; border-bottom: 1px dashed #3b82f6; }
     </style>
 </head>
 <body class="min-h-screen pb-24 text-right">
@@ -170,32 +168,13 @@
         function toggleModal(id) { document.getElementById(id).classList.toggle('active'); }
         function toggleEmpList() { document.getElementById('emp_list_section').classList.toggle('hidden-list'); }
 
-        // --- دالة التعديل الجديدة (تضمن فتح الكيبورد وحفظ البيانات) ---
-        async function editCell(table, field, id, currentVal) {
-            const { value: newVal } = await Swal.fire({
-                title: 'تعديل القيمة',
-                input: 'number',
-                inputValue: currentVal,
-                showCancelButton: true,
-                confirmButtonText: 'حفظ',
-                cancelButtonText: 'إلغاء',
-                inputAttributes: { autofocus: 'true' }, // يضمن محاولة فتح الكيبورد
-                didOpen: () => {
-                    const input = Swal.getInput();
-                    if (input) {
-                        input.focus();
-                        input.select();
-                    }
-                }
-            });
-
-            if (newVal !== undefined && newVal !== null && newVal !== "") {
+        // وظيفة التعديل السريع باستخدام prompt النظام لضمان فتح الكيبورد
+        async function quickEdit(table, field, id, currentVal) {
+            let newVal = prompt("أدخل القيمة الجديدة:", currentVal);
+            if (newVal !== null && newVal !== "") {
                 const { error } = await sb.from(table).update({ [field]: newVal }).eq('id', id);
-                if (!error) {
-                    getRep(); // تحديث الجدول فوراً
-                } else {
-                    alert("خطأ في التحديث: " + error.message);
-                }
+                if (!error) getRep();
+                else alert("حدث خطأ أثناء التحديث");
             }
         }
 
@@ -228,21 +207,17 @@
                     const tName = user && user.team ? user.team : "بدون تيم";
                     const b = Number(r.bookings_count) || 0;
                     const c = Number(r.confirmed_count) || 0;
-                    
                     overallBooks += b;
                     const p = b > 0 ? ((c / b) * 100).toFixed(1) : "0.0";
                     let autoPoint = b >= 35 ? " (+2 ⭐)" : (b >= 25 ? " (+1 ⭐)" : "");
-                    
                     if (!teamSum[tName]) teamSum[tName] = { spent: 0, books: 0 };
                     teamSum[tName].books += b;
                     
-                    // تمت إضافة "editCell" هنا لأرقام الموظفين
                     empBody.innerHTML += `<tr class="border-b border-slate-50">
                         <td class="p-4 text-right font-bold">${r.employee_username} <span class="text-blue-500 font-black text-[9px]">${autoPoint}</span><br><span class="text-[9px] text-slate-400 italic">(${tName})</span></td>
-                        <td class="p-4 text-center text-blue-600 font-bold editable-cell" onclick="editCell('bookings_reports', 'bookings_count', ${r.id}, ${b})">${b}</td>
-                        <td class="p-4 text-center text-emerald-600 font-bold editable-cell" onclick="editCell('bookings_reports', 'confirmed_count', ${r.id}, ${c})">${c}</td>
-                        <td class="p-4 text-center text-purple-600 font-black">${p}%</td>
-                    </tr>`;
+                        <td class="p-4 text-center text-blue-600 font-bold"><span class="editable" onclick="quickEdit('bookings_reports','bookings_count',${r.id},${b})">${b}</span></td>
+                        <td class="p-4 text-center text-emerald-600 font-bold"><span class="editable" onclick="quickEdit('bookings_reports','confirmed_count',${r.id},${c})">${c}</span></td>
+                        <td class="p-4 text-center text-purple-600 font-black">${p}%</td></tr>`;
                 });
             }
 
@@ -254,15 +229,13 @@
             for (let t in teamSum) {
                 const s = teamSum[t].spent; const b = teamSum[t].books; const exId = teamSum[t].id;
                 const cpl = b > 0 ? (s / b).toFixed(0) : 0;
-                // تمت إضافة "editCell" هنا لمبلغ الصرف
                 teamBody.innerHTML += `<tr class="border-b border-slate-800">
                     <td class="p-4 text-right font-bold text-blue-400 italic text-right italic">${t}</td>
                     <td class="p-4 text-center">
-                        <div class="text-red-400 font-black text-sm editable-cell" onclick="editCell('marketing_expenses', 'amount_spent', ${exId}, ${s})">${s.toLocaleString()} د.ع</div>
+                        <div class="text-red-400 font-black text-sm"><span class="editable" onclick="quickEdit('marketing_expenses','amount_spent',${exId},${s})">${s.toLocaleString()}</span> د.ع</div>
                         <div class="text-[9px] text-slate-500 font-bold">سعر الطلب: ${Number(cpl).toLocaleString()}</div>
                     </td>
-                    <td class="p-4 text-center text-emerald-400 font-black text-lg">${b}</td>
-                </tr>`;
+                    <td class="p-4 text-center text-emerald-400 font-black text-lg">${b}</td></tr>`;
             }
         }
 
@@ -286,16 +259,13 @@
             document.getElementById('det_days').innerText = "...";
             document.getElementById('det_points').innerText = "...";
             document.getElementById('det_abs').innerText = "...";
-
             const { data: reports } = await sb.from('bookings_reports').select('bookings_count').eq('employee_username', n);
             let workDays = reports ? reports.length : 0;
             let autoPoints = 0;
             if (reports) reports.forEach(r => { if (r.bookings_count >= 35) autoPoints += 2; else if (r.bookings_count >= 25) autoPoints += 1; });
-
             const { data: adjData } = await sb.from('adjustments').select('amount, type').eq('user_id', id);
             let manualPoints = 0; let totalAbs = 0;
             if (adjData) adjData.forEach(a => { if(a.type === 'bonus') manualPoints += Number(a.amount); else totalAbs += Number(a.amount); });
-
             document.getElementById('det_days').innerText = `${workDays} يوم`;
             document.getElementById('det_points').innerText = `${autoPoints + manualPoints} نقطة`;
             document.getElementById('det_abs').innerText = `${totalAbs.toLocaleString()} د.ع`;
