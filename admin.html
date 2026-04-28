@@ -6,21 +6,19 @@
     <title>إدارة النظام | صلاح الخليفة</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; }
         .modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 50; padding: 1rem; }
         .modal.active { display: flex; }
         .glass-card { background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(226, 232, 240, 1); }
-        .swal2-popup { border-radius: 2rem !important; font-family: 'Tajawal', sans-serif !important; }
         .hidden-list { display: none; }
         .date-center-box { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
         
-        /* تأثيرات التعديل */
-        .editable-num { cursor: pointer; position: relative; transition: all 0.2s; }
-        .editable-num:hover { transform: scale(1.1); background: rgba(255,255,255,0.1); border-radius: 8px; padding: 2px; }
-        .editable-num-dark:hover { transform: scale(1.1); background: rgba(0,0,0,0.05); border-radius: 8px; padding: 2px; }
+        /* تصميم الأرقام القابلة للتعديل */
+        .editable { cursor: pointer; border-bottom: 2px dashed #3b82f6; transition: 0.2s; padding: 0 4px; }
+        .editable:hover { background: rgba(59, 130, 246, 0.1); border-radius: 4px; }
+        .editable:active { transform: scale(0.9); }
     </style>
 </head>
 <body class="min-h-screen pb-24 text-right">
@@ -51,20 +49,16 @@
                 <div id="total_stats_header" class="flex flex-wrap gap-2 text-[9px] font-bold text-slate-400">
                     <div class="bg-slate-800 p-2 rounded-lg border border-slate-700">الطلبات: <span id="total_books_sum" class="text-blue-400">0</span></div>
                     <div class="bg-slate-800 p-2 rounded-lg border border-slate-700">الصرف: <span id="total_spent_sum" class="text-red-400">0</span></div>
-                    <div class="bg-blue-900/30 p-2 rounded-lg border border-blue-500/30">متوسط السعر العام: <span id="overall_avg_cpl" class="text-emerald-400">0</span></div>
+                    <div class="bg-blue-900/30 p-2 rounded-lg border border-blue-500/30">متوسط العام: <span id="overall_avg_cpl" class="text-emerald-400">0</span></div>
                 </div>
             </div>
             
             <div class="overflow-x-auto">
                 <table class="w-full text-right text-xs text-white">
                     <thead class="text-slate-500 border-b border-slate-800">
-                        <tr>
-                            <th class="p-3 text-right">التيم</th>
-                            <th class="p-3 text-center">الصرف / الطلب</th>
-                            <th class="p-3 text-center text-emerald-400">الحجوزات</th>
-                        </tr>
+                        <tr><th class="p-3 text-right">التيم</th><th class="p-3 text-center">الصرف / الطلب</th><th class="p-3 text-center text-emerald-400">الحجوزات</th></tr>
                     </thead>
-                    <tbody id="team_body" class="font-bold"></tbody>
+                    <tbody id="team_body" class="font-bold italic"></tbody>
                 </table>
             </div>
         </div>
@@ -78,14 +72,17 @@
                     <thead class="text-slate-400 border-b border-slate-100">
                         <tr><th class="p-3 text-right">الموظف</th><th class="p-3 text-center">حجوزات</th><th class="p-3 text-center text-emerald-600">واصل</th><th class="p-3 text-center text-purple-600">النسبة</th></tr>
                     </thead>
-                    <tbody id="rep_body" class="divide-y divide-slate-50 text-slate-700 font-medium"></tbody>
+                    <tbody id="rep_body" class="divide-y divide-slate-50 text-slate-700 font-medium italic"></tbody>
                 </table>
             </div>
         </div>
 
         <div class="grid grid-cols-2 gap-4 pt-2">
             <button onclick="openAddModal()" class="bg-blue-600 text-white p-5 rounded-2xl font-bold shadow-lg active:scale-95 transition-all">➕ إضافة موظف</button>
-            <button onclick="toggleEmpList()" class="bg-slate-800 text-white p-5 rounded-2xl font-bold shadow-lg active:scale-95 transition-all">👥 قائمة الموظفين</button>
+            <div class="flex flex-col gap-2">
+                <button onclick="toggleEmpList()" class="bg-slate-800 text-white p-3 rounded-2xl font-bold shadow-lg active:scale-95">👥 قائمة الموظفين</button>
+                <button onclick="monthlyReset()" class="bg-red-600/10 text-red-600 border border-red-200 p-3 rounded-2xl font-bold text-xs active:scale-95">♻️ تصفير شهري</button>
+            </div>
         </div>
 
         <div id="emp_list_section" class="hidden-list space-y-3 bg-slate-100 p-4 rounded-[2rem]">
@@ -99,33 +96,38 @@
                 <h4 id="mn" class="font-black text-slate-800 text-lg uppercase">اسم الموظف</h4>
                 <p id="m_role" class="text-[10px] text-blue-500 font-bold tracking-widest"></p>
             </div>
-            <div id="det_days" class="hidden"></div> <div class="bg-slate-50 p-4 rounded-2xl space-y-2 border border-slate-100 text-sm">
-                <div class="flex justify-between"><span>الراتب:</span><span id="det_salary" class="font-bold"></span></div>
-                <div class="flex justify-between"><span>النقاط:</span><span id="det_points" class="font-bold text-amber-600"></span></div>
-                <div class="flex justify-between"><span>الخصومات:</span><span id="det_abs" class="font-bold text-red-600"></span></div>
+            
+            <div class="bg-slate-50 p-4 rounded-2xl space-y-2 border border-slate-100 text-xs">
+                <div class="flex justify-between"><span>الراتب الأساسي:</span><span id="det_salary" class="font-bold">0</span></div>
+                <div class="flex justify-between"><span>أيام العمل:</span><span id="det_days" class="font-bold text-blue-600">0</span></div>
+                <div class="flex justify-between"><span>النقاط (⭐):</span><span id="det_points" class="font-bold text-amber-600">0</span></div>
+                <div class="flex justify-between"><span>إجمالي الخصومات:</span><span id="det_abs" class="font-bold text-red-600">0</span></div>
             </div>
-            <div class="grid grid-cols-1 gap-2 pt-2">
-                <button onclick="editEmp()" class="w-full py-3 bg-blue-50 text-blue-600 rounded-xl font-bold border border-blue-100">✏️ تعديل البيانات</button>
-                <button onclick="kill()" class="w-full py-3 bg-red-50 text-red-600 rounded-xl font-bold border border-red-100">🗑️ حذف الموظف</button>
+
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="adj('bonus')" class="py-3 bg-emerald-50 text-emerald-600 rounded-xl font-bold text-xs border border-emerald-100">⭐ نقاط</button>
+                <button onclick="adj('absence')" class="py-3 bg-orange-50 text-orange-600 rounded-xl font-bold text-xs border border-orange-100">💰 خصم</button>
             </div>
-            <button onclick="toggleModal('m')" class="text-slate-400 text-xs block w-full text-center underline">إغلاق</button>
+            <button onclick="editEmp()" class="w-full py-3 bg-blue-50 text-blue-600 rounded-xl font-bold border border-blue-100">✏️ تعديل البيانات</button>
+            <button onclick="kill()" class="w-full py-3 bg-red-50 text-red-600 rounded-xl font-bold border border-red-100">🗑️ حذف الموظف</button>
+            <button onclick="toggleModal('m')" class="text-slate-400 text-[10px] block w-full text-center underline">إغلاق</button>
         </div>
     </div>
 
     <div id="add_emp_modal" class="modal">
         <div class="glass-card p-6 rounded-[2.5rem] w-full max-w-md space-y-4 shadow-2xl">
-            <h3 id="modal_title" class="font-extrabold text-xl text-slate-800 text-center text-right">بيانات الموظف</h3>
-            <div class="flex flex-col gap-3">
-                <input id="en" placeholder="الاسم" class="p-4 bg-slate-50 border rounded-2xl outline-none text-right">
+            <h3 id="modal_title" class="font-extrabold text-xl text-slate-800 text-center mb-2">بيانات الموظف</h3>
+            <div class="flex flex-col gap-3 text-right italic">
+                <input id="en" placeholder="الاسم (Username)" class="p-4 bg-slate-50 border rounded-2xl outline-none text-right">
                 <input id="ep" type="password" placeholder="الباسورد" class="p-4 bg-slate-50 border rounded-2xl outline-none text-right">
-                <input id="ec" placeholder="الكود (A01)" class="p-4 bg-slate-50 border rounded-2xl outline-none text-right">
-                <select id="er" class="p-4 bg-slate-50 border rounded-2xl text-right">
+                <input id="ec" placeholder="الكود (A01)" class="p-4 bg-slate-50 border rounded-2xl outline-none text-right font-black text-blue-600 uppercase">
+                <select id="er" class="p-4 bg-slate-50 border rounded-2xl font-bold text-right">
                     <option value="ردود">ردود</option><option value="مروج">مروج</option><option value="متابعة">متابعة</option>
                 </select>
                 <input id="et" placeholder="اسم التيم" class="p-4 bg-slate-50 border rounded-2xl outline-none text-right">
                 <input id="ey" type="number" placeholder="الراتب الأساسي" class="p-4 bg-slate-50 border rounded-2xl outline-none text-right">
             </div>
-            <div class="grid grid-cols-2 gap-3 mt-4">
+            <div class="grid grid-cols-2 gap-3 mt-4 text-right">
                 <button onclick="save()" class="bg-blue-600 text-white p-4 rounded-2xl font-bold shadow-lg">حفظ</button>
                 <button onclick="toggleModal('add_emp_modal')" class="bg-slate-200 text-slate-600 p-4 rounded-2xl font-bold">إلغاء</button>
             </div>
@@ -139,33 +141,12 @@
         function toggleModal(id) { document.getElementById(id).classList.toggle('active'); }
         function toggleEmpList() { document.getElementById('emp_list_section').classList.toggle('hidden-list'); }
 
-        // --- وظائف التعديل المباشر ---
-        async function editDirectSpent(id, oldVal) {
-            const { value: newVal } = await Swal.fire({
-                title: 'تعديل مبلغ الصرف',
-                input: 'number',
-                inputValue: oldVal,
-                showCancelButton: true,
-                confirmButtonText: 'تحديث'
-            });
-            if (newVal) {
-                const { error } = await sb.from('marketing_expenses').update({ amount_spent: parseFloat(newVal) }).eq('id', id);
-                if (!error) { Swal.fire('تمت العملية','تم تعديل المبلغ بنجاح','success'); getRep(); }
-            }
-        }
-
-        async function editDirectReport(id, field, oldVal) {
-            const title = field === 'bookings_count' ? 'تعديل عدد الحجوزات' : 'تعديل عدد الواصل';
-            const { value: newVal } = await Swal.fire({
-                title: title,
-                input: 'number',
-                inputValue: oldVal,
-                showCancelButton: true,
-                confirmButtonText: 'تحديث'
-            });
-            if (newVal !== null && newVal !== undefined) {
-                const { error } = await sb.from('bookings_reports').update({ [field]: parseInt(newVal) }).eq('id', id);
-                if (!error) { Swal.fire('تمت العملية','تم تعديل الرقم بنجاح','success'); getRep(); }
+        // --- وظيفة التعديل المباشر ---
+        async function updateDirectValue(table, field, id, currentVal) {
+            let newVal = prompt(`تعديل القيمة (${field}):`, currentVal);
+            if (newVal !== null && newVal !== "") {
+                const { error } = await sb.from(table).update({ [field]: parseFloat(newVal) }).eq('id', id);
+                if (!error) { getRep(); } else { alert("خطأ في التعديل: " + error.message); }
             }
         }
 
@@ -174,12 +155,11 @@
             if(!d) return;
             const { data: reports } = await sb.from('bookings_reports').select('*').eq('report_date', d);
             const { data: expenses } = await sb.from('marketing_expenses').select('*').eq('expense_date', d);
-            
             const teamBody = document.getElementById('team_body');
             const empBody = document.getElementById('rep_body');
             teamBody.innerHTML = ""; empBody.innerHTML = "";
-            
             const teamSum = {};
+            
             let overallSpent = 0; let overallBooks = 0;
 
             if (expenses) {
@@ -194,41 +174,36 @@
             if (reports) {
                 reports.forEach(r => {
                     const user = allUsers.find(u => u.username === r.employee_username);
-                    const tName = user && user.team ? user.team : "بدون تيم";
+                    const tName = user?.team || "عام";
                     const b = Number(r.bookings_count) || 0;
                     const c = Number(r.confirmed_count) || 0;
                     overallBooks += b;
-
                     if (!teamSum[tName]) teamSum[tName] = { spent: 0, books: 0 };
                     teamSum[tName].books += b;
-                    
                     const p = b > 0 ? ((c / b) * 100).toFixed(1) : "0.0";
                     
-                    empBody.innerHTML += `<tr class="border-b border-slate-50">
-                        <td class="p-4 text-right font-bold">${r.employee_username}<br><span class="text-[9px] text-slate-400">(${tName})</span></td>
-                        <td class="p-4 text-center text-blue-600 font-bold editable-num-dark" onclick="editDirectReport(${r.id}, 'bookings_count', ${b})">${b}</td>
-                        <td class="p-4 text-center text-emerald-600 font-bold editable-num-dark" onclick="editDirectReport(${r.id}, 'confirmed_count', ${c})">${c}</td>
-                        <td class="p-4 text-center text-purple-600 font-black">${p}%</td>
-                    </tr>`;
+                    empBody.innerHTML += `<tr class="border-b">
+                        <td class="p-4 font-bold">${r.employee_username}<br><span class="text-[9px] text-slate-400">(${tName})</span></td>
+                        <td class="p-4 text-center"><span class="editable text-blue-600" onclick="updateDirectValue('bookings_reports', 'bookings_count', ${r.id}, ${b})">${b}</span></td>
+                        <td class="p-4 text-center"><span class="editable text-emerald-600" onclick="updateDirectValue('bookings_reports', 'confirmed_count', ${r.id}, ${c})">${c}</span></td>
+                        <td class="p-4 text-center text-purple-600 font-black">${p}%</td></tr>`;
                 });
             }
 
-            const overallAvg = overallBooks > 0 ? (overallSpent / overallBooks).toFixed(0) : 0;
             document.getElementById('total_books_sum').innerText = overallBooks;
-            document.getElementById('total_spent_sum').innerText = overallSpent.toLocaleString() + " د.ع";
-            document.getElementById('overall_avg_cpl').innerText = Number(overallAvg).toLocaleString() + " د.ع";
+            document.getElementById('total_spent_sum').innerText = overallSpent.toLocaleString();
+            document.getElementById('overall_avg_cpl').innerText = overallBooks > 0 ? (overallSpent / overallBooks).toFixed(0) : 0;
 
             for (let t in teamSum) {
-                const s = teamSum[t].spent; const b = teamSum[t].books; const dbId = teamSum[t].id;
+                const s = teamSum[t].spent; const b = teamSum[t].books;
                 const cpl = b > 0 ? (s / b).toFixed(0) : 0;
                 teamBody.innerHTML += `<tr class="border-b border-slate-800">
-                    <td class="p-4 text-right font-bold text-blue-400 italic">${t}</td>
+                    <td class="p-4 text-blue-400 italic">${t}</td>
                     <td class="p-4 text-center">
-                        <div class="text-red-400 font-black text-sm editable-num" onclick="editDirectSpent(${dbId}, ${s})">${s.toLocaleString()} د.ع</div>
-                        <div class="text-[9px] text-slate-500 font-bold">سعر الطلب: ${Number(cpl).toLocaleString()}</div>
+                        <span class="editable text-red-400 text-sm" onclick="updateDirectValue('marketing_expenses', 'amount_spent', ${teamSum[t].id}, ${s})">${s.toLocaleString()} د.ع</span>
+                        <div class="text-[9px] text-slate-500">CPL: ${cpl}</div>
                     </td>
-                    <td class="p-4 text-center text-emerald-400 font-black text-lg">${b}</td>
-                </tr>`;
+                    <td class="p-4 text-center text-emerald-400 text-lg">${b}</td></tr>`;
             }
         }
 
@@ -238,7 +213,9 @@
             const list = document.getElementById('emp_list_mobile');
             list.innerHTML = "";
             allUsers.forEach(e => {
-                list.innerHTML += `<div class="bg-white p-4 rounded-3xl border border-slate-200 flex justify-between items-center shadow-sm"><div class="text-right"><p class="font-bold text-slate-800">${e.username} <span class="text-[9px] text-blue-500 bg-blue-50 px-2 rounded-full font-black">${e.employee_code}</span></p><p class="text-[10px] text-slate-500 font-bold">${e.role} | ${e.team || 'عام'}</p></div><button onclick="pop('${e.id}','${e.username}')" class="w-12 h-12 bg-slate-50 text-slate-400 rounded-2xl border flex items-center justify-center text-xl shadow-inner active:scale-90 transition-all">⚙️</button></div>`;
+                list.innerHTML += `<div class="bg-white p-4 rounded-3xl border border-slate-200 flex justify-between items-center shadow-sm mb-2 italic">
+                    <div class="text-right font-bold"><p>${e.username} <span class="text-[9px] text-blue-500">${e.employee_code}</span></p></div>
+                    <button onclick="pop('${e.id}','${e.username}')" class="bg-slate-50 text-slate-400 p-3 rounded-2xl border">⚙️</button></div>`;
             });
             getRep();
         }
@@ -250,22 +227,32 @@
             document.getElementById('det_salary').innerText = `${u.salary || 0} د.ع`;
             toggleModal('m');
             
+            const { data: reports } = await sb.from('bookings_reports').select('bookings_count').eq('employee_username', n);
+            document.getElementById('det_days').innerText = reports ? reports.length : 0;
+            
             const { data: adjData } = await sb.from('adjustments').select('amount, type').eq('user_id', id);
-            let totalAbs = 0; if (adjData) adjData.forEach(a => { if(a.type !== 'bonus') totalAbs += Number(a.amount); });
-            document.getElementById('det_abs').innerText = `${totalAbs.toLocaleString()} د.ع`;
+            let totalAbs = 0; let bonus = 0;
+            if (adjData) adjData.forEach(a => { if(a.type === 'bonus') bonus += Number(a.amount); else totalAbs += Number(a.amount); });
+            document.getElementById('det_abs').innerText = totalAbs.toLocaleString() + " د.ع";
+            document.getElementById('det_points').innerText = bonus;
         }
 
-        async function save() {
+        async function adj(t) { 
+            let v = prompt("أدخل القيمة:");
+            if(v) { await sb.from('adjustments').insert([{ user_id:cur.id, type:t, amount:v }]); toggleModal('m'); load(); } 
+        }
+
+        async function save() { 
             const obj = { username: document.getElementById('en').value, password: document.getElementById('ep').value, employee_code: document.getElementById('ec').value, role: document.getElementById('er').value, team: document.getElementById('et').value, salary: document.getElementById('ey').value };
             if(cur && document.getElementById('modal_title').innerText.includes("تعديل")) await sb.from('users').update(obj).eq('id', cur.id);
             else await sb.from('users').insert([obj]);
             location.reload();
         }
 
+        async function monthlyReset() { if(confirm('تصفير كل البيانات؟')) { await sb.from('adjustments').delete().neq('id', 0); await sb.from('bookings_reports').delete().neq('id', 0); location.reload(); } }
         async function editEmp() { toggleModal('m'); const u = allUsers.find(x => x.id == cur.id); document.getElementById('modal_title').innerText = "تعديل: " + u.username; document.getElementById('en').value = u.username; document.getElementById('ep').value = u.password; document.getElementById('ec').value = u.employee_code; document.getElementById('er').value = u.role; document.getElementById('et').value = u.team || ""; document.getElementById('ey').value = u.salary || 0; toggleModal('add_emp_modal'); }
-        async function kill() { if(confirm('حذف الموظف نهائياً؟')) { await sb.from('users').delete().eq('id',cur.id); location.reload(); } }
-        function openAddModal() { cur = null; document.getElementById('modal_title').innerText = "إضافة موظف جديد"; ['en','ep','ec','et','ey'].forEach(id => document.getElementById(id).value = ""); toggleModal('add_emp_modal'); }
-
+        async function kill() { if(confirm('حذف؟')) { await sb.from('users').delete().eq('id',cur.id); location.reload(); } }
+        function openAddModal() { cur = null; document.getElementById('modal_title').innerText = "إضافة موظف"; toggleModal('add_emp_modal'); }
         window.onload = () => { document.getElementById('rep_date').valueAsDate = new Date(); load(); };
     </script>
 </body>
