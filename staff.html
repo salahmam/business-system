@@ -8,39 +8,12 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Tajawal', sans-serif; background: #f8fafc; color: #1e293b; overflow-x: hidden; }
-        
-        /* تأثيرات الصناديق */
-        .glass-card { 
-            background: white; 
-            border-radius: 2.5rem; 
-            box-shadow: 0 15px 35px -5px rgba(0,0,0,0.05); 
-            border: 1px solid #e2e8f0;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .stat-box { 
-            border-right: 5px solid;
-            transition: all 0.3s ease;
-        }
-        .stat-box:hover { transform: scale(1.05); shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
-
-        /* حركات تفاعلية */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-in { animation: fadeIn 0.6s ease forward; }
-
-        input, select {
-            transition: all 0.3s ease;
-            text-align: center;
-        }
-        input:focus { transform: scale(1.02); }
-
-        /* تعديل مخصص لصندوق التاريخ ليكون في الوسط */
-        .date-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+        body { font-family: 'Tajawal', sans-serif; background: #f8fafc; color: #1e293b; }
+        .glass-card { background: white; border-radius: 2.5rem; box-shadow: 0 15px 35px -5px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+        .stat-box { border-right: 5px solid; transition: all 0.3s ease; }
+        .date-container { display: flex; justify-content: center; align-items: center; }
+        .animate-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="pb-10">
@@ -60,7 +33,7 @@
 
     <div class="p-5 max-w-lg mx-auto space-y-6 pt-8 animate-in">
         
-        <div class="grid grid-cols-2 gap-4">
+        <div id="stats_grid" class="grid grid-cols-2 gap-4">
             <div class="glass-card p-4 stat-box border-blue-500">
                 <span class="text-[10px] text-slate-400 font-black block mb-1">الراتب</span>
                 <span id="stat_salary" class="text-lg font-black text-slate-800">0</span>
@@ -69,11 +42,11 @@
                 <span class="text-[10px] text-slate-400 font-black block mb-1">النقاط ⭐</span>
                 <span id="stat_bonus" class="text-lg font-black text-amber-600">0</span>
             </div>
-            <div class="glass-card p-4 stat-box border-emerald-500">
+            <div id="box_total" class="glass-card p-4 stat-box border-emerald-500">
                 <span class="text-[10px] text-slate-400 font-black block mb-1">طلباتي</span>
                 <span id="stat_total_books" class="text-lg font-black text-emerald-600">0</span>
             </div>
-            <div class="glass-card p-4 stat-box border-indigo-500">
+            <div id="box_confirmed" class="glass-card p-4 stat-box border-indigo-500">
                 <span class="text-[10px] text-slate-400 font-black block mb-1">واصل</span>
                 <span id="stat_confirmed" class="text-lg font-black text-indigo-600">0</span>
             </div>
@@ -91,19 +64,19 @@
             <div class="space-y-2">
                 <label class="text-[11px] font-black text-slate-400 block text-center uppercase tracking-widest">تاريخ التقرير</label>
                 <div class="date-container">
-                    <input type="date" id="dt" class="w-2/3 p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold text-slate-700 outline-none focus:border-blue-500 focus:bg-white shadow-inner">
+                    <input type="date" id="dt" class="w-2/3 p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold text-slate-700 outline-none focus:border-blue-500 shadow-inner text-center">
                 </div>
             </div>
 
             <div id="fol" class="hidden space-y-2">
-                <label class="text-[11px] font-black text-amber-600 block text-center uppercase">تحديث واصل للموظف:</label>
+                <label class="text-[11px] font-black text-amber-600 block text-center uppercase">اختر الموظف:</label>
                 <select id="slst" class="w-full p-4 bg-amber-50 border-2 border-amber-100 rounded-2xl font-black text-center text-amber-800 outline-none"></select>
             </div>
 
             <div class="space-y-4">
-                <label id="cnt_label" class="text-xs font-black text-blue-600 block text-center uppercase tracking-widest">الكمية المنجزة</label>
-                <div class="relative group">
-                    <input type="number" id="cnt" placeholder="0" class="w-full bg-slate-50 p-10 rounded-[2.5rem] text-center text-7xl font-black text-slate-800 outline-none border-2 border-dashed border-slate-200 group-hover:border-blue-300 transition-all placeholder:opacity-10">
+                <label id="cnt_label" class="text-xs font-black text-blue-600 block text-center uppercase tracking-widest">العدد المنجز</label>
+                <div class="relative">
+                    <input type="number" id="cnt" placeholder="0" class="w-full bg-slate-50 p-10 rounded-[2.5rem] text-center text-7xl font-black text-slate-800 outline-none border-2 border-dashed border-slate-200 focus:border-blue-300 transition-all">
                 </div>
             </div>
 
@@ -126,9 +99,16 @@
             document.getElementById('u_role_display').innerText = `${u.role} | ${u.employee_code}`;
             document.getElementById('dt').valueAsDate = new Date();
 
+            // إخفاء الصناديق للمتابعة وتغيير المسمى
             if(u.role === 'متابعة') {
+                document.getElementById('box_total').style.display = 'none';
+                document.getElementById('box_confirmed').style.display = 'none';
+                document.getElementById('stats_grid').classList.remove('grid-cols-2');
+                document.getElementById('stats_grid').classList.add('grid-cols-1'); // جعل المتبقي يأخذ العرض كاملاً أو تنسيق أفضل
+                
                 document.getElementById('fol').classList.remove('hidden');
-                document.getElementById('cnt_label').innerText = "تعديل عدد الواصل";
+                document.getElementById('cnt_label').innerText = "عدد الواصل";
+                
                 const { data } = await sb.from('users').select('username, employee_code').eq('role','ردود');
                 const selectList = document.getElementById('slst');
                 data.forEach(s => { 
@@ -152,8 +132,10 @@
             if(adjData) adjData.forEach(a => { if(a.type === 'bonus') points += Number(a.amount); else totalAbs += Number(a.amount); });
 
             document.getElementById('stat_salary').innerText = `${u.salary || 0} د.ع`;
-            document.getElementById('stat_total_books').innerText = bTotal;
-            document.getElementById('stat_confirmed').innerText = cTotal;
+            if(u.role !== 'متابعة') {
+                document.getElementById('stat_total_books').innerText = bTotal;
+                document.getElementById('stat_confirmed').innerText = cTotal;
+            }
             document.getElementById('stat_bonus').innerText = points + " ⭐";
             document.getElementById('stat_abs').innerText = totalAbs.toLocaleString() + " د.ع";
         }
@@ -170,11 +152,14 @@
             const { data: existing } = await sb.from('bookings_reports').select('*').eq('employee_username', targetUser).eq('report_date', d).single();
             
             let reportData = { employee_username: targetUser, report_date: d };
+            
             if(u.role === 'ردود') {
                 reportData.bookings_count = c;
                 reportData.confirmed_count = existing ? existing.confirmed_count : 0;
             } else {
-                reportData.confirmed_count = c;
+                // للمتابعة: نقوم بإضافة العدد الجديد إلى العدد السابق إذا كان موجوداً
+                const previousConfirmed = existing ? (existing.confirmed_count || 0) : 0;
+                reportData.confirmed_count = previousConfirmed + c;
                 reportData.bookings_count = existing ? existing.bookings_count : 0;
             }
 
@@ -183,8 +168,8 @@
             const msgBox = document.getElementById('msg');
             msgBox.classList.remove('hidden');
             if(!error) {
-                msgBox.innerText = "✅ تم تحديث البيانات بنجاح";
-                msgBox.className = "text-center font-bold text-emerald-600 bg-emerald-50 p-4 rounded-2xl border border-emerald-100 animate-bounce";
+                msgBox.innerText = "✅ تم إضافة العدد للواصل بنجاح";
+                msgBox.className = "text-center font-bold text-emerald-600 bg-emerald-50 p-4 rounded-2xl border border-emerald-100";
                 loadStats();
                 document.getElementById('cnt').value = "";
             } else {
