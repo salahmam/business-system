@@ -10,27 +10,28 @@
     <style>
         body { font-family: 'Tajawal', sans-serif; background-color: #f0f4f8; }
         .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
-        .stat-card { border-right: 4px solid #4f46e5; }
+        .stat-card { border-right: 4px solid #4f46e5; transition: 0.3s; }
+        .stat-card:hover { transform: scale(1.02); }
     </style>
 </head>
 <body class="pb-10">
 
-    <header class="bg-indigo-900 text-white p-5 sticky top-0 z-50 shadow-2xl rounded-b-[2rem] flex justify-between items-center">
+    <header class="bg-indigo-900 text-white p-5 sticky top-0 z-50 shadow-2xl rounded-b-[2rem] flex justify-between items-center border-b-4 border-indigo-500">
         <div class="flex items-center gap-3">
-            <div id="user_initial" class="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center font-black text-xl">..</div>
+            <div id="user_initial" class="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center font-black text-xl shadow-lg">..</div>
             <div>
-                <h2 id="u_name_display" class="font-bold text-lg">تحميل...</h2>
-                <p id="u_role_display" class="text-[10px] text-indigo-300 font-bold uppercase"></p>
+                <h2 id="u_name_display" class="font-bold text-lg text-right">تحميل...</h2>
+                <p id="u_role_display" class="text-[10px] text-indigo-300 font-bold uppercase text-right"></p>
             </div>
         </div>
-        <button onclick="localStorage.clear(); location.href='index.html'" class="bg-white/10 p-3 rounded-2xl border border-white/10">Logout</button>
+        <button onclick="localStorage.clear(); location.href='index.html'" class="bg-white/10 p-3 rounded-2xl border border-white/10 active:scale-90">Logout</button>
     </header>
 
-    <div class="p-4 max-w-lg mx-auto space-y-6 pt-6">
-        <div class="grid grid-cols-2 gap-3 text-right">
+    <div class="p-4 max-w-lg mx-auto space-y-6 pt-6 text-right">
+        <div class="grid grid-cols-2 gap-3">
             <div class="glass p-4 rounded-[2rem] stat-card shadow-sm">
                 <span class="text-[10px] text-slate-400 font-bold block">الراتب</span>
-                <span id="stat_salary" class="text-lg font-black text-slate-800">0</span>
+                <span id="stat_salary" class="text-lg font-black text-slate-800 text-right">0</span>
             </div>
             <div class="glass p-4 rounded-[2rem] stat-card shadow-sm border-amber-400">
                 <span class="text-[10px] text-slate-400 font-bold block">النقاط (⭐)</span>
@@ -44,12 +45,16 @@
                 <span class="text-[10px] text-slate-400 font-bold block">واصل</span>
                 <span id="stat_confirmed" class="text-lg font-black text-blue-600">0</span>
             </div>
+            <div class="glass p-4 rounded-[2rem] stat-card shadow-sm border-red-400 col-span-2">
+                <span class="text-[10px] text-slate-400 font-bold block">إجمالي الخصومات المالية</span>
+                <span id="stat_abs" class="text-lg font-black text-red-600">0 د.ع</span>
+            </div>
         </div>
 
         <div class="glass p-8 rounded-[3rem] shadow-xl space-y-6">
             <h3 id="ttl" class="text-xl font-black text-slate-800 text-center">إرسال تقرير اليوم</h3>
             <div class="space-y-4">
-                <input type="date" id="dt" class="w-full p-4 bg-indigo-50 border rounded-2xl text-center font-bold outline-none">
+                <input type="date" id="dt" class="w-full p-4 bg-indigo-50 border rounded-2xl text-center font-bold outline-none focus:border-indigo-600">
                 <div id="fol" class="hidden">
                     <select id="slst" class="w-full p-4 bg-amber-50 border rounded-2xl font-bold text-center appearance-none"></select>
                 </div>
@@ -76,8 +81,6 @@
 
             if(u.role === 'متابعة') {
                 document.getElementById('fol').classList.remove('hidden');
-                document.getElementById('ttl').innerText = "تأكيد الواصل للموظفين";
-                document.getElementById('cnt_label').innerText = "عدد الحجوزات الواصلة";
                 const { data } = await sb.from('users').select('username, employee_code').eq('role','ردود');
                 const selectList = document.getElementById('slst');
                 data.forEach(s => { let o = document.createElement('option'); o.value = s.username; o.text = `${s.username} (${s.employee_code})`; selectList.add(o); });
@@ -88,18 +91,19 @@
         async function loadStats() {
             document.getElementById('stat_salary').innerText = `${u.salary || 0} د.ع`;
             const { data: reports } = await sb.from('bookings_reports').select('*').eq('employee_username', u.username);
-            const { data: manualAdj } = await sb.from('adjustments').select('amount').eq('user_id', u.id).eq('type', 'bonus');
+            const { data: adjData } = await sb.from('adjustments').select('amount, type').eq('user_id', u.id);
 
-            let bTotal = 0, cTotal = 0, points = 0;
+            let bTotal = 0, cTotal = 0, points = 0, totalAbs = 0;
             if(reports) reports.forEach(r => {
                 bTotal += (r.bookings_count || 0); cTotal += (r.confirmed_count || 0);
                 if(r.bookings_count >= 35) points += 2; else if(r.bookings_count >= 25) points += 1;
             });
-            if(manualAdj) manualAdj.forEach(a => points += Number(a.amount || 0));
+            if(adjData) adjData.forEach(a => { if(a.type === 'bonus') points += Number(a.amount); else totalAbs += Number(a.amount); });
 
             document.getElementById('stat_total_books').innerText = bTotal;
             document.getElementById('stat_confirmed').innerText = cTotal;
             document.getElementById('stat_bonus').innerText = points + " ⭐";
+            document.getElementById('stat_abs').innerText = totalAbs.toLocaleString() + " د.ع";
         }
 
         async function send() {
@@ -107,23 +111,14 @@
             const d = document.getElementById('dt').value;
             const targetUser = (u.role === 'متابعة') ? document.getElementById('slst').value : u.username;
             if(isNaN(c)) return;
-
             const reportData = { employee_username: targetUser, report_date: d };
             if(u.role === 'ردود') reportData.bookings_count = c;
             else if(u.role === 'متابعة') reportData.confirmed_count = c;
-
             const { error } = await sb.from('bookings_reports').upsert([reportData], { onConflict: 'employee_username,report_date' });
-            
             const msgBox = document.getElementById('msg');
             msgBox.classList.remove('hidden');
-            if(!error) {
-                msgBox.innerText = "✅ تم الحفظ بنجاح";
-                msgBox.className = "text-center font-bold text-emerald-600 bg-emerald-50 p-4 rounded-2xl";
-                loadStats();
-            } else {
-                msgBox.innerText = "❌ خطأ في الإرسال";
-                msgBox.className = "text-center font-bold text-red-600 bg-red-50 p-4 rounded-2xl";
-            }
+            if(!error) { msgBox.innerText = "✅ تم الحفظ بنجاح"; msgBox.className = "text-center font-bold text-emerald-600 bg-emerald-50 p-4 rounded-2xl"; loadStats(); }
+            else { msgBox.innerText = "❌ خطأ في الإرسال"; msgBox.className = "text-center font-bold text-red-600 bg-red-50 p-4 rounded-2xl"; }
         }
     </script>
 </body>
