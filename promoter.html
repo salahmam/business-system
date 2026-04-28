@@ -6,12 +6,12 @@
     <title>منصة المروج الاحترافية | BUSINESS SYSTEM</title>
     <link rel="manifest" href="manifest.json">
 
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Business System">
-<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1006/1006540.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Business System">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1006/1006540.png">
 
-<meta name="theme-color" content="#0f172a">
+    <meta name="theme-color" content="#0f172a">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -82,7 +82,7 @@
                     </div>
                 </div>
 
-                <button id="save_btn" onclick="saveExpense()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-5 rounded-[2rem] font-black text-lg shadow-xl shadow-blue-200 active:scale-[0.97] transition-all flex items-center justify-center gap-3 border-b-4 border-blue-800">
+                <button id="save_btn" onclick="saveExpense()" class="w-full bg-blue-600 text-white py-5 rounded-[2rem] font-black text-lg shadow-xl shadow-blue-200 active:scale-[0.97] transition-all flex items-center justify-center gap-3 border-b-4 border-blue-800">
                     حفظ وتحديث الإحصائيات 🚀
                 </button>
             </div>
@@ -102,8 +102,7 @@
                             <th class="p-4 text-center text-blue-600 italic underline">سعر الطلب (CPL)</th>
                         </tr>
                     </thead>
-                    <tbody id="team_table_body" class="text-sm font-bold divide-y divide-slate-100">
-                        </tbody>
+                    <tbody id="team_table_body" class="text-sm font-bold divide-y divide-slate-100"></tbody>
                 </table>
             </div>
         </div>
@@ -136,7 +135,7 @@
             });
         }
 
-        // --- الدالة الجديدة لجلب المبلغ المكتوب سابقاً ---
+        // دالة جلب المبلغ المكتوب سابقاً فور اختيار التيم
         async function fetchExistingAmount() {
             const team = document.getElementById('team_select').value;
             const date = document.getElementById('target_date').value;
@@ -145,26 +144,27 @@
 
             if (!team || !date) { spendInput.value = ""; return; }
 
+            // جلب البيانات مع تنظيف اسم التيم من أي مسافات زائدة
             const { data, error } = await sb.from('marketing_expenses')
                 .select('amount_spent')
                 .eq('expense_date', date)
-                .eq('target_team', team)
+                .eq('target_team', team.trim())
                 .maybeSingle();
 
             if (data) {
                 spendInput.value = data.amount_spent;
                 saveBtn.innerText = "تعديل المبلغ المسجل سابقاً ✏️";
-                saveBtn.classList.replace('from-blue-600', 'from-amber-500');
+                saveBtn.style.background = "linear-gradient(to right, #f59e0b, #d97706)"; // لون برتقالي للتعديل
             } else {
                 spendInput.value = "";
                 saveBtn.innerText = "حفظ وتحديث الإحصائيات 🚀";
-                saveBtn.classList.replace('from-amber-500', 'from-blue-600');
+                saveBtn.style.background = "#2563eb"; // العودة للأزرق
             }
         }
 
         async function syncData() {
             const date = document.getElementById('target_date').value;
-            fetchExistingAmount(); // تحديث الحقل إذا كان التيم مختاراً عند تغيير التاريخ
+            fetchExistingAmount(); // تحديث الحقل العلوي عند تغيير التاريخ
             
             const tableBody = document.getElementById('team_table_body');
             tableBody.innerHTML = `<tr><td colspan="4" class="p-10 text-center animate-pulse text-slate-400 font-bold italic">جاري جلب وتحليل البيانات...</td></tr>`;
@@ -188,8 +188,9 @@
             if (expenses) {
                 expenses.forEach(exp => {
                     if (exp.target_team) {
-                        if (!teamData[exp.target_team]) teamData[exp.target_team] = { books: 0, spend: 0 };
-                        teamData[exp.target_team].spend += parseFloat(exp.amount_spent || 0);
+                        const tName = exp.target_team.trim();
+                        if (!teamData[tName]) teamData[tName] = { books: 0, spend: 0 };
+                        teamData[tName].spend += parseFloat(exp.amount_spent || 0);
                     }
                 });
             }
@@ -229,33 +230,33 @@
                 return;
             }
 
-            // التحقق أولاً إذا كان السجل موجوداً (لتجنب التكرار والتحديث بدلاً من الإضافة)
+            // فحص وجود سجل مسبق
             const { data: existing } = await sb.from('marketing_expenses')
                 .select('id')
                 .eq('expense_date', date)
-                .eq('target_team', team)
+                .eq('target_team', team.trim())
                 .maybeSingle();
 
-            let result;
+            let res;
             if (existing) {
-                // تحديث السجل الحالي
-                result = await sb.from('marketing_expenses')
+                // تحديث السجل بدلاً من الإضافة
+                res = await sb.from('marketing_expenses')
                     .update({ amount_spent: parseFloat(amount), promoter_username: user.username })
                     .eq('id', existing.id);
             } else {
                 // إضافة سجل جديد
-                result = await sb.from('marketing_expenses').insert([{
+                res = await sb.from('marketing_expenses').insert([{
                     promoter_username: user.username,
-                    target_team: team,
+                    target_team: team.trim(),
                     amount_spent: parseFloat(amount),
                     expense_date: date
                 }]);
             }
 
-            if (result.error) {
-                alert("❌ حدث خطأ: " + result.error.message);
+            if (res.error) {
+                alert("❌ حدث خطأ: " + res.error.message);
             } else {
-                alert("✅ تم تحديث البيانات بنجاح");
+                alert("✅ تم تحديث بيانات تيم " + team + " بنجاح");
                 syncData();
             }
         }
