@@ -4,26 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>منصة المروج الاحترافية | BUSINESS SYSTEM</title>
-    <link rel="manifest" href="manifest.json">
-
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Business System">
-<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1006/1006540.png">
-
-<meta name="theme-color" content="#0f172a">
-
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Tajawal', sans-serif; }
+        body { font-family: 'Tajawal', sans-serif; text-align: right; }
         .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
         .stat-card-blue { border-right: 4px solid #2563eb; }
         .stat-card-emerald { border-right: 4px solid #10b981; }
     </style>
 </head>
-<body class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 min-h-screen pb-10 text-right">
+<body class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 min-h-screen pb-10">
 
     <header class="bg-blue-900 text-white p-5 sticky top-0 z-50 shadow-2xl rounded-b-[2rem] flex justify-between items-center border-b-4 border-blue-500">
         <div class="flex items-center gap-3">
@@ -31,18 +22,18 @@
                 <span>📢</span>
             </div>
             <div>
-                <h2 id="p_name_display" class="font-bold text-lg leading-tight">تحميل...</h2>
+                <h2 id="p_name_display" class="font-bold text-lg leading-tight text-right">تحميل...</h2>
                 <p class="text-[10px] text-blue-300 font-bold tracking-widest uppercase text-right">مسؤول الحملات الإعلانية</p>
             </div>
         </div>
-        <button onclick="localStorage.clear(); location.href='index.html'" class="bg-white/10 hover:bg-red-500/20 text-white p-3 rounded-2xl transition-all active:scale-90 border border-white/10">
+        <button onclick="localStorage.clear(); location.href='index.html'" class="bg-white/10 p-3 rounded-2xl border border-white/10 shadow-lg active:scale-90 transition-all">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
         </button>
     </header>
 
-    <div class="p-4 max-w-xl mx-auto space-y-6 pt-6">
+    <div class="p-4 max-w-xl mx-auto space-y-6 pt-6 text-right">
         
         <div class="glass p-6 rounded-[2.5rem] shadow-xl border border-white space-y-4">
             <div class="flex flex-col items-center">
@@ -57,7 +48,7 @@
                 </div>
                 <div class="p-4 rounded-3xl bg-white border border-slate-100 shadow-sm stat-card-emerald">
                     <span class="text-[9px] text-slate-400 font-bold block uppercase text-right">متوسط CPL الكلي</span>
-                    <span id="avg_cpl_all" class="text-2xl font-black text-emerald-700">0.00</span>
+                    <span id="avg_cpl_all" class="text-2xl font-black text-emerald-700">0</span>
                 </div>
             </div>
         </div>
@@ -69,40 +60,40 @@
             </div>
 
             <div class="space-y-4">
-                <div class="grid grid-cols-1 gap-4 text-right">
+                <div class="grid grid-cols-1 gap-4">
                     <div>
-                        <label class="text-[10px] font-black text-slate-400 mr-2 uppercase italic text-right">اختر التيم المستهدف :</label>
+                        <label class="text-[10px] font-black text-slate-400 mr-2 uppercase italic">اختر التيم المستهدف :</label>
                         <select id="team_select" onchange="fetchExistingAmount()" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-center font-bold text-slate-700 outline-none focus:border-blue-500 appearance-none shadow-inner">
                             <option value="">جاري تحميل التيمات...</option>
                         </select>
                     </div>
                     <div>
-                        <label class="text-[10px] font-black text-slate-400 mr-2 uppercase italic text-right">المبلغ المصروف لهذا التيم:</label>
+                        <label class="text-[10px] font-black text-slate-400 mr-2 uppercase italic">المبلغ الجديد المصروف (سيتم حذف القديم):</label>
                         <input type="number" id="spend_input" placeholder="0" class="w-full p-6 bg-blue-50 border-2 border-dashed border-blue-200 rounded-[2rem] text-center text-4xl font-black text-blue-700 outline-none focus:border-blue-600 focus:bg-white transition-all shadow-inner">
                     </div>
                 </div>
 
-                <button id="save_btn" onclick="saveExpense()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-5 rounded-[2rem] font-black text-lg shadow-xl shadow-blue-200 active:scale-[0.97] transition-all flex items-center justify-center gap-3 border-b-4 border-blue-800">
-                    حفظ وتحديث الإحصائيات 🚀
+                <button id="save_btn" onclick="saveExpense()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-5 rounded-[2rem] font-black text-lg shadow-xl active:scale-[0.97] transition-all border-b-4 border-blue-800">
+                    حفظ وتحديث التقرير 🚀
                 </button>
             </div>
         </div>
 
         <div class="glass rounded-[2.5rem] shadow-xl border border-white overflow-hidden">
             <div class="bg-slate-900 p-4">
-                <h3 class="text-white text-center font-bold text-sm tracking-widest">تحليل الأداء التفصيلي لكل تيم</h3>
+                <h3 class="text-white text-center font-bold text-sm tracking-widest text-right">تحليل الأداء التفصيلي لكل تيم</h3>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-right">
                     <thead>
                         <tr class="bg-slate-50 text-[10px] text-slate-500 font-black uppercase text-right">
-                            <th class="p-4 text-right">التيم</th>
+                            <th class="p-4">التيم</th>
                             <th class="p-4 text-center">الحجوزات</th>
                             <th class="p-4 text-center">المصاريف</th>
                             <th class="p-4 text-center text-blue-600 italic underline">CPL</th>
                         </tr>
                     </thead>
-                    <tbody id="team_table_body" class="text-sm font-bold divide-y divide-slate-100"></tbody>
+                    <tbody id="team_table_body" class="text-sm font-bold divide-y divide-slate-100 text-right"></tbody>
                 </table>
             </div>
         </div>
@@ -121,89 +112,76 @@
         };
 
         async function fetchTeams() {
-            const { data, error } = await sb.from('users').select('team').not('team', 'is', null);
-            if (error) return;
+            const { data } = await sb.from('users').select('team').not('team', 'is', null);
             const uniqueTeams = [...new Set(data.map(item => item.team))].sort();
-            const teamSelect = document.getElementById('team_select');
-            teamSelect.innerHTML = '<option value="">-- اختر التيم --</option>';
-            uniqueTeams.forEach(team => {
-                let o = document.createElement('option');
-                o.value = team; o.text = `تيم ( ${team} )`;
-                teamSelect.add(o);
-            });
+            const ts = document.getElementById('team_select');
+            ts.innerHTML = '<option value="">-- اختر التيم --</option>';
+            uniqueTeams.forEach(t => { ts.innerHTML += `<option value="${t}">تيم ( ${t} )</option>`; });
         }
 
-        // --- جلب المبلغ الحالي وتفريغ الحقل إذا تغير التيم أو التاريخ ---
         async function fetchExistingAmount() {
             const team = document.getElementById('team_select').value;
             const date = document.getElementById('target_date').value;
-            const spendInput = document.getElementById('spend_input');
-            const saveBtn = document.getElementById('save_btn');
+            if (!team || !date) return;
 
-            if (!team || !date) { spendInput.value = ""; return; }
-
-            const { data } = await sb.from('marketing_expenses')
-                .select('amount_spent')
-                .eq('expense_date', date)
-                .eq('target_team', team)
-                .maybeSingle();
-
-            if (data) {
-                spendInput.value = data.amount_spent;
-                saveBtn.innerText = "تحديث المبلغ السابق ✏️";
-                saveBtn.classList.replace('from-blue-600', 'from-amber-500');
-            } else {
-                spendInput.value = ""; // تفريغ الرقم السابق لضمان كتابة رقم جديد
-                saveBtn.innerText = "حفظ وتحديث الإحصائيات 🚀";
-                saveBtn.classList.replace('from-amber-500', 'from-blue-600');
-            }
+            const { data } = await sb.from('marketing_expenses').select('amount_spent').eq('expense_date', date).eq('target_team', team).maybeSingle();
+            document.getElementById('spend_input').value = data ? data.amount_spent : "";
+            document.getElementById('save_btn').innerText = data ? "تحديث المبلغ الحالي ✏️" : "حفظ وتحديث الإحصائيات 🚀";
         }
 
         async function syncData() {
             const date = document.getElementById('target_date').value;
             fetchExistingAmount();
             const tableBody = document.getElementById('team_table_body');
-            tableBody.innerHTML = `<tr><td colspan="4" class="p-10 text-center animate-pulse text-slate-400 font-bold italic">جاري جلب البيانات...</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="4" class="p-10 text-center animate-pulse text-slate-400 font-bold">جاري المزامنة...</td></tr>`;
 
             const { data: expenses } = await sb.from('marketing_expenses').select('*').eq('expense_date', date);
             const { data: reports } = await sb.from('bookings_reports').select('bookings_count, employee_username').eq('report_date', date);
             const { data: allUsers } = await sb.from('users').select('username, team').eq('role', 'ردود');
 
-            let teamData = {};
+            let teamStats = {};
+
+            // 1. حساب الحجوزات لكل تيم (تصفير قبل الجمع)
             if (reports && allUsers) {
-                reports.forEach(rep => {
-                    const staff = allUsers.find(u => u.username === rep.employee_username);
-                    if (staff && staff.team) {
-                        if (!teamData[staff.team]) teamData[staff.team] = { books: 0, spend: 0 };
-                        teamData[staff.team].books += (rep.bookings_count || 0);
+                reports.forEach(r => {
+                    const u = allUsers.find(user => user.username === r.employee_username);
+                    if (u && u.team) {
+                        if (!teamStats[u.team]) teamStats[u.team] = { books: 0, spend: 0 };
+                        teamStats[u.team].books += Number(r.bookings_count || 0);
                     }
                 });
             }
+
+            // 2. حساب المصاريف لكل تيم (استبدال القيمة لضمان عدم الجمع العشوائي)
             if (expenses) {
-                expenses.forEach(exp => {
-                    if (exp.target_team) {
-                        if (!teamData[exp.target_team]) teamData[exp.target_team] = { books: 0, spend: 0 };
-                        teamData[exp.target_team].spend += parseFloat(exp.amount_spent || 0);
+                expenses.forEach(e => {
+                    if (e.target_team) {
+                        if (!teamStats[e.target_team]) teamStats[e.target_team] = { books: 0, spend: 0 };
+                        // هنا نضع القيمة المسجلة في قاعدة البيانات مباشرة
+                        teamStats[e.target_team].spend = Number(e.amount_spent || 0);
                     }
                 });
             }
 
             tableBody.innerHTML = "";
-            let totalAllBooks = 0; let totalAllSpend = 0;
-            Object.keys(teamData).forEach(teamName => {
-                const data = teamData[teamName];
-                const cpl = data.books > 0 ? (data.spend / data.books).toFixed(0) : "0";
-                totalAllBooks += data.books; totalAllSpend += data.spend;
+            let totalBooks = 0; let totalSpend = 0;
+
+            Object.keys(teamStats).forEach(team => {
+                const s = teamStats[team];
+                const cpl = s.books > 0 ? (s.spend / s.books).toFixed(0) : "0";
+                totalBooks += s.books; totalSpend += s.spend;
+
                 tableBody.innerHTML += `
                     <tr class="hover:bg-blue-50/50 transition-colors">
-                        <td class="p-4 text-right"><span class="bg-indigo-900 text-white px-3 py-1 rounded-lg text-[10px] font-black">TEAM ${teamName}</span></td>
-                        <td class="p-4 text-center text-slate-700">${data.books}</td>
-                        <td class="p-4 text-center text-slate-700 font-black">${data.spend.toLocaleString()}</td>
-                        <td class="p-4 text-center text-blue-600 font-black italic underline">${Number(cpl).toLocaleString()}</td>
+                        <td class="p-4 text-right"><span class="bg-slate-800 text-white px-3 py-1 rounded-lg text-[10px] font-black uppercase">TEAM ${team}</span></td>
+                        <td class="p-4 text-center text-slate-700">${s.books}</td>
+                        <td class="p-4 text-center text-slate-900 font-black">${s.spend.toLocaleString()}</td>
+                        <td class="p-4 text-center text-blue-600 font-black underline">${Number(cpl).toLocaleString()}</td>
                     </tr>`;
             });
-            document.getElementById('total_books_all').innerText = totalAllBooks;
-            document.getElementById('avg_cpl_all').innerText = totalAllBooks > 0 ? (totalAllSpend / totalAllBooks).toFixed(0) : "0";
+
+            document.getElementById('total_books_all').innerText = totalBooks;
+            document.getElementById('avg_cpl_all').innerText = totalBooks > 0 ? (totalSpend / totalBooks).toFixed(0) : "0";
         }
 
         async function saveExpense() {
@@ -211,34 +189,21 @@
             const amount = document.getElementById('spend_input').value;
             const date = document.getElementById('target_date').value;
 
-            if (!team || amount === "" || amount < 0) {
-                alert("يرجى اختيار التيم وإدخال المبلغ"); return;
-            }
+            if (!team || amount === "") { alert("يرجى إكمال البيانات"); return; }
 
-            // ميزة الحذف التلقائي للقديم وحفظ الجديد لضمان عدم التكرار
-            const { data: existing } = await sb.from('marketing_expenses')
-                .select('id')
-                .eq('expense_date', date)
-                .eq('target_team', team)
-                .maybeSingle();
+            // البحث عن السجل القديم
+            const { data: existing } = await sb.from('marketing_expenses').select('id').eq('expense_date', date).eq('target_team', team).maybeSingle();
 
-            let res;
+            let response;
             if (existing) {
-                // تحديث الرقم السابق
-                res = await sb.from('marketing_expenses')
-                    .update({ amount_spent: parseFloat(amount), promoter_username: user.username })
-                    .eq('id', existing.id);
+                // تحديث (يحذف القيمة السابقة ويضع الجديدة)
+                response = await sb.from('marketing_expenses').update({ amount_spent: parseFloat(amount), promoter_username: user.username }).eq('id', existing.id);
             } else {
                 // إضافة جديد
-                res = await sb.from('marketing_expenses').insert([{
-                    promoter_username: user.username,
-                    target_team: team,
-                    amount_spent: parseFloat(amount),
-                    expense_date: date
-                }]);
+                response = await sb.from('marketing_expenses').insert([{ promoter_username: user.username, target_team: team, amount_spent: parseFloat(amount), expense_date: date }]);
             }
 
-            if (res.error) { alert("خطأ: " + res.error.message); } 
+            if (response.error) { alert("فشل الحفظ"); } 
             else { alert("✅ تم التحديث بنجاح"); syncData(); }
         }
     </script>
