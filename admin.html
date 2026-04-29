@@ -138,21 +138,21 @@
     </div>
 
     <div id="add_emp_modal" class="modal">
-        <div class="glass-card p-6 rounded-[2.5rem] w-full max-w-md space-y-4 shadow-2xl">
-            <h3 id="modal_title" class="font-extrabold text-xl text-slate-800 text-center mb-2 text-right">بيانات الموظف</h3>
-            <div class="flex flex-col gap-3 text-right">
+        <div class="glass-card p-6 rounded-[2.5rem] w-full max-w-md space-y-4 shadow-2xl text-right">
+            <h3 id="modal_title" class="font-extrabold text-xl text-slate-800 text-center mb-2">بيانات الموظف</h3>
+            <div class="flex flex-col gap-3">
                 <input id="en" placeholder="الاسم (Username)" class="p-4 bg-slate-50 border rounded-2xl outline-none text-center font-bold">
                 <input id="ep" type="password" placeholder="الباسورد" class="p-4 bg-slate-50 border rounded-2xl outline-none text-center">
                 <input id="ec" placeholder="الكود (A01)" class="p-4 bg-slate-50 border rounded-2xl outline-none text-center font-black text-blue-600 uppercase">
-                <select id="er" class="p-4 bg-slate-50 border rounded-2xl font-bold text-center appearance-none text-right">
+                <select id="er" class="p-4 bg-slate-50 border rounded-2xl font-bold text-center appearance-none">
                     <option value="ردود">ردود</option>
                     <option value="مروج">مروج</option>
                     <option value="متابعة">متابعة</option>
                 </select>
-                <input id="et" placeholder="اسم التيم" class="p-4 bg-slate-50 border rounded-2xl outline-none text-center font-bold text-right">
+                <input id="et" placeholder="اسم التيم" class="p-4 bg-slate-50 border rounded-2xl outline-none text-center font-bold">
                 <input id="ey" type="number" placeholder="الراتب الأساسي" class="p-4 bg-slate-50 border rounded-2xl outline-none text-center font-bold">
             </div>
-            <div class="grid grid-cols-2 gap-3 mt-4 text-right">
+            <div class="grid grid-cols-2 gap-3 mt-4">
                 <button onclick="save()" class="bg-blue-600 text-white p-4 rounded-2xl font-bold shadow-lg">حفظ</button>
                 <button onclick="toggleModal('add_emp_modal')" class="bg-slate-200 text-slate-600 p-4 rounded-2xl font-bold">إلغاء</button>
             </div>
@@ -179,13 +179,23 @@
             let overallSpent = 0;
             let overallBooks = 0;
 
+            // --- إصلاح عملية حساب المصاريف لمنع الجمع التراكمي في واجهة المدير ---
             if (expenses) {
                 expenses.forEach(ex => {
                     const t = ex.target_team || "بدون تيم";
-                    if (!teamSum[t]) teamSum[t] = { spent: 0, books: 0 };
                     const amt = Number(ex.amount_spent) || 0;
-                    teamSum[t].spent += amt;
-                    overallSpent += amt;
+                    
+                    // هنا نقوم بوضع القيمة المسجلة، وإذا تكررت لنفس التيم نأخذ آخر واحدة (Overwrite)
+                    if (!teamSum[t]) {
+                        teamSum[t] = { spent: amt, books: 0 };
+                    } else {
+                        teamSum[t].spent = amt; 
+                    }
+                });
+                
+                // حساب إجمالي الصرف العام بناءً على مبالغ التيمات الصافية
+                Object.values(teamSum).forEach(v => {
+                    overallSpent += v.spent;
                 });
             }
 
@@ -197,7 +207,6 @@
                     const c = Number(r.confirmed_count) || 0;
                     
                     overallBooks += b;
-
                     const p = b > 0 ? ((c / b) * 100).toFixed(1) : "0.0";
                     let autoPoint = b >= 35 ? " (+2 ⭐)" : (b >= 25 ? " (+1 ⭐)" : "");
                     
@@ -208,7 +217,6 @@
                 });
             }
 
-            // حساب متوسط سعر الطلب العام من كل التيمات
             const overallAvg = overallBooks > 0 ? (overallSpent / overallBooks).toFixed(0) : 0;
 
             document.getElementById('total_books_sum').innerText = overallBooks;
@@ -218,7 +226,7 @@
             for (let t in teamSum) {
                 const s = teamSum[t].spent; const b = teamSum[t].books;
                 const cpl = b > 0 ? (s / b).toFixed(0) : 0;
-                teamBody.innerHTML += `<tr class="border-b border-slate-800"><td class="p-4 text-right font-bold text-blue-400 italic text-right italic">${t}</td><td class="p-4 text-center"><div class="text-red-400 font-black text-sm">${s.toLocaleString()} د.ع</div><div class="text-[9px] text-slate-500 font-bold">سعر الطلب: ${Number(cpl).toLocaleString()}</div></td><td class="p-4 text-center text-emerald-400 font-black text-lg">${b}</td></tr>`;
+                teamBody.innerHTML += `<tr class="border-b border-slate-800"><td class="p-4 text-right font-bold text-blue-400 italic">${t}</td><td class="p-4 text-center"><div class="text-red-400 font-black text-sm">${s.toLocaleString()} د.ع</div><div class="text-[9px] text-slate-500 font-bold">سعر الطلب: ${Number(cpl).toLocaleString()}</div></td><td class="p-4 text-center text-emerald-400 font-black text-lg">${b}</td></tr>`;
             }
         }
 
