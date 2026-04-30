@@ -62,6 +62,11 @@
                 <span class="text-[10px] text-slate-400 font-black block mb-1">واصل اليوم</span>
                 <span id="stat_confirmed" class="text-lg font-black text-indigo-600">0</span>
             </div>
+            <div id="box_overall_confirmed" class="glass-card p-4 stat-box border-purple-500 col-span-2 bg-purple-50/20">
+                <span class="text-[10px] text-slate-400 font-black block mb-1 uppercase">إجمالي الواصل (تراكمي)</span>
+                <span id="stat_overall_confirmed" class="text-2xl font-black text-purple-700">0</span>
+            </div>
+
             <div class="glass-card p-5 stat-box border-red-500 col-span-2 flex justify-between items-center bg-red-50/30">
                 <div>
                     <span class="text-[10px] text-slate-400 font-black block">الخصومات المالية</span>
@@ -114,7 +119,7 @@
             if(u.role === 'متابعة') {
                 document.getElementById('box_total').classList.add('hidden');
                 document.getElementById('box_confirmed').classList.add('hidden');
-                document.getElementById('stats_grid').classList.replace('grid-cols-2', 'grid-cols-1');
+                document.getElementById('box_overall_confirmed').classList.add('hidden');
                 
                 document.getElementById('fol').classList.remove('hidden');
                 document.getElementById('cnt_label').innerText = "عدد الواصل";
@@ -136,21 +141,25 @@
             const { data: adjData } = await sb.from('adjustments').select('amount, type').eq('user_id', u.id);
 
             let points = 0, totalAbs = 0;
-            let todayBooks = 0, todayConfirmed = 0;
+            let todayBooks = 0, todayConfirmed = 0, overallConfirmed = 0;
 
             if(reports) reports.forEach(r => {
-                // احتساب المكافأة بناءً على الواصل:
-                // 25 واصل فأكثر = 2 نقطة
-                // من 15 إلى 24 واصل = 1 نقطة
-                if(r.confirmed_count >= 25) {
+                const confirmed = Number(r.confirmed_count || 0);
+                
+                // حساب الواصل الكلي التراكمي
+                overallConfirmed += confirmed;
+
+                // احتساب المكافأة بناءً على الواصل (15=1⭐, 25=2⭐)
+                if(confirmed >= 25) {
                     points += 2;
-                } else if(r.confirmed_count >= 15) {
+                } else if(confirmed >= 15) {
                     points += 1;
                 }
 
+                // بيانات اليوم المحدد
                 if(r.report_date === selectedDate) {
                     todayBooks = (r.bookings_count || 0);
-                    todayConfirmed = (r.confirmed_count || 0);
+                    todayConfirmed = confirmed;
                 }
             });
 
@@ -160,6 +169,7 @@
             if(u.role !== 'متابعة') {
                 document.getElementById('stat_total_books').innerText = todayBooks;
                 document.getElementById('stat_confirmed').innerText = todayConfirmed;
+                document.getElementById('stat_overall_confirmed').innerText = overallConfirmed;
             }
             document.getElementById('stat_bonus').innerText = points + " ⭐";
             document.getElementById('stat_abs').innerText = totalAbs.toLocaleString() + " د.ع";
