@@ -55,11 +55,11 @@
                 <span id="stat_bonus" class="text-lg font-black text-amber-600">0</span>
             </div>
             <div id="box_total" class="glass-card p-4 stat-box border-emerald-500">
-                <span class="text-[10px] text-slate-400 font-black block mb-1">طلباتي</span>
+                <span class="text-[10px] text-slate-400 font-black block mb-1">طلباتي اليوم</span>
                 <span id="stat_total_books" class="text-lg font-black text-emerald-600">0</span>
             </div>
             <div id="box_confirmed" class="glass-card p-4 stat-box border-indigo-500">
-                <span class="text-[10px] text-slate-400 font-black block mb-1">واصل</span>
+                <span class="text-[10px] text-slate-400 font-black block mb-1">واصل اليوم</span>
                 <span id="stat_confirmed" class="text-lg font-black text-indigo-600">0</span>
             </div>
             <div class="glass-card p-5 stat-box border-red-500 col-span-2 flex justify-between items-center bg-red-50/30">
@@ -76,7 +76,7 @@
             <div class="space-y-2 text-center">
                 <label class="text-[11px] font-black text-slate-400 block uppercase tracking-widest">تاريخ التقرير</label>
                 <div class="date-container">
-                    <input type="date" id="dt" class="w-full max-w-[200px] p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold text-slate-700 outline-none focus:border-blue-500 focus:bg-white shadow-inner">
+                    <input type="date" id="dt" onchange="loadStats()" class="w-full max-w-[200px] p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold text-slate-700 outline-none focus:border-blue-500 focus:bg-white shadow-inner">
                 </div>
             </div>
 
@@ -112,7 +112,6 @@
             document.getElementById('dt').valueAsDate = new Date();
 
             if(u.role === 'متابعة') {
-                // إخفاء إحصائيات الأداء الشخصي للمتابعة
                 document.getElementById('box_total').classList.add('hidden');
                 document.getElementById('box_confirmed').classList.add('hidden');
                 document.getElementById('stats_grid').classList.replace('grid-cols-2', 'grid-cols-1');
@@ -132,20 +131,35 @@
         };
 
         async function loadStats() {
+            const selectedDate = document.getElementById('dt').value;
             const { data: reports } = await sb.from('bookings_reports').select('*').eq('employee_username', u.username);
             const { data: adjData } = await sb.from('adjustments').select('amount, type').eq('user_id', u.id);
 
-            let bTotal = 0, cTotal = 0, points = 0, totalAbs = 0;
+            let points = 0, totalAbs = 0;
+            let todayBooks = 0, todayConfirmed = 0;
+
             if(reports) reports.forEach(r => {
-                bTotal += (r.bookings_count || 0); cTotal += (r.confirmed_count || 0);
-                if(r.bookings_count >= 35) points += 2; else if(r.bookings_count >= 25) points += 1;
+                // احتساب المكافأة بناءً على الواصل:
+                // 25 واصل فأكثر = 2 نقطة
+                // من 15 إلى 24 واصل = 1 نقطة
+                if(r.confirmed_count >= 25) {
+                    points += 2;
+                } else if(r.confirmed_count >= 15) {
+                    points += 1;
+                }
+
+                if(r.report_date === selectedDate) {
+                    todayBooks = (r.bookings_count || 0);
+                    todayConfirmed = (r.confirmed_count || 0);
+                }
             });
+
             if(adjData) adjData.forEach(a => { if(a.type === 'bonus') points += Number(a.amount); else totalAbs += Number(a.amount); });
 
             document.getElementById('stat_salary').innerText = `${u.salary || 0} د.ع`;
             if(u.role !== 'متابعة') {
-                document.getElementById('stat_total_books').innerText = bTotal;
-                document.getElementById('stat_confirmed').innerText = cTotal;
+                document.getElementById('stat_total_books').innerText = todayBooks;
+                document.getElementById('stat_confirmed').innerText = todayConfirmed;
             }
             document.getElementById('stat_bonus').innerText = points + " ⭐";
             document.getElementById('stat_abs').innerText = totalAbs.toLocaleString() + " د.ع";
@@ -160,7 +174,6 @@
             if(isNaN(c) || c < 0) return;
             btn.disabled = true; btn.innerText = "جاري الحفظ والجمع...";
 
-            // جلب البيانات الحالية للجمع التراكمي
             const { data: existing } = await sb.from('bookings_reports')
                 .select('*')
                 .eq('employee_username', targetUser)
@@ -171,12 +184,11 @@
             
             if(u.role === 'ردود') {
                 const prevBooks = existing ? (existing.bookings_count || 0) : 0;
-                reportData.bookings_count = prevBooks + c; // جمع تراكمي
+                reportData.bookings_count = prevBooks + c;
                 reportData.confirmed_count = existing ? existing.confirmed_count : 0;
             } else {
-                // المتابعة: الجمع مع الرقم السابق بنفس التاريخ
                 const prevConfirmed = existing ? (existing.confirmed_count || 0) : 0;
-                reportData.confirmed_count = prevConfirmed + c; // عملية الجمع المطلوبة
+                reportData.confirmed_count = prevConfirmed + c;
                 reportData.bookings_count = existing ? existing.bookings_count : 0;
             }
 
