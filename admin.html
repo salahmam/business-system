@@ -179,24 +179,14 @@
             let overallSpent = 0;
             let overallBooks = 0;
 
-            // --- إصلاح عملية حساب المصاريف لمنع الجمع التراكمي في واجهة المدير ---
             if (expenses) {
                 expenses.forEach(ex => {
                     const t = ex.target_team || "بدون تيم";
                     const amt = Number(ex.amount_spent) || 0;
-                    
-                    // هنا نقوم بوضع القيمة المسجلة، وإذا تكررت لنفس التيم نأخذ آخر واحدة (Overwrite)
-                    if (!teamSum[t]) {
-                        teamSum[t] = { spent: amt, books: 0 };
-                    } else {
-                        teamSum[t].spent = amt; 
-                    }
+                    if (!teamSum[t]) teamSum[t] = { spent: amt, books: 0 };
+                    else teamSum[t].spent = amt; 
                 });
-                
-                // حساب إجمالي الصرف العام بناءً على مبالغ التيمات الصافية
-                Object.values(teamSum).forEach(v => {
-                    overallSpent += v.spent;
-                });
+                Object.values(teamSum).forEach(v => { overallSpent += v.spent; });
             }
 
             if (reports) {
@@ -208,7 +198,9 @@
                     
                     overallBooks += b;
                     const p = b > 0 ? ((c / b) * 100).toFixed(1) : "0.0";
-                    let autoPoint = b >= 35 ? " (+2 ⭐)" : (b >= 25 ? " (+1 ⭐)" : "");
+                    
+                    // --- تعديل: إظهار التنبيه بناءً على الواصل في جدول المدير الرئيسي ---
+                    let autoPoint = c >= 25 ? " (+2 ⭐)" : (c >= 15 ? " (+1 ⭐)" : "");
                     
                     if (!teamSum[tName]) teamSum[tName] = { spent: 0, books: 0 };
                     teamSum[tName].books += b;
@@ -218,7 +210,6 @@
             }
 
             const overallAvg = overallBooks > 0 ? (overallSpent / overallBooks).toFixed(0) : 0;
-
             document.getElementById('total_books_sum').innerText = overallBooks;
             document.getElementById('total_spent_sum').innerText = overallSpent.toLocaleString() + " د.ع";
             document.getElementById('overall_avg_cpl').innerText = Number(overallAvg).toLocaleString() + " د.ع";
@@ -251,10 +242,15 @@
             document.getElementById('det_points').innerText = "...";
             document.getElementById('det_abs').innerText = "...";
 
-            const { data: reports } = await sb.from('bookings_reports').select('bookings_count').eq('employee_username', n);
+            // --- تعديل: جلب البيانات لاحتساب النقاط بناءً على "confirmed_count" (الواصل) ---
+            const { data: reports } = await sb.from('bookings_reports').select('confirmed_count').eq('employee_username', n);
             let workDays = reports ? reports.length : 0;
             let autoPoints = 0;
-            if (reports) reports.forEach(r => { if (r.bookings_count >= 35) autoPoints += 2; else if (r.bookings_count >= 25) autoPoints += 1; });
+            if (reports) reports.forEach(r => { 
+                const c = Number(r.confirmed_count || 0);
+                if (c >= 25) autoPoints += 2; 
+                else if (c >= 15) autoPoints += 1; 
+            });
 
             const { data: adjData } = await sb.from('adjustments').select('amount, type').eq('user_id', id);
             let manualPoints = 0; let totalAbs = 0;
