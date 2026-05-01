@@ -3,42 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة النظام المركزي | صلاح الخليفة</title>
+    <title>النظام المركزي | صلاح الخليفة</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; }
+        body { font-family: 'Tajawal', sans-serif; background-color: #f1f5f9; }
         .modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 50; padding: 1rem; }
         .modal.active { display: flex; }
-        .glass-card { background: rgba(255, 255, 255, 0.98); border: 1px solid rgba(226, 232, 240, 1); max-height: 90vh; overflow-y: auto; }
-        .hidden-list { display: none; }
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .glass-card { background: white; max-height: 90vh; overflow-y: auto; border-radius: 2rem; }
     </style>
 </head>
 <body class="min-h-screen pb-24 text-right">
 
     <header class="bg-slate-900 text-white p-5 sticky top-0 z-40 shadow-xl flex justify-between items-center">
         <div class="flex items-center gap-3">
-            <button onclick="location.reload()" class="bg-blue-600 text-white px-3 py-2 rounded-xl text-xs font-bold shadow-lg">🔄 تحديث</button>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-3 py-2 rounded-xl text-xs font-bold">🔄 تحديث</button>
             <h2 class="font-bold text-lg text-blue-400">صلاح الخليفة</h2>
         </div>
         <button onclick="localStorage.clear(); location.href='index.html'" class="bg-red-500/10 text-red-400 px-4 py-2 rounded-xl text-xs font-bold border border-red-500/20">خروج</button>
     </header>
 
     <div class="p-4 max-w-4xl mx-auto space-y-6">
-        <!-- التاريخ -->
-        <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-200 flex flex-col items-center">
-            <label class="block text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest">تاريخ التقرير اليومي</label>
-            <input type="date" id="rep_date" onchange="getRep()" class="w-full max-w-[220px] p-4 bg-slate-50 border rounded-2xl text-center font-bold outline-none focus:ring-2 focus:ring-blue-500">
+        
+        <!-- اختيار التاريخ -->
+        <div class="bg-white p-6 rounded-[2rem] shadow-sm flex flex-col items-center">
+            <label class="block text-[10px] font-black text-slate-400 mb-2 uppercase">تاريخ التقرير</label>
+            <input type="date" id="rep_date" onchange="getRep()" class="w-full max-w-[200px] p-3 bg-slate-50 border rounded-xl text-center font-bold">
         </div>
 
-        <!-- جدول الأداء -->
-        <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-200">
+        <!-- 💵 جدول المصاريف وسعر الطلب -->
+        <div class="bg-slate-900 p-6 rounded-[2rem] shadow-2xl text-white">
+            <h3 class="font-bold mb-4 flex items-center gap-2 text-sm">
+                <span class="w-2 h-5 bg-blue-500 rounded-full"></span> 💵 أداء التيمات والمصاريف
+            </h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-right text-xs">
+                    <thead class="text-slate-500 border-b border-slate-800">
+                        <tr>
+                            <th class="p-3">التيم</th>
+                            <th class="p-3 text-center">المصرف</th>
+                            <th class="p-3 text-center">الطلبات</th>
+                            <th class="p-3 text-center text-emerald-400">سعر الطلب</th>
+                        </tr>
+                    </thead>
+                    <tbody id="team_body" class="divide-y divide-slate-800"></tbody>
+                </table>
+            </div>
+            <div id="overall_stats" class="mt-4 pt-4 border-t border-slate-800 flex justify-around text-[10px] font-bold text-slate-400">
+                <p>إجمالي الصرف: <span id="total_spent" class="text-white">0</span></p>
+                <p>إجمالي الطلبات: <span id="total_books" class="text-white">0</span></p>
+            </div>
+        </div>
+
+        <!-- 📊 جدول أداء الموظفين والمكافآت -->
+        <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-200">
             <h3 class="font-bold mb-4 text-slate-800 flex items-center gap-2 text-sm">
-                <span class="w-2 h-5 bg-purple-500 rounded-full"></span> 📊 مراقبة النقاط والمكافآت
+                <span class="w-2 h-5 bg-purple-500 rounded-full"></span> 📊 أداء الموظفين والمكافآت
             </h3>
             <div class="overflow-x-auto">
                 <table class="w-full text-right text-xs">
@@ -50,95 +72,86 @@
                             <th class="p-3 text-center">المكافأة</th>
                         </tr>
                     </thead>
-                    <tbody id="rep_body" class="divide-y divide-slate-50 text-slate-700"></tbody>
+                    <tbody id="rep_body" class="divide-y divide-slate-50"></tbody>
                 </table>
             </div>
         </div>
 
-        <!-- الأزرار -->
-        <div class="grid grid-cols-2 gap-4">
-            <button onclick="openAddModal()" class="bg-blue-600 text-white p-5 rounded-2xl font-bold shadow-lg">➕ موظف جديد</button>
+        <!-- أزرار التحكم -->
+        <div class="grid grid-cols-2 gap-4 pt-2">
+            <button onclick="openAddModal()" class="bg-blue-600 text-white p-5 rounded-2xl font-bold shadow-lg">➕ إضافة موظف</button>
             <div class="flex flex-col gap-2">
-                <button onclick="toggleEmpList()" class="bg-slate-800 text-white p-3 rounded-2xl font-bold shadow-lg">👥 القائمة</button>
-                <button onclick="monthlyReset()" class="bg-red-600/10 text-red-600 border border-red-200 p-3 rounded-2xl font-bold text-xs">♻️ تصفير شامل</button>
+                <button onclick="document.getElementById('emp_list_section').classList.toggle('hidden')" class="bg-slate-800 text-white p-3 rounded-2xl font-bold">👥 قائمة الموظفين</button>
+                <button onclick="monthlyReset()" class="bg-red-600 text-white p-3 rounded-2xl font-bold text-xs shadow-red-200 shadow-lg">♻️ تصفير شامل للنظام</button>
             </div>
         </div>
 
-        <div id="emp_list_section" class="hidden-list space-y-3 bg-slate-100 p-4 rounded-[2rem]">
-            <div id="emp_list_mobile" class="space-y-2 text-right"></div>
+        <div id="emp_list_section" class="hidden space-y-3 bg-white p-4 rounded-[2rem] shadow-inner">
+            <div id="emp_list_mobile" class="space-y-2"></div>
         </div>
     </div>
 
-    <!-- نافذة التحكم بالموظف -->
+    <!-- نافذة الموظف والسجل -->
     <div id="m" class="modal">
-        <div class="glass-card p-6 rounded-[2.5rem] w-full max-w-[380px] space-y-4 shadow-2xl text-right">
-            <div class="text-center">
-                <h4 id="mn" class="font-black text-slate-800 text-lg">اسم الموظف</h4>
-                <p id="m_role" class="text-[10px] text-blue-500 font-bold"></p>
+        <div class="glass-card p-6 w-full max-w-[380px] space-y-4 shadow-2xl text-right">
+            <div class="text-center border-b pb-2">
+                <h4 id="mn" class="font-black text-slate-800">الاسم</h4>
+                <p id="m_role" class="text-[10px] text-blue-500"></p>
             </div>
-
-            <!-- ملخص -->
-            <div class="grid grid-cols-3 gap-2 text-center">
-                <div class="bg-blue-50 p-3 rounded-2xl"><p class="text-[9px] text-blue-400">أيام</p><p id="det_days" class="font-bold">0</p></div>
-                <div class="bg-amber-50 p-3 rounded-2xl"><p class="text-[9px] text-amber-400">نقاط</p><p id="det_points" class="font-bold">0</p></div>
-                <div class="bg-red-50 p-3 rounded-2xl"><p class="text-[9px] text-red-400">خصم</p><p id="det_abs" class="font-bold text-[10px]">0</p></div>
+            <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                <div class="bg-slate-50 p-2 rounded-lg"><span>أيام</span><br><b id="det_days">0</b></div>
+                <div class="bg-amber-50 p-2 rounded-lg"><span>نقاط</span><br><b id="det_points">0</b></div>
+                <div class="bg-red-50 p-2 rounded-lg"><span>خصم</span><br><b id="det_abs">0</b></div>
             </div>
-
-            <!-- إضافة يدوي -->
             <div class="grid grid-cols-2 gap-2">
-                <button onclick="adj('bonus')" class="py-3 bg-emerald-600 text-white rounded-xl font-bold text-xs shadow-md">⭐ إضافة نقاط</button>
-                <button onclick="adj('absence')" class="py-3 bg-red-600 text-white rounded-xl font-bold text-xs shadow-md">💰 إضافة خصم</button>
+                <button onclick="adj('bonus')" class="py-2 bg-emerald-600 text-white rounded-lg font-bold text-xs">⭐ نقطة</button>
+                <button onclick="adj('absence')" class="py-2 bg-red-600 text-white rounded-lg font-bold text-xs">💰 خصم</button>
             </div>
-
-            <!-- سجل التعديلات اليدوية (الحذف) -->
-            <div class="border-t pt-3">
-                <p class="text-[10px] font-black text-slate-400 mb-2">سجل التعديلات اليدوية:</p>
-                <div id="adj_log" class="space-y-2 max-height-[150px] overflow-y-auto">
-                    <!-- التعديلات تظهر هنا مع زر الحذف -->
-                </div>
+            <div class="border-t pt-2">
+                <p class="text-[10px] font-bold text-slate-400 mb-2">سجل التعديلات اليدوية:</p>
+                <div id="adj_log" class="space-y-1 max-h-32 overflow-y-auto"></div>
             </div>
-
-            <div class="grid grid-cols-2 gap-2 border-t pt-3">
-                <button onclick="editEmp()" class="py-2 bg-slate-100 text-slate-600 rounded-xl font-bold text-xs">✏️ تعديل بيانات</button>
-                <button onclick="kill()" class="py-2 bg-red-50 text-red-500 rounded-xl font-bold text-xs">🗑️ حذف الموظف</button>
+            <div class="flex gap-2">
+                <button onclick="editEmp()" class="flex-1 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs">تعديل</button>
+                <button onclick="kill()" class="flex-1 py-2 bg-red-50 text-red-500 rounded-lg text-xs">حذف</button>
             </div>
-            <button onclick="toggleModal('m')" class="text-slate-400 text-[10px] block w-full text-center underline">إغلاق</button>
+            <button onclick="toggleModal('m')" class="w-full text-slate-400 text-[10px] underline">إغلاق</button>
         </div>
     </div>
 
-    <!-- نافذة إضافة موظف -->
+    <!-- نافذة الإضافة -->
     <div id="add_emp_modal" class="modal">
-        <div class="glass-card p-6 rounded-[2.5rem] w-full max-w-md space-y-4 shadow-2xl">
-            <h3 id="modal_title" class="font-extrabold text-xl text-slate-800 text-center">بيانات الموظف</h3>
-            <div class="flex flex-col gap-3">
-                <input id="en" placeholder="الاسم" class="p-4 bg-slate-50 border rounded-2xl text-center font-bold">
-                <input id="ep" type="password" placeholder="الباسورد" class="p-4 bg-slate-50 border rounded-2xl text-center">
-                <input id="ec" placeholder="الكود (مثلاً A01)" class="p-4 bg-slate-50 border rounded-2xl text-center font-black text-blue-600 uppercase">
-                <select id="shift_type" onchange="toggleShiftTime()" class="p-4 bg-slate-50 border rounded-2xl font-bold text-center">
+        <div class="glass-card p-6 w-full max-w-md space-y-4 shadow-2xl">
+            <h3 id="modal_title" class="font-bold text-center">بيانات الموظف</h3>
+            <div class="space-y-3">
+                <input id="en" placeholder="الاسم" class="w-full p-3 bg-slate-50 border rounded-xl text-center font-bold">
+                <input id="ep" type="password" placeholder="كلمة السر" class="w-full p-3 bg-slate-50 border rounded-xl text-center">
+                <input id="ec" placeholder="الكود A01" class="w-full p-3 bg-slate-50 border rounded-xl text-center uppercase font-bold text-blue-600">
+                <select id="shift_type" onchange="toggleShiftTime()" class="w-full p-3 bg-slate-50 border rounded-xl font-bold">
                     <option value="شفت كامل">شفت كامل</option>
                     <option value="نصف شفت">نصف شفت</option>
                 </select>
                 <div id="shift_time_div" class="hidden">
-                    <select id="shift_time" class="p-4 bg-amber-50 border border-amber-200 rounded-2xl font-bold text-center w-full">
+                    <select id="shift_time" class="w-full p-3 bg-amber-50 border rounded-xl font-bold">
                         <option value="صباحي">صباحي ☀️</option>
                         <option value="مسائي">مسائي 🌙</option>
                     </select>
                 </div>
-                <input id="ey" type="number" placeholder="الراتب الأساسي" class="p-4 bg-slate-50 border rounded-2xl text-center font-bold">
+                <input id="et" placeholder="اسم التيم (للمروجين)" class="w-full p-3 bg-slate-50 border rounded-xl text-center">
+                <input id="ey" type="number" placeholder="الراتب" class="w-full p-3 bg-slate-50 border rounded-xl text-center">
             </div>
-            <div class="grid grid-cols-2 gap-3 mt-4">
-                <button onclick="save()" class="bg-blue-600 text-white p-4 rounded-2xl font-bold">حفظ</button>
-                <button onclick="toggleModal('add_emp_modal')" class="bg-slate-200 p-4 rounded-2xl font-bold">إلغاء</button>
+            <div class="flex gap-2">
+                <button onclick="save()" class="flex-1 bg-blue-600 text-white p-3 rounded-xl font-bold">حفظ</button>
+                <button onclick="toggleModal('add_emp_modal')" class="flex-1 bg-slate-200 p-3 rounded-xl">إلغاء</button>
             </div>
         </div>
     </div>
 
     <script>
         const sb = supabase.createClient('https://iqagigpqwwtvriqvlfbv.supabase.co', 'sb_publishable_5xbaPlWHgjeeaIwceEFRrQ_d9aZ6Zax');
-        let cur = null; let allUsers = [];
+        let cur = null, allUsers = [];
 
         function toggleModal(id) { document.getElementById(id).classList.toggle('active'); }
-        function toggleEmpList() { document.getElementById('emp_list_section').classList.toggle('hidden-list'); }
         function toggleShiftTime() {
             const type = document.getElementById('shift_type').value;
             document.getElementById('shift_time_div').classList.toggle('hidden', type !== 'نصف شفت');
@@ -150,12 +163,9 @@
             const list = document.getElementById('emp_list_mobile');
             list.innerHTML = "";
             allUsers.forEach(e => {
-                list.innerHTML += `<div class="bg-white p-4 rounded-3xl border flex justify-between items-center shadow-sm">
-                    <div class="text-right">
-                        <p class="font-bold">${e.username}</p>
-                        <p class="text-[10px] text-slate-500">${e.shift_type} ${e.shift_type === 'نصف شفت' ? '('+e.shift_time+')' : ''}</p>
-                    </div>
-                    <button onclick="pop('${e.id}','${e.username}')" class="w-10 h-10 bg-slate-50 rounded-xl border flex items-center justify-center">⚙️</button>
+                list.innerHTML += `<div class="bg-slate-50 p-4 rounded-2xl flex justify-between items-center border">
+                    <div><p class="font-bold">${e.username}</p><p class="text-[9px] text-slate-400">${e.shift_type} | ${e.team || 'بدون تيم'}</p></div>
+                    <button onclick="pop('${e.id}','${e.username}')" class="w-10 h-10 bg-white shadow-sm border rounded-xl">⚙️</button>
                 </div>`;
             });
             getRep();
@@ -164,26 +174,54 @@
         async function getRep() {
             const d = document.getElementById('rep_date').value;
             if(!d) return;
-            const { data: reports } = await sb.from('bookings_reports').select('*').eq('report_date', d);
-            const body = document.getElementById('rep_body');
-            body.innerHTML = "";
 
-            if (reports) {
-                reports.forEach(r => {
-                    const u = allUsers.find(x => x.username === r.employee_username);
-                    if(!u) return;
-                    const c = Number(r.confirmed_count) || 0;
-                    let bonusText = "---";
-                    if(u.shift_type === 'شفت كامل') {
-                        if(c >= 50) bonusText = "<span class='text-emerald-600 font-black'>+2 ⭐⭐</span>";
-                        else if(c >= 30) bonusText = "<span class='text-emerald-500 font-bold'>+1 ⭐</span>";
-                    } else {
-                        if(c >= 25) bonusText = "<span class='text-blue-600 font-black'>+2 ⭐⭐</span>";
-                        else if(c >= 15) bonusText = "<span class='text-blue-500 font-bold'>+1 ⭐</span>";
-                    }
-                    body.innerHTML += `<tr class="border-b"><td class="p-4 font-bold">${r.employee_username}</td><td class="p-4 text-center font-black">${c}</td><td class="p-4 text-center text-[9px]">${u.shift_type}</td><td class="p-4 text-center">${bonusText}</td></tr>`;
-                });
+            const { data: reports } = await sb.from('bookings_reports').select('*').eq('report_date', d);
+            const { data: expenses } = await sb.from('marketing_expenses').select('*').eq('expense_date', d);
+            
+            // حساب المصاريف لكل تيم
+            const teamData = {};
+            let tSpent = 0, tBooks = 0;
+
+            if(expenses) expenses.forEach(ex => {
+                const t = ex.target_team || "عام";
+                if(!teamData[t]) teamData[t] = { spent: 0, books: 0 };
+                teamData[t].spent += Number(ex.amount_spent);
+                tSpent += Number(ex.amount_spent);
+            });
+
+            const empBody = document.getElementById('rep_body');
+            empBody.innerHTML = "";
+            
+            if(reports) reports.forEach(r => {
+                const u = allUsers.find(x => x.username === r.employee_username);
+                if(!u) return;
+                const c = Number(r.confirmed_count) || 0;
+                const b = Number(r.bookings_count) || 0;
+                tBooks += b;
+
+                // تحديث بيانات التيم
+                const tName = u.team || "عام";
+                if(!teamData[tName]) teamData[tName] = { spent: 0, books: 0 };
+                teamData[tName].books += b;
+
+                let bonus = "---";
+                if(u.shift_type === 'شفت كامل') {
+                    if(c >= 50) bonus = "⭐⭐"; else if(c >= 30) bonus = "⭐";
+                } else {
+                    if(c >= 25) bonus = "⭐⭐"; else if(c >= 15) bonus = "⭐";
+                }
+                empBody.innerHTML += `<tr class="border-b"><td class="p-4 font-bold">${r.employee_username}</td><td class="p-4 text-center font-black">${c}</td><td class="p-4 text-center text-[10px]">${u.shift_type}</td><td class="p-4 text-center text-emerald-600">${bonus}</td></tr>`;
+            });
+
+            // تعبئة جدول التيمات
+            const teamBody = document.getElementById('team_body');
+            teamBody.innerHTML = "";
+            for (let t in teamData) {
+                const cpl = teamData[t].books > 0 ? (teamData[t].spent / teamData[t].books).toFixed(0) : 0;
+                teamBody.innerHTML += `<tr><td class="p-3">${t}</td><td class="p-3 text-center">${teamData[t].spent.toLocaleString()}</td><td class="p-3 text-center">${teamData[t].books}</td><td class="p-3 text-center text-emerald-400 font-bold">${cpl} د.ع</td></tr>`;
             }
+            document.getElementById('total_spent').innerText = tSpent.toLocaleString() + " د.ع";
+            document.getElementById('total_books').innerText = tBooks;
         }
 
         async function pop(id, n) {
@@ -198,53 +236,39 @@
             const u = allUsers.find(x => x.id == cur.id);
             const { data: reports } = await sb.from('bookings_reports').select('confirmed_count').eq('employee_username', cur.n);
             let autoPoints = 0;
-            if (reports) reports.forEach(r => {
+            if(reports) reports.forEach(r => {
                 const c = r.confirmed_count || 0;
-                if(u.shift_type === 'شفت كامل') {
-                    if(c >= 50) autoPoints += 2; else if(c >= 30) autoPoints += 1;
-                } else {
-                    if(c >= 25) autoPoints += 2; else if(c >= 15) autoPoints += 1;
-                }
+                if(u.shift_type === 'شفت كامل') { if(c >= 50) autoPoints += 2; else if(c >= 30) autoPoints += 1; }
+                else { if(c >= 25) autoPoints += 2; else if(c >= 15) autoPoints += 1; }
             });
 
-            const { data: adjData } = await sb.from('adjustments').select('*').eq('user_id', cur.id).order('created_at', {ascending: false});
-            let manualPoints = 0; let totalAbs = 0;
-            const logDiv = document.getElementById('adj_log');
-            logDiv.innerHTML = "";
-
-            if (adjData) adjData.forEach(a => {
-                if(a.type === 'bonus') manualPoints += Number(a.amount); else totalAbs += Number(a.amount);
-                logDiv.innerHTML += `
-                    <div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl border border-slate-100">
-                        <span class="text-[10px] font-bold ${a.type==='bonus'?'text-emerald-600':'text-red-600'}">
-                            ${a.type==='bonus'?'⭐ +':'💰 -'}${a.amount}
-                        </span>
-                        <button onclick="deleteAdj('${a.id}')" class="text-[9px] bg-red-100 text-red-500 px-2 py-1 rounded-lg">حذف</button>
-                    </div>`;
+            const { data: adjs } = await sb.from('adjustments').select('*').eq('user_id', cur.id).order('created_at', {ascending:false});
+            let manPoints = 0, totalAbs = 0;
+            const log = document.getElementById('adj_log'); log.innerHTML = "";
+            
+            if(adjs) adjs.forEach(a => {
+                if(a.type==='bonus') manPoints += Number(a.amount); else totalAbs += Number(a.amount);
+                log.innerHTML += `<div class="flex justify-between items-center text-[10px] bg-white p-1 rounded border">
+                    <span class="${a.type==='bonus'?'text-emerald-600':'text-red-600'}">${a.type==='bonus'?'⭐':'💰'} ${a.amount}</span>
+                    <button onclick="delAdj('${a.id}')" class="text-red-400">حذف</button>
+                </div>`;
             });
-
-            document.getElementById('det_days').innerText = (reports ? reports.length : 0);
-            document.getElementById('det_points').innerText = (autoPoints + manualPoints);
+            document.getElementById('det_days').innerText = reports?.length || 0;
+            document.getElementById('det_points').innerText = autoPoints + manPoints;
             document.getElementById('det_abs').innerText = totalAbs.toLocaleString();
         }
 
         async function adj(t) {
-            const { value: v } = await Swal.fire({ title: 'القيمة', input: 'number', showCancelButton: true });
-            if(v) { 
-                await sb.from('adjustments').insert([{ user_id:cur.id, type:t, amount:v }]);
-                refreshStats(); 
-            }
+            const { value: v } = await Swal.fire({ title: 'القيمة', input: 'number' });
+            if(v) { await sb.from('adjustments').insert([{ user_id:cur.id, type:t, amount:v }]); refreshStats(); }
         }
 
-        async function deleteAdj(adjId) {
-            if(confirm('حذف هذه العملية؟')) {
-                await sb.from('adjustments').delete().eq('id', adjId);
-                refreshStats();
-            }
+        async function delAdj(id) {
+            if(confirm('متأكد؟')) { await sb.from('adjustments').delete().eq('id', id); refreshStats(); }
         }
 
         async function kill() {
-            if(confirm('حذف الموظف نهائياً؟')) {
+            if(confirm('حذف نهائي؟')) {
                 await sb.from('adjustments').delete().eq('user_id', cur.id);
                 await sb.from('users').delete().eq('id', cur.id);
                 location.reload();
@@ -252,10 +276,19 @@
         }
 
         async function monthlyReset() {
-            const { isConfirmed } = await Swal.fire({ title: 'تصفير شامل؟', icon: 'warning', showCancelButton: true });
+            const { isConfirmed } = await Swal.fire({
+                title: 'هل أنت متأكد؟',
+                text: "سيتم مسح المصاريف والتقارير والنقاط نهائياً!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'نعم، صفر النظام'
+            });
             if(isConfirmed) {
-                await sb.from('adjustments').delete().gt('id', 0);
-                await sb.from('bookings_reports').delete().gt('id', 0);
+                // تصفير الجداول الثلاثة الأساسية
+                await sb.from('bookings_reports').delete().neq('id', 0);
+                await sb.from('marketing_expenses').delete().neq('id', 0);
+                await sb.from('adjustments').delete().neq('id', 0);
+                Swal.fire('تم التصفير بنجاح');
                 location.reload();
             }
         }
@@ -267,6 +300,7 @@
                 employee_code: document.getElementById('ec').value,
                 shift_type: document.getElementById('shift_type').value,
                 shift_time: document.getElementById('shift_type').value === 'نصف شفت' ? document.getElementById('shift_time').value : 'كامل',
+                team: document.getElementById('et').value,
                 salary: document.getElementById('ey').value,
                 role: 'موظف'
             };
@@ -279,28 +313,23 @@
         }
 
         async function editEmp() {
-            toggleModal('m');
             const u = allUsers.find(x => x.id == cur.id);
             document.getElementById('modal_title').innerText = "تعديل: " + u.username;
             document.getElementById('en').value = u.username;
-            document.getElementById('ep').value = u.password;
             document.getElementById('ec').value = u.employee_code;
-            document.getElementById('shift_type').value = u.shift_type;
+            document.getElementById('et').value = u.team || "";
             document.getElementById('ey').value = u.salary || 0;
-            toggleShiftTime();
+            toggleModal('m');
             toggleModal('add_emp_modal');
         }
 
         function openAddModal() {
             cur = null; document.getElementById('modal_title').innerText = "إضافة موظف جديد";
-            ['en','ep','ec','ey'].forEach(id => document.getElementById(id).value = "");
+            ['en','ep','ec','et','ey'].forEach(i => document.getElementById(i).value="");
             toggleModal('add_emp_modal');
         }
 
-        window.onload = () => { 
-            document.getElementById('rep_date').valueAsDate = new Date(); 
-            load(); 
-        };
+        window.onload = () => { document.getElementById('rep_date').valueAsDate = new Date(); load(); };
     </script>
 </body>
 </html>
