@@ -11,196 +11,178 @@
     <style>
         body { font-family: 'Tajawal', sans-serif; background-color: #f1f5f9; }
         .glass-card { background: white; border-radius: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
-        .btn-action { transition: all 0.2s; }
-        .btn-action:active { scale: 0.95; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
     </style>
 </head>
-<body class="pb-10">
+<body class="pb-20">
 
-    <!-- Header: صلاح الخليفة -->
     <header class="bg-slate-900 text-white p-6 sticky top-0 z-50 shadow-xl rounded-b-[2.5rem]">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div>
                 <h1 class="text-2xl font-black text-blue-400">صلاح الخليفة</h1>
-                <p class="text-[10px] text-slate-400 font-bold tracking-widest">المدير العام للنظام</p>
+                <p class="text-[10px] text-slate-400 font-bold">المدير العام للنظام</p>
             </div>
-            <div class="flex items-center gap-3">
-                <button onclick="loadData()" class="bg-blue-600 hover:bg-blue-700 px-5 py-2 rounded-xl font-bold text-sm btn-action">تحديث 🔄</button>
-                <button onclick="logout()" class="bg-red-500/20 text-red-400 border border-red-500/30 px-4 py-2 rounded-xl text-sm font-bold btn-action">خروج 🚪</button>
+            <div class="flex gap-2">
+                <button onclick="loadData()" class="bg-blue-600 px-5 py-2 rounded-xl font-bold text-sm">تحديث 🔄</button>
+                <button onclick="logout()" class="bg-red-500/20 text-red-400 border border-red-500/30 px-4 py-2 rounded-xl text-sm font-bold">خروج 🚪</button>
             </div>
         </div>
     </header>
 
     <div class="max-w-7xl mx-auto p-4 space-y-6">
 
-        <!-- الفلترة الزمنية وأدوات التحكم -->
-        <div class="glass-card p-6 flex flex-col md:flex-row gap-4 items-end">
-            <div class="flex-1 w-full text-right">
-                <label class="block text-xs font-black text-slate-400 mb-2 mr-2 uppercase">من تاريخ</label>
+        <!-- الفلترة والحذف بالتاريخ -->
+        <div class="glass-card p-6 grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <div>
+                <label class="block text-xs font-black text-slate-400 mb-2 mr-2">من تاريخ</label>
                 <input type="date" id="date_from" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold text-center">
             </div>
-            <div class="flex-1 w-full text-right">
-                <label class="block text-xs font-black text-slate-400 mb-2 mr-2 uppercase">إلى تاريخ</label>
+            <div>
+                <label class="block text-xs font-black text-slate-400 mb-2 mr-2">إلى تاريخ</label>
                 <input type="date" id="date_to" class="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold text-center">
             </div>
-            <div class="flex flex-row gap-2 w-full md:w-auto">
-                <button onclick="loadData()" class="flex-1 bg-slate-800 text-white px-8 py-4 rounded-2xl font-bold btn-action">عرض</button>
-                <button onclick="resetStatsByDate()" class="flex-1 bg-red-50 text-red-600 border border-red-100 px-4 py-4 rounded-2xl font-bold text-xs btn-action">حذف إحصاء التاريخ المحدد ♻️</button>
+            <div class="flex gap-2">
+                <button onclick="loadData()" class="flex-1 bg-slate-800 text-white p-4 rounded-2xl font-bold">عرض</button>
+                <button onclick="resetStatsByDate()" class="flex-1 bg-red-50 text-red-600 border border-red-100 p-4 rounded-2xl font-bold text-xs">تصفير التاريخ ♻️</button>
             </div>
         </div>
 
-        <!-- الجدول الأول: المصاريف و CPL (تيمات) -->
+        <!-- أزرار الإدارة السريعة -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <button onclick="openAddModal()" class="bg-blue-600 text-white p-6 rounded-[2rem] font-black text-lg shadow-lg">➕ إضافة موظف جديد</button>
+            <button onclick="toggleUserList()" class="bg-white border text-slate-700 p-6 rounded-[2rem] font-black text-lg shadow-sm">👥 عرض قائمة اليوزرات</button>
+        </div>
+
+        <!-- قائمة اليوزرات (تظهر وتختفي) -->
+        <div id="user_list_section" class="hidden glass-card p-6">
+            <h3 class="font-black mb-4 text-blue-600 underline">قائمة حسابات الموظفين:</h3>
+            <div id="user_list_grid" class="grid grid-cols-1 md:grid-cols-3 gap-3"></div>
+        </div>
+
+        <!-- جداول التيمات (المصرف والـ CPL) -->
         <div class="glass-card overflow-hidden">
             <div class="p-5 bg-slate-50 border-b flex justify-between items-center">
-                <h3 class="font-black text-slate-800 flex items-center gap-2">💰 جداول التيمات والمصاريف (CPL)</h3>
-                <button onclick="addTeam()" class="text-xs bg-blue-50 text-blue-600 px-4 py-2 rounded-lg font-bold border border-blue-100">+ إضافة تيم</button>
-            </div>
-            <table class="w-full text-right">
-                <thead class="bg-slate-50 text-[10px] text-slate-400 font-black uppercase">
-                    <tr>
-                        <th class="p-4">اسم التيم</th>
-                        <th class="p-4 text-center">المصرف</th>
-                        <th class="p-4 text-center">الحجوزات</th>
-                        <th class="p-4 text-center text-blue-600">سعر الطلب CPL</th>
-                    </tr>
-                </thead>
-                <tbody id="teams_table_body" class="divide-y divide-slate-50 font-bold text-sm"></tbody>
-            </table>
-        </div>
-
-        <!-- الجدول الثاني: موظفي الردود فقط -->
-        <div class="glass-card overflow-hidden">
-            <div class="p-5 bg-slate-50 border-b">
-                <h3 class="font-black text-slate-800 flex items-center gap-2">👥 أداء موظفي الردود</h3>
+                <h3 class="font-black text-slate-800">💰 إحصائيات التيمات والمصرف</h3>
+                <button onclick="addTeam()" class="text-xs text-blue-600 font-bold underline">إضافة تيم +</button>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-right">
-                    <thead class="bg-slate-50 text-[10px] text-slate-400 font-black uppercase">
+                    <thead class="bg-slate-50 text-[10px] text-slate-400 font-black">
+                        <tr><th class="p-4">التيم</th><th class="p-4 text-center">المصرف</th><th class="p-4 text-center">الحجوزات</th><th class="p-4 text-center text-blue-600">CPL</th></tr>
+                    </thead>
+                    <tbody id="teams_table_body" class="divide-y divide-slate-50 font-bold"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- جدول موظفي الردود فقط -->
+        <div class="glass-card overflow-hidden">
+            <div class="p-5 bg-slate-50 border-b"><h3 class="font-black text-slate-800">📉 أداء موظفي الردود (حجز / واصل)</h3></div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-right">
+                    <thead class="bg-slate-50 text-[10px] text-slate-400 font-black">
                         <tr>
-                            <th class="p-4">الموظف</th>
-                            <th class="p-4 text-center">الشفت</th>
-                            <th class="p-4 text-center">الحجز</th>
-                            <th class="p-4 text-center">الواصل</th>
-                            <th class="p-4 text-center">النقاط ⭐</th>
-                            <th class="p-4 text-center">الخصم/المكافأة</th>
-                            <th class="p-4 text-center">الإجراءات</th>
+                            <th class="p-4">الموظف</th><th class="p-4 text-center">الشفت</th><th class="p-4 text-center">الحجز</th>
+                            <th class="p-4 text-center text-emerald-600">الواصل</th><th class="p-4 text-center text-amber-500">النقاط ⭐</th><th class="p-4 text-center">الإجراء</th>
                         </tr>
                     </thead>
                     <tbody id="redod_table_body" class="divide-y divide-slate-50 font-bold text-sm"></tbody>
                 </table>
             </div>
         </div>
+    </div>
 
-        <!-- زر إضافة موظف -->
-        <button onclick="openAddUserModal()" class="w-full bg-blue-600 text-white p-6 rounded-[2rem] font-black text-xl shadow-xl shadow-blue-200 btn-action">
-            👤 إضافة موظف جديد (ردود / متابعة / مروج)
-        </button>
-
+    <!-- نافذة إضافة موظف (Modal) -->
+    <div id="add_modal" class="modal">
+        <div class="bg-white w-full max-w-md p-8 rounded-[2.5rem] space-y-4 mx-4">
+            <h3 class="text-center font-black text-xl">إضافة موظف جديد</h3>
+            <input id="new_name" placeholder="الاسم" class="w-full p-4 bg-slate-50 rounded-xl text-center font-bold outline-none">
+            <input id="new_pass" type="password" placeholder="كلمة السر" class="w-full p-4 bg-slate-50 rounded-xl text-center outline-none">
+            <input id="new_code" placeholder="الكود (A01)" class="w-full p-4 bg-slate-50 rounded-xl text-center font-bold text-blue-600 outline-none">
+            <select id="new_role" class="w-full p-4 bg-slate-50 rounded-xl font-bold text-center appearance-none outline-none">
+                <option value="ردود">رتبة: ردود</option>
+                <option value="مروج">رتبة: مروج</option>
+                <option value="متابعة">رتبة: متابعة</option>
+            </select>
+            <select id="new_shift" class="w-full p-4 bg-slate-50 rounded-xl font-bold text-center appearance-none outline-none">
+                <option value="شفت كامل">شفت كامل</option>
+                <option value="نصف شفت">نصف شفت</option>
+            </select>
+            <select id="new_team" class="w-full p-4 bg-blue-50 rounded-xl font-bold text-center text-blue-700 outline-none"></select>
+            <input id="new_salary" type="number" placeholder="الراتب الأساسي" class="w-full p-4 bg-slate-50 rounded-xl text-center font-bold outline-none">
+            <div class="flex gap-2">
+                <button onclick="saveUser()" class="flex-1 bg-blue-600 text-white p-4 rounded-xl font-bold">حفظ الموظف</button>
+                <button onclick="closeAddModal()" class="flex-1 bg-slate-100 p-4 rounded-xl font-bold">إلغاء</button>
+            </div>
+        </div>
     </div>
 
     <script>
         const sb = supabase.createClient('https://iqagigpqwwtvriqvlfbv.supabase.co', 'sb_publishable_5xbaPlWHgjeeaIwceEFRrQ_d9aZ6Zax');
 
+        function openAddModal() { loadTeamsIntoSelect(); document.getElementById('add_modal').classList.add('active'); }
+        function closeAddModal() { document.getElementById('add_modal').classList.remove('active'); }
+        function toggleUserList() { document.getElementById('user_list_section').classList.toggle('hidden'); }
+
+        async function loadTeamsIntoSelect() {
+            const { data } = await sb.from('teams').select('*');
+            document.getElementById('new_team').innerHTML = data.map(t => `<option value="${t.team_name}">${t.team_name}</option>`).join('');
+        }
+
+        async function saveUser() {
+            const obj = {
+                username: document.getElementById('new_name').value,
+                password: document.getElementById('new_pass').value,
+                employee_code: document.getElementById('new_code').value,
+                user_job_role: document.getElementById('new_role').value,
+                shift_type: document.getElementById('new_shift').value,
+                team: document.getElementById('new_team').value,
+                salary: document.getElementById('new_salary').value,
+                role: 'موظف'
+            };
+            const { error } = await sb.from('users').insert([obj]);
+            if(!error) { alert("تمت الإضافة!"); location.reload(); }
+        }
+
         async function loadData() {
             const from = document.getElementById('date_from').value;
             const to = document.getElementById('date_to').value;
-            if(!from || !to) return;
-
-            const { data: users } = await sb.from('users').select('*');
+            const { data: users } = await sb.from('users').select('*').neq('role','مدير');
             const { data: teams } = await sb.from('teams').select('*');
             const { data: reps } = await sb.from('bookings_reports').select('*').gte('report_date', from).lte('report_date', to);
             const { data: exps } = await sb.from('marketing_expenses').select('*').gte('expense_date', from).lte('expense_date', to);
-            const { data: adjs } = await sb.from('adjustments').select('*');
 
-            // 1. معالجة التيمات
+            // عرض قائمة اليوزرات
+            document.getElementById('user_list_grid').innerHTML = users.map(u => `
+                <div class="p-3 bg-slate-50 border rounded-xl text-xs">
+                    <b>${u.username}</b> | كود: ${u.employee_code} <br> سر: ${u.password}
+                </div>
+            `).join('');
+
+            // جدول التيمات
             const teamsBody = document.getElementById('teams_table_body');
-            teamsBody.innerHTML = "";
-            teams.forEach(t => {
-                let spent = exps.filter(e => e.target_team === t.team_name).reduce((a, b) => a + Number(b.amount_spent), 0);
-                let bks = reps.filter(r => {
-                    let u = users.find(x => x.username === r.employee_username);
-                    return u && u.team === t.team_name;
-                }).reduce((a, b) => a + Number(b.bookings_count), 0);
-                let cpl = bks > 0 ? (spent / bks).toFixed(0) : 0;
+            teamsBody.innerHTML = teams.map(t => {
+                let spent = exps.filter(e => e.target_team === t.team_name).reduce((a,b)=>a+Number(b.amount_spent),0);
+                let bks = reps.filter(r => users.find(u=>u.username===r.employee_username && u.team===t.team_name)).reduce((a,b)=>a+Number(b.bookings_count),0);
+                return `<tr><td class="p-4">${t.team_name}</td><td class="p-4 text-center text-amber-600">${spent}</td><td class="p-4 text-center">${bks}</td><td class="p-4 text-center text-blue-600">${bks>0?(spent/bks).toFixed(0):0}</td></tr>`;
+            }).join('');
 
-                teamsBody.innerHTML += `<tr>
-                    <td class="p-4">${t.team_name}</td>
-                    <td class="p-4 text-center text-amber-600">${spent.toLocaleString()}</td>
-                    <td class="p-4 text-center">${bks}</td>
-                    <td class="p-4 text-center text-blue-600 font-black">${cpl}</td>
-                </tr>`;
-            });
-
-            // 2. معالجة موظفي الردود فقط
+            // جدول الردود
             const redodBody = document.getElementById('redod_table_body');
-            redodBody.innerHTML = "";
-            users.filter(u => u.user_job_role === 'ردود').forEach(u => {
-                let uReps = reps.filter(r => r.employee_username === u.username);
-                let hzn = uReps.reduce((a, b) => a + Number(b.bookings_count), 0);
-                let wasl = uReps.reduce((a, b) => a + Number(b.confirmed_count), 0);
-                
-                // حساب النقاط حسب الشفت
-                let stars = 0;
-                if(u.shift_type === 'شفت كامل') {
-                    if(wasl >= 50) stars = 2; else if(wasl >= 30) stars = 1;
-                } else {
-                    if(wasl >= 25) stars = 2; else if(wasl >= 15) stars = 1;
-                }
-
-                // حساب الخصومات والمكافآت اليدوية
-                let uAdjs = adjs.filter(a => a.user_id === u.id);
-                let bonus = uAdjs.filter(a => a.type === 'bonus').reduce((a, b) => a + Number(b.amount), 0);
-                let penalty = uAdjs.filter(a => a.type === 'penalty').reduce((a, b) => a + Number(b.amount), 0);
-
-                redodBody.innerHTML += `<tr>
-                    <td class="p-4">${u.username}<br><span class="text-[9px] text-slate-400">${u.team}</span></td>
-                    <td class="p-4 text-center text-[10px]">${u.shift_type}</td>
-                    <td class="p-4 text-center">${hzn}</td>
-                    <td class="p-4 text-center text-emerald-600">${wasl}</td>
-                    <td class="p-4 text-center text-amber-500">${stars} ⭐</td>
-                    <td class="p-4 text-center">
-                        <div class="text-[9px] text-emerald-600">مكافأة: ${bonus}</div>
-                        <div class="text-[9px] text-red-600">خصم: ${penalty}</div>
-                    </td>
-                    <td class="p-4 text-center flex gap-1 justify-center">
-                        <button onclick="adjustMoney('${u.id}', 'bonus')" class="bg-emerald-50 text-emerald-600 p-2 rounded-lg text-[9px]">🎁 مكافأة</button>
-                        <button onclick="adjustMoney('${u.id}', 'penalty')" class="bg-red-50 text-red-600 p-2 rounded-lg text-[9px]">💸 خصم</button>
-                        <button onclick="editUser('${u.id}')" class="bg-slate-100 p-2 rounded-lg text-[9px]">✏️ تعديل</button>
-                        <button onclick="deleteUser('${u.id}')" class="bg-red-500 text-white p-2 rounded-lg text-[9px]">🗑️ حذف</button>
-                    </td>
-                </tr>`;
-            });
+            redodBody.innerHTML = users.filter(u=>u.user_job_role==='ردود').map(u => {
+                let uRep = reps.filter(r=>r.employee_username===u.username);
+                let bks = uRep.reduce((a,b)=>a+Number(b.bookings_count),0);
+                let wasl = uRep.reduce((a,b)=>a+Number(b.confirmed_count),0);
+                let stars = u.shift_type==='شفت كامل' ? (wasl>=50?2:wasl>=30?1:0) : (wasl>=25?2:wasl>=15?1:0);
+                return `<tr><td class="p-4">${u.username}</td><td class="p-4 text-center text-[10px]">${u.shift_type}</td><td class="p-4 text-center">${bks}</td><td class="p-4 text-center text-emerald-600">${wasl}</td><td class="p-4 text-center text-amber-500">${stars}⭐</td><td class="p-4 text-center"><button onclick="deleteUser('${u.id}')" class="text-red-500">🗑️ حذف</button></td></tr>`;
+            }).join('');
         }
 
-        async function adjustMoney(uid, type) {
-            const title = type === 'bonus' ? 'إضافة مكافأة' : 'إضافة خصم مبلغ';
-            const { value: amt } = await Swal.fire({ title, input: 'number', inputPlaceholder: 'أدخل المبلغ' });
-            if(amt) {
-                await sb.from('adjustments').insert([{ user_id: uid, amount: amt, type: type }]);
-                loadData();
-            }
-        }
-
-        async function resetStatsByDate() {
-            const date = document.getElementById('date_from').value;
-            if(!date) return alert("حدد التاريخ أولاً");
-            const { isConfirmed } = await Swal.fire({ title: 'تأكيد الحذف؟', text: `سيتم حذف إحصائيات يوم ${date} نهائياً`, icon: 'warning', showCancelButton: true });
-            if(isConfirmed) {
-                await sb.from('bookings_reports').delete().eq('report_date', date);
-                await sb.from('marketing_expenses').delete().eq('expense_date', date);
-                loadData();
-            }
-        }
-
-        async function deleteUser(id) {
-            if(confirm("حذف الموظف نهائياً؟")) {
-                await sb.from('users').delete().eq('id', id);
-                loadData();
-            }
-        }
-
-        function logout() { localStorage.clear(); location.href='index.html'; }
-
+        async function deleteUser(id) { if(confirm("حذف الموظف؟")) { await sb.from('users').delete().eq('id', id); loadData(); } }
+        async function addTeam() { const { value: t } = await Swal.fire({ title: 'اسم التيم', input: 'text' }); if(t) { await sb.from('teams').insert([{team_name: t}]); loadData(); } }
+        async function logout() { localStorage.clear(); location.href='index.html'; }
+        
         window.onload = () => {
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('date_from').value = today;
