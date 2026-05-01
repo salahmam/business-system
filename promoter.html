@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+    <!-- نفس الرأس والتنسيقات بدون تغيير -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>منصة المروج الاحترافية | BUSINESS SYSTEM</title>
@@ -15,32 +16,26 @@
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 min-h-screen pb-10">
-
-    <header class="bg-blue-900 text-white p-5 sticky top-0 z-50 shadow-2xl rounded-b-[2rem] flex justify-between items-center border-b-4 border-blue-500">
+    <header class="bg-blue-900 text-white p-5 sticky top-0 z-50 shadow-2xl rounded-b-[2rem] flex justify-between items-center border-b-4 border-blue-500 text-right">
         <div class="flex items-center gap-3">
-            <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center font-black text-xl shadow-lg border border-blue-400">
-                <span>📢</span>
-            </div>
+            <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center font-black text-xl shadow-lg border border-blue-400"><span>📢</span></div>
             <div>
                 <h2 id="p_name_display" class="font-bold text-lg leading-tight text-right">تحميل...</h2>
                 <p class="text-[10px] text-blue-300 font-bold tracking-widest uppercase text-right">مسؤول الحملات الإعلانية</p>
             </div>
         </div>
         <button onclick="localStorage.clear(); location.href='index.html'" class="bg-white/10 p-3 rounded-2xl border border-white/10 shadow-lg active:scale-90 transition-all">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
         </button>
     </header>
 
     <div class="p-4 max-w-xl mx-auto space-y-6 pt-6 text-right">
-        
+        <!-- نفس الفلاتر والصناديق بدون تغيير -->
         <div class="glass p-6 rounded-[2.5rem] shadow-xl border border-white space-y-4">
             <div class="flex flex-col items-center">
-                <span class="text-[10px] font-black text-blue-600 mb-2 uppercase italic text-center">عرض بيانات يوم محدد لمراقبة الأداء</span>
+                <span class="text-[10px] font-black text-blue-600 mb-2 uppercase italic text-center">مراقبة أداء اليوم</span>
                 <input type="date" id="target_date" onchange="syncData()" class="w-full p-4 bg-blue-50 border-2 border-transparent rounded-2xl text-center font-bold text-blue-900 outline-none focus:border-blue-500 transition-all">
             </div>
-
             <div class="grid grid-cols-2 gap-3">
                 <div class="p-4 rounded-3xl bg-white border border-slate-100 shadow-sm stat-card-blue">
                     <span class="text-[9px] text-slate-400 font-bold block uppercase text-right">إجمالي الحجوزات</span>
@@ -53,43 +48,36 @@
             </div>
         </div>
 
+        <!-- إضافة مصاريف -->
         <div class="glass p-8 rounded-[3rem] shadow-xl border border-white space-y-5">
             <div class="text-center">
                 <h3 class="text-lg font-black text-slate-800 italic">إضافة مصاريف الحملة</h3>
                 <div class="h-1 w-10 bg-blue-600 mx-auto mt-1 rounded-full"></div>
             </div>
-
             <div class="space-y-4">
                 <div class="grid grid-cols-1 gap-4">
                     <div>
                         <label class="text-[10px] font-black text-slate-400 mr-2 uppercase italic">اختر التيم المستهدف :</label>
-                        <select id="team_select" onchange="fetchExistingAmount()" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-center font-bold text-slate-700 outline-none focus:border-blue-500 appearance-none shadow-inner">
-                            <option value="">جاري تحميل التيمات...</option>
-                        </select>
+                        <select id="team_select" onchange="fetchExistingAmount()" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-center font-bold text-slate-700 outline-none focus:border-blue-500 appearance-none shadow-inner"></select>
                     </div>
                     <div>
-                        <label class="text-[10px] font-black text-slate-400 mr-2 uppercase italic">المبلغ الجديد المصروف (سيتم حذف القديم):</label>
+                        <label class="text-[10px] font-black text-slate-400 mr-2 uppercase italic">المبلغ الجديد:</label>
                         <input type="number" id="spend_input" placeholder="0" class="w-full p-6 bg-blue-50 border-2 border-dashed border-blue-200 rounded-[2rem] text-center text-4xl font-black text-blue-700 outline-none focus:border-blue-600 focus:bg-white transition-all shadow-inner">
                     </div>
                 </div>
-
-                <button id="save_btn" onclick="saveExpense()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-5 rounded-[2rem] font-black text-lg shadow-xl active:scale-[0.97] transition-all border-b-4 border-blue-800">
-                    حفظ وتحديث التقرير 🚀
-                </button>
+                <button id="save_btn" onclick="saveExpense()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-5 rounded-[2rem] font-black text-lg shadow-xl active:scale-[0.97] transition-all border-b-4 border-blue-800">حفظ وتحديث 🚀</button>
             </div>
         </div>
 
+        <!-- جدول التحليل -->
         <div class="glass rounded-[2.5rem] shadow-xl border border-white overflow-hidden">
-            <div class="bg-slate-900 p-4">
-                <h3 class="text-white text-center font-bold text-sm tracking-widest text-right">تحليل الأداء التفصيلي لكل تيم</h3>
-            </div>
+            <div class="bg-slate-900 p-4"><h3 class="text-white text-center font-bold text-sm tracking-widest text-right">تحليل الأداء لكل تيم</h3></div>
             <div class="overflow-x-auto">
                 <table class="w-full text-right">
                     <thead>
                         <tr class="bg-slate-50 text-[10px] text-slate-500 font-black uppercase text-right">
                             <th class="p-4">التيم</th>
                             <th class="p-4 text-center">الحجوزات</th>
-                            <th class="p-4 text-center">المصاريف</th>
                             <th class="p-4 text-center text-blue-600 italic underline">CPL</th>
                         </tr>
                     </thead>
@@ -104,7 +92,7 @@
         const user = JSON.parse(localStorage.getItem('user_session'));
 
         window.onload = async () => {
-            if (!user || user.role !== 'مروج') { window.location.href = 'index.html'; return; }
+            if (!user) { window.location.href = 'index.html'; return; }
             document.getElementById('p_name_display').innerText = user.username;
             document.getElementById('target_date').valueAsDate = new Date();
             await fetchTeams(); 
@@ -112,54 +100,43 @@
         };
 
         async function fetchTeams() {
-            const { data } = await sb.from('users').select('team').not('team', 'is', null);
-            const uniqueTeams = [...new Set(data.map(item => item.team))].sort();
+            const { data } = await sb.from('teams').select('*');
             const ts = document.getElementById('team_select');
             ts.innerHTML = '<option value="">-- اختر التيم --</option>';
-            uniqueTeams.forEach(t => { ts.innerHTML += `<option value="${t}">تيم ( ${t} )</option>`; });
+            data.forEach(t => { ts.innerHTML += `<option value="${t.team_name}">${t.team_name}</option>`; });
         }
 
         async function fetchExistingAmount() {
             const team = document.getElementById('team_select').value;
             const date = document.getElementById('target_date').value;
             if (!team || !date) return;
-
             const { data } = await sb.from('marketing_expenses').select('amount_spent').eq('expense_date', date).eq('target_team', team).maybeSingle();
             document.getElementById('spend_input').value = data ? data.amount_spent : "";
-            document.getElementById('save_btn').innerText = data ? "تحديث المبلغ الحالي ✏️" : "حفظ وتحديث الإحصائيات 🚀";
         }
 
         async function syncData() {
             const date = document.getElementById('target_date').value;
-            fetchExistingAmount();
             const tableBody = document.getElementById('team_table_body');
-            tableBody.innerHTML = `<tr><td colspan="4" class="p-10 text-center animate-pulse text-slate-400 font-bold">جاري المزامنة...</td></tr>`;
-
+            
             const { data: expenses } = await sb.from('marketing_expenses').select('*').eq('expense_date', date);
             const { data: reports } = await sb.from('bookings_reports').select('bookings_count, employee_username').eq('report_date', date);
-            const { data: allUsers } = await sb.from('users').select('username, team').eq('role', 'ردود');
+            const { data: allUsers } = await sb.from('users').select('username, team').eq('user_job_role', 'ردود');
 
             let teamStats = {};
+            // تصفير البيانات
+            const { data: teamsList } = await sb.from('teams').select('team_name');
+            teamsList.forEach(t => teamStats[t.team_name] = { books: 0, spend: 0 });
 
-            // 1. حساب الحجوزات لكل تيم (تصفير قبل الجمع)
             if (reports && allUsers) {
                 reports.forEach(r => {
                     const u = allUsers.find(user => user.username === r.employee_username);
-                    if (u && u.team) {
-                        if (!teamStats[u.team]) teamStats[u.team] = { books: 0, spend: 0 };
-                        teamStats[u.team].books += Number(r.bookings_count || 0);
-                    }
+                    if (u && u.team && teamStats[u.team]) teamStats[u.team].books += Number(r.bookings_count || 0);
                 });
             }
 
-            // 2. حساب المصاريف لكل تيم (استبدال القيمة لضمان عدم الجمع العشوائي)
             if (expenses) {
                 expenses.forEach(e => {
-                    if (e.target_team) {
-                        if (!teamStats[e.target_team]) teamStats[e.target_team] = { books: 0, spend: 0 };
-                        // هنا نضع القيمة المسجلة في قاعدة البيانات مباشرة
-                        teamStats[e.target_team].spend = Number(e.amount_spent || 0);
-                    }
+                    if (e.target_team && teamStats[e.target_team]) teamStats[e.target_team].spend = Number(e.amount_spent || 0);
                 });
             }
 
@@ -172,10 +149,9 @@
                 totalBooks += s.books; totalSpend += s.spend;
 
                 tableBody.innerHTML += `
-                    <tr class="hover:bg-blue-50/50 transition-colors">
-                        <td class="p-4 text-right"><span class="bg-slate-800 text-white px-3 py-1 rounded-lg text-[10px] font-black uppercase">TEAM ${team}</span></td>
+                    <tr>
+                        <td class="p-4 text-right"><span class="bg-slate-800 text-white px-3 py-1 rounded-lg text-[10px] font-black uppercase">${team}</span></td>
                         <td class="p-4 text-center text-slate-700">${s.books}</td>
-                        <td class="p-4 text-center text-slate-900 font-black">${s.spend.toLocaleString()}</td>
                         <td class="p-4 text-center text-blue-600 font-black underline">${Number(cpl).toLocaleString()}</td>
                     </tr>`;
             });
@@ -188,23 +164,18 @@
             const team = document.getElementById('team_select').value;
             const amount = document.getElementById('spend_input').value;
             const date = document.getElementById('target_date').value;
+            if (!team || amount === "") return;
 
-            if (!team || amount === "") { alert("يرجى إكمال البيانات"); return; }
-
-            // البحث عن السجل القديم
             const { data: existing } = await sb.from('marketing_expenses').select('id').eq('expense_date', date).eq('target_team', team).maybeSingle();
 
-            let response;
+            let res;
             if (existing) {
-                // تحديث (يحذف القيمة السابقة ويضع الجديدة)
-                response = await sb.from('marketing_expenses').update({ amount_spent: parseFloat(amount), promoter_username: user.username }).eq('id', existing.id);
+                res = await sb.from('marketing_expenses').update({ amount_spent: parseFloat(amount), created_by: user.username }).eq('id', existing.id);
             } else {
-                // إضافة جديد
-                response = await sb.from('marketing_expenses').insert([{ promoter_username: user.username, target_team: team, amount_spent: parseFloat(amount), expense_date: date }]);
+                res = await sb.from('marketing_expenses').insert([{ created_by: user.username, target_team: team, amount_spent: parseFloat(amount), expense_date: date }]);
             }
 
-            if (response.error) { alert("فشل الحفظ"); } 
-            else { alert("✅ تم التحديث بنجاح"); syncData(); }
+            if (!res.error) { alert("✅ تم التحديث"); syncData(); }
         }
     </script>
 </body>
