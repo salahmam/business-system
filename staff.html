@@ -3,19 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BUSINESS SYSTEM - PREMIUM STAFF</title>
+    <title>BUSINESS SYSTEM - STAFF DASHBOARD</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --bg-dark: #0f172a; --card-dark: #1e293b; --accent-blue: #38bdf8; --gold: #fbbf24; }
+        :root { --bg-dark: #0f172a; --card-dark: #1e293b; --accent-blue: #38bdf8; --gold: #fbbf24; --emerald: #10b981; }
         body { font-family: 'Tajawal', sans-serif; background-color: var(--bg-dark); color: white; margin: 0; overflow-x: hidden; }
-        .premium-card { background: linear-gradient(145deg, #1e293b, #0f172a); border: 1px solid rgba(255,255,255,0.1); border-radius: 2rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+        
+        .premium-card { background: linear-gradient(145deg, #1e293b, #0f172a); border: 1px solid rgba(255,255,255,0.08); border-radius: 2rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); border-radius: 1.5rem; }
-        .input-premium { background: #1e293b; border: 1px solid #334155; border-radius: 1.2rem; padding: 1.2rem; color: white; width: 100%; outline: none; text-align: center; }
+        
+        /* تحسين وتوسيط المدخلات */
+        .input-premium { 
+            background: #1e293b; 
+            border: 1px solid #334155; 
+            border-radius: 1.2rem; 
+            padding: 1rem; 
+            color: white; 
+            width: 100%; 
+            outline: none; 
+            text-align: center; /* توسيط النص الداخلي */
+            display: block;
+            margin: 0 auto;
+        }
+        .input-premium:focus { border-color: var(--accent-blue); box-shadow: 0 0 15px rgba(56, 189, 248, 0.1); }
+        
+        /* إزالة أي انزياح في التاريخ */
+        input[type="date"] {
+            appearance: none;
+            -webkit-appearance: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
         #loader { position: fixed; inset: 0; background: var(--bg-dark); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .spin-custom { width: 50px; height: 50px; border: 4px solid #1e293b; border-top: 4px solid var(--accent-blue); border-radius: 50%; animation: spin 1s linear infinite; }
+        .spin-custom { width: 45px; height: 45px; border: 3px solid #1e293b; border-top: 3px solid var(--accent-blue); border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
@@ -23,24 +49,29 @@
 
     <div id="loader">
         <div class="spin-custom"></div>
-        <h1 class="mt-4 font-black italic text-blue-400 tracking-[0.3em] text-sm">BUSINESS SYSTEM</h1>
+        <p class="mt-4 text-[10px] font-bold text-slate-500 tracking-widest uppercase">Premium Access...</p>
     </div>
 
     <div id="main_ui" class="hidden opacity-0 transition-opacity duration-700">
-        <header class="p-5 pb-2">
-            <div class="premium-card p-5 flex items-center justify-between border-b border-white/5">
+        <!-- Header Section -->
+        <header class="p-5">
+            <div class="premium-card p-5 flex items-center justify-between">
                 <div class="flex items-center gap-4">
-                    <div id="user_avatar" class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-700 flex items-center justify-center font-black text-2xl shadow-xl shadow-blue-900/40">?</div>
+                    <div id="user_avatar" class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-700 flex items-center justify-center font-black text-xl shadow-lg">?</div>
                     <div>
-                        <h2 id="user_name" class="text-md font-black italic">--</h2>
-                        <span id="user_role_tag" class="text-blue-400 text-[9px] font-bold uppercase tracking-tighter">--</span>
+                        <h2 id="user_name" class="text-sm font-black italic">--</h2>
+                        <span id="user_role_tag" class="text-blue-400 text-[8px] font-bold uppercase tracking-widest border border-blue-500/20 px-2 py-0.5 rounded mt-1 inline-block">--</span>
                     </div>
                 </div>
-                <button onclick="logout()" class="p-3 text-slate-500 active:scale-90 transition-all"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4m7 14l5-5-5-5m5 5H9"></path></svg></button>
+                <button onclick="logout()" class="w-10 h-10 flex items-center justify-center rounded-full bg-red-500/10 text-red-400 active:scale-90 transition-all">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                </button>
             </div>
         </header>
 
-        <div id="content_area" class="px-5 space-y-4 pb-10"></div>
+        <div id="content_area" class="px-5 space-y-5 pb-10">
+            <!-- Content Injected Dynamically -->
+        </div>
     </div>
 
     <script>
@@ -56,33 +87,30 @@
             document.getElementById('user_avatar').innerText = u.username[0].toUpperCase();
             document.getElementById('user_role_tag').innerText = u.user_job_role;
 
-            await updateUI();
+            if(u.user_job_role === 'ردود') await initResponder();
+            else if(u.user_job_role === 'متابعة') await initFollowup();
             
             document.getElementById('loader').style.display = 'none';
             document.getElementById('main_ui').classList.remove('hidden');
             setTimeout(() => document.getElementById('main_ui').classList.add('opacity-100'), 50);
         };
 
-        async function updateUI() {
-            if(u.user_job_role === 'ردود') await initResponder();
-            else if(u.user_job_role === 'متابعة') await initFollowup();
-        }
-
+        // --- واجهة الردود (الكاملة) ---
         async function initResponder() {
             const today = new Date().toISOString().split('T')[0];
             const startMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
 
-            const { data: reports } = await sb.from('bookings_reports').select('*').eq('employee_username', u.username).gte('report_date', startMonth);
-            const { data: bonuses } = await sb.from('bonuses').select('*').eq('employee_username', u.username).gte('bonus_date', startMonth);
-            const { data: penalties } = await sb.from('penalties').select('*').eq('employee_username', u.username).gte('penalty_date', startMonth);
+            const [repRes, bonRes, penRes] = await Promise.all([
+                sb.from('bookings_reports').select('*').eq('employee_username', u.username).gte('report_date', startMonth),
+                sb.from('bonuses').select('*').eq('employee_username', u.username).gte('bonus_date', startMonth),
+                sb.from('penalties').select('*').eq('employee_username', u.username).gte('penalty_date', startMonth)
+            ]);
 
-            const safeReports = reports || [];
-            const todayData = safeReports.find(r => r.report_date === today) || { bookings_count: 0, confirmed_count: 0 };
-            
-            const totalB_Month = safeReports.reduce((s, r) => s + Number(r.bookings_count || 0), 0);
-            const totalC_Month = safeReports.reduce((s, r) => s + Number(r.confirmed_count || 0), 0);
+            const reports = repRes.data || [];
+            const todayData = reports.find(r => r.report_date === today) || { bookings_count: 0, confirmed_count: 0 };
+            const totalC_Month = reports.reduce((s, r) => s + Number(r.confirmed_count || 0), 0);
+            const totalB_Month = reports.reduce((s, r) => s + Number(r.bookings_count || 0), 0);
 
-            // حساب النقاط
             let autoPoints = 0;
             const shift = u.shift_type || "";
             if(shift.includes("كامل")) {
@@ -91,104 +119,109 @@
                 if(totalC_Month >= 25) autoPoints = 2; else if(totalC_Month >= 15) autoPoints = 1;
             }
 
-            const manualB = (bonuses || []).reduce((s, b) => s + Number(b.bonus_amount), 0);
-            const manualP = (penalties || []).reduce((s, p) => s + Number(p.penalty_amount), 0);
+            const manualB = (bonRes.data || []).reduce((s, b) => s + Number(b.bonus_amount), 0);
+            const manualP = (penRes.data || []).reduce((s, p) => s + Number(p.penalty_amount), 0);
             const finalPoints = autoPoints + manualB - manualP;
 
-            document.getElementById('content_area').innerHTML = `
-                <div class="premium-card p-6">
-                    <div class="flex justify-between items-center px-2 mb-4">
-                        <div class="text-center">
-                            <p class="text-[9px] text-slate-500 italic">الراتب</p>
-                            <p class="text-md font-black">${u.salary || 0}</p>
-                        </div>
-                        <div class="text-center">
-                            <p class="text-[9px] text-red-500 italic font-bold">الخصومات</p>
-                            <p class="text-md font-black text-red-400">-${manualP}</p>
-                        </div>
-                        <div class="text-center">
-                            <p class="text-[9px] text-slate-500 italic">أيام العمل</p>
-                            <p class="text-md font-black">${safeReports.length}</p>
-                        </div>
-                    </div>
-                    <div class="flex flex-col items-center justify-center">
-                        <div class="w-24 h-24 rounded-full border border-blue-500/20 bg-blue-500/5 flex flex-col items-center justify-center shadow-[0_0_20px_rgba(56,189,248,0.1)]">
-                            <span class="text-3xl font-black text-amber-400">${finalPoints}</span>
-                            <span class="text-[8px] font-bold text-blue-600 uppercase">Point</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="glass p-4 text-center"><p class="text-[10px] text-slate-400 mb-1 italic">حجوزات اليوم</p><p class="text-xl font-black text-sky-400">${todayData.bookings_count}</p></div>
-                    <div class="glass p-4 text-center"><p class="text-[10px] text-slate-400 mb-1 italic">واصل اليوم</p><p class="text-xl font-black text-emerald-400">${todayData.confirmed_count}</p></div>
-                    <div class="glass p-4 text-center"><p class="text-[10px] text-slate-400 mb-1 italic">حجوزات الشهر</p><p class="text-xl font-black text-blue-400">${totalB_Month}</p></div>
-                    <div class="glass p-4 text-center"><p class="text-[10px] text-slate-400 mb-1 italic">واصل الشهر</p><p class="text-xl font-black text-amber-400">${totalC_Month}</p></div>
-                </div>
-
-                <div class="premium-card p-6 space-y-4">
-                    <h3 class="text-xs font-black border-r-4 border-sky-500 pr-3 italic uppercase text-slate-300">Action Center</h3>
-                    <div class="space-y-3">
-                        <div>
-                            <label class="text-[10px] text-slate-500 pr-2">تاريخ التقرير</label>
-                            <input type="date" id="r_date" value="${today}" class="input-premium text-sm font-bold">
-                        </div>
-                        <div>
-                            <label class="text-[10px] text-slate-500 pr-2">عدد الحجوزات</label>
-                            <input type="number" id="r_val" class="input-premium text-2xl font-black" placeholder="0">
-                        </div>
-                        <button onclick="saveDaily()" class="w-full py-4 rounded-2xl bg-blue-600 text-white font-black shadow-xl active:scale-95 transition-all text-sm">حفظ التقرير الآن</button>
-                    </div>
-                </div>
-            `;
+            renderUI(finalPoints, manualP, reports.length, todayData, totalB_Month, totalC_Month, 'blue', 'Action Center', 'saveDaily');
         }
 
+        // --- واجهة المتابعة (الكاملة) ---
         async function initFollowup() {
             const today = new Date().toISOString().split('T')[0];
+            const startMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+
+            const [bonRes, penRes, reportsRes] = await Promise.all([
+                sb.from('bonuses').select('*').eq('employee_username', u.username).gte('bonus_date', startMonth),
+                sb.from('penalties').select('*').eq('employee_username', u.username).gte('penalty_date', startMonth),
+                sb.from('bookings_reports').select('*').eq('employee_username', u.username).gte('report_date', startMonth)
+            ]);
+
+            const manualP = (penRes.data || []).reduce((s, p) => s + Number(p.penalty_amount), 0);
+            const manualB = (bonRes.data || []).reduce((s, b) => s + Number(b.bonus_amount), 0);
+            const workingDays = (reportsRes.data || []).length;
+
+            renderUI(manualB - manualP, manualP, workingDays, null, null, null, 'emerald', 'Follow-up Control', 'saveFollowup');
+            
+            const { data } = await sb.from('users').select('username').eq('user_job_role', 'ردود');
+            if(data) document.getElementById('target_area').innerHTML = `
+                <div class="text-center w-full">
+                    <label class="text-[10px] text-slate-500 mb-1 block">اختيار موظف الردود</label>
+                    <select id="f_select" class="input-premium font-bold text-sm">
+                        <option value="">-- اختر الموظف --</option>
+                        ${data.map(i => `<option value="${i.username}">${i.username}</option>`).join('')}
+                    </select>
+                </div>`;
+        }
+
+        function renderUI(points, penalties, days, tData, mB, mC, color, title, actionBtn) {
+            const isFollowup = !tData;
+            const today = new Date().toISOString().split('T')[0];
+
             document.getElementById('content_area').innerHTML = `
+                <!-- البطاقة المالية -->
+                <div class="premium-card p-6">
+                    <div class="flex justify-between items-center px-2 mb-6">
+                        <div class="text-center"><p class="text-[9px] text-slate-500">الراتب</p><p class="text-md font-black italic">${u.salary}</p></div>
+                        <div class="text-center"><p class="text-[9px] text-red-500 font-bold">الخصومات</p><p class="text-md font-black text-red-400">-${penalties}</p></div>
+                        <div class="text-center"><p class="text-[9px] text-slate-500">أيام العمل</p><p class="text-md font-black italic">${days}</p></div>
+                    </div>
+                    <div class="flex justify-center">
+                        <div class="w-24 h-24 rounded-full border-2 border-${color}-500/20 bg-${color}-500/5 flex flex-col items-center justify-center shadow-[0_0_30px_rgba(0,0,0,0.3)]">
+                            <span class="text-3xl font-black ${color === 'blue' ? 'text-amber-400' : 'text-emerald-400'}">${points}</span>
+                            <span class="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Points</span>
+                        </div>
+                    </div>
+                </div>
+
+                ${!isFollowup ? `
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="glass p-4 text-center"><p class="text-[9px] text-slate-400 mb-1">حجوزات اليوم</p><p class="text-xl font-black text-sky-400">${tData.bookings_count}</p></div>
+                    <div class="glass p-4 text-center"><p class="text-[9px] text-slate-400 mb-1">واصل اليوم</p><p class="text-xl font-black text-emerald-400">${tData.confirmed_count}</p></div>
+                    <div class="glass p-4 text-center"><p class="text-[9px] text-slate-400 mb-1">حجوزات الشهر</p><p class="text-xl font-black text-indigo-400">${mB}</p></div>
+                    <div class="glass p-4 text-center"><p class="text-[9px] text-slate-400 mb-1">واصل الشهر</p><p class="text-xl font-black text-amber-400">${mC}</p></div>
+                </div>` : ''}
+
+                <!-- صندوق الإجراءات -->
                 <div class="premium-card p-6 space-y-4">
-                    <h3 class="text-xs font-black border-r-4 border-emerald-500 pr-3 italic uppercase text-slate-300">Follow-up Master</h3>
-                    <div class="space-y-4">
-                        <input type="date" id="f_date" value="${today}" class="input-premium text-sm font-bold">
-                        <select id="f_select" class="input-premium font-bold text-sm text-right"></select>
-                        <input type="number" id="f_val" class="input-premium text-2xl font-black" placeholder="+ أضف الواصل">
-                        <button onclick="saveFollowup()" class="w-full py-4 rounded-2xl bg-emerald-600 text-white font-black shadow-xl active:scale-95 transition-all text-sm">تحديث الحساب</button>
+                    <h3 class="text-[10px] font-black border-r-4 border-${color}-500 pr-3 italic uppercase text-slate-400">${title}</h3>
+                    <div class="space-y-4 flex flex-col items-center">
+                        <div class="w-full text-center">
+                            <label class="text-[10px] text-slate-500 mb-1 block">تاريخ التقرير</label>
+                            <input type="date" id="${isFollowup ? 'f_date' : 'r_date'}" value="${today}" class="input-premium font-bold text-sm">
+                        </div>
+                        <div id="target_area" class="w-full"></div>
+                        <div class="w-full text-center">
+                            <label class="text-[10px] text-slate-500 mb-1 block">${isFollowup ? 'إضافة عدد واصل' : 'عدد الحجوزات'}</label>
+                            <input type="number" id="${isFollowup ? 'f_val' : 'r_val'}" class="input-premium text-2xl font-black" placeholder="0">
+                        </div>
+                        <button onclick="${actionBtn}()" class="w-full py-4 rounded-2xl bg-${color === 'blue' ? 'blue-600' : 'emerald-600'} text-white font-black shadow-lg active:scale-95 transition-all text-sm uppercase italic">حفظ البيانات الآن</button>
                     </div>
                 </div>
             `;
-            const { data } = await sb.from('users').select('username').eq('user_job_role', 'ردود');
-            if(data) document.getElementById('f_select').innerHTML = `<option value="">اختر الموظف</option>` + data.map(i => `<option value="${i.username}">${i.username}</option>`).join('');
         }
 
+        // الدوال المنطقية للحفظ
         async function saveDaily() {
             const v = document.getElementById('r_val').value;
             const d = document.getElementById('r_date').value;
-            if(!v || !d) {
-                return Swal.fire('خطأ', 'يرجى ملء الحقول المطلوبة', 'error');
-            }
-            
-            const { error } = await sb.from('bookings_reports').upsert([
-                { employee_username: u.username, report_date: d, bookings_count: v, team: u.team }
-            ], { onConflict: 'employee_username,report_date' });
-
-            if(!error) { 
-                Swal.fire({ title: 'تم الحفظ', icon: 'success', background: '#1e293b', color: '#fff' }).then(() => location.reload()); 
-            } else {
-                Swal.fire('خطأ', 'لم يتم الحفظ: ' + error.message, 'error');
-            }
+            if(!v || !d) return Swal.fire('نقص بيانات', 'يرجى ملء الحقول', 'warning');
+            Swal.showLoading();
+            const { error } = await sb.from('bookings_reports').upsert([{ employee_username: u.username, report_date: d, bookings_count: v, team: u.team }], { onConflict: 'employee_username,report_date' });
+            if(!error) location.reload();
         }
 
         async function saveFollowup() {
             const target = document.getElementById('f_select').value;
             const addVal = Number(document.getElementById('f_val').value);
             const d = document.getElementById('f_date').value;
-            if(!target || !addVal || !d) return;
-
+            if(!target || !addVal || !d) return Swal.fire('نقص بيانات', 'أكمل الحقول أولاً', 'warning');
+            
             const { data: current } = await sb.from('bookings_reports').select('confirmed_count').eq('employee_username', target).eq('report_date', d).single();
             const newTotal = (current ? Number(current.confirmed_count || 0) : 0) + addVal;
 
             await sb.from('bookings_reports').upsert([{ employee_username: target, report_date: d, confirmed_count: newTotal }], { onConflict: 'employee_username,report_date' });
-            Swal.fire('تم', 'تم التحديث بنجاح', 'success').then(() => location.reload());
+            Swal.fire({ title: 'تم التحديث', icon: 'success', timer: 1000, showConfirmButton: false }).then(() => location.reload());
         }
 
         function logout() { localStorage.clear(); window.location.href='index.html'; }
