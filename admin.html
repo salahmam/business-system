@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>لوحة صلاح الخليفة | الاحترافية الذكية</title>
+    <title>لوحة صلاح الخليفة | النظام الذكي</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -19,61 +19,68 @@
 </head>
 <body class="pb-24">
 
+    <!-- الهيدر مع زر الخروج -->
     <header class="p-5 flex justify-between items-center bg-white border-b sticky top-0 z-50">
-        <h1 class="text-xl font-black text-slate-900">صلاح الخليفة</h1>
-        <button onclick="location.reload()" class="w-10 h-10 flex items-center justify-center rounded-xl bg-blue-50 text-blue-600 border border-blue-100">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path></svg>
-        </button>
+        <div>
+            <h1 class="text-xl font-black text-slate-900">صلاح الخليفة</h1>
+            <span class="text-[9px] text-blue-500 font-bold uppercase">لوحة التحكم الإدارية</span>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="location.reload()" class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-blue-600 border border-slate-200">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path></svg>
+            </button>
+            <button onclick="logout()" class="w-10 h-10 flex items-center justify-center rounded-xl bg-red-50 text-red-500 border border-red-100">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            </button>
+        </div>
     </header>
 
     <div class="p-4 space-y-6 max-w-lg mx-auto">
 
-        <!-- فلاتر التاريخ (موسطة تماماً) -->
-        <div class="flex justify-center w-full">
-            <div class="glass-card p-6 w-full border-blue-50 shadow-lg">
-                <div class="flex items-center justify-center gap-3">
-                    <div class="w-full">
-                        <label class="text-[10px] font-black text-slate-400 mb-1 block text-center">من تاريخ</label>
-                        <input type="date" id="d_from" class="w-full bg-slate-50 border-none rounded-xl p-3 text-sm font-bold text-center outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div class="w-full">
-                        <label class="text-[10px] font-black text-slate-400 mb-1 block text-center">إلى تاريخ</label>
-                        <input type="date" id="d_to" class="w-full bg-slate-50 border-none rounded-xl p-3 text-sm font-bold text-center outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
+        <!-- فلاتر التاريخ (موسطة) -->
+        <div class="glass-card p-6 border-blue-50 shadow-lg">
+            <div class="flex items-center justify-center gap-3">
+                <div class="flex-1 text-center">
+                    <label class="text-[10px] font-black text-slate-400 mb-1 block">من تاريخ</label>
+                    <input type="date" id="d_from" class="w-full bg-slate-50 border-none rounded-xl p-3 text-sm font-bold text-center outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
-                <button onclick="loadAllData()" class="w-full bg-slate-900 text-white mt-4 py-4 rounded-2xl font-black text-sm">تحديث البيانات</button>
+                <div class="flex-1 text-center">
+                    <label class="text-[10px] font-black text-slate-400 mb-1 block">إلى تاريخ</label>
+                    <input type="date" id="d_to" class="w-full bg-slate-50 border-none rounded-xl p-3 text-sm font-bold text-center outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
             </div>
+            <button onclick="loadAllData()" class="w-full bg-slate-900 text-white mt-4 py-4 rounded-2xl font-black text-sm">تحديث البيانات</button>
         </div>
 
         <!-- جدول التيمات -->
         <div class="glass-card overflow-hidden">
             <div class="p-4 bg-slate-50/50 border-b flex justify-between items-center">
-                <h3 class="font-black text-xs">📦 التيمات و CPL</h3>
-                <button onclick="addNewTeam()" class="text-blue-600 font-bold text-[10px]">+ إضافة تيم</button>
+                <h3 class="font-black text-xs text-slate-600">📦 التيمات و CPL</h3>
+                <button onclick="addNewTeam()" class="text-blue-600 font-bold text-[10px] bg-blue-50 px-2 py-1 rounded-lg">+ إضافة تيم</button>
             </div>
             <table class="w-full text-[11px] text-center">
-                <thead class="bg-slate-50 text-slate-400 border-b">
-                    <tr><th class="p-3 text-right">التيم</th><th>المصرف</th><th>الحجوزات</th><th>CPL</th><th>تعديل</th></tr>
+                <thead class="bg-slate-50 text-slate-400 border-b font-bold">
+                    <tr><th class="p-3 text-right">اسم التيم</th><th>المصرف</th><th>الحجوزات</th><th>CPL</th><th>تعديل</th></tr>
                 </thead>
                 <tbody id="team_table" class="divide-y font-bold text-slate-700"></tbody>
-                <tfoot id="team_foot" class="bg-blue-50/30 font-black"></tfoot>
+                <tfoot id="team_foot" class="bg-blue-50/30 font-black border-t"></tfoot>
             </table>
         </div>
 
-        <!-- أداء الردود والمكافآت التلقائية -->
+        <!-- أداء الردود والمكافآت -->
         <div class="glass-card overflow-hidden">
-            <div class="p-4 bg-slate-50/50 border-b font-black text-xs">📉 الأداء ونقاط المكافأة</div>
+            <div class="p-4 bg-slate-50/50 border-b font-black text-xs text-slate-600">📈 الأداء ونقاط المكافأة</div>
             <table class="w-full text-[11px] text-center">
-                <thead class="bg-slate-50 text-slate-400 border-b">
+                <thead class="bg-slate-50 text-slate-400 border-b font-bold">
                     <tr><th class="p-3 text-right">الموظف</th><th>الأيام</th><th>حجز</th><th class="text-emerald-600">واصل</th><th class="text-blue-600">المكافأة</th></tr>
                 </thead>
                 <tbody id="redod_table" class="divide-y font-bold text-slate-700"></tbody>
             </table>
         </div>
 
-        <!-- الأزرار -->
+        <!-- أزرار الإدارة -->
         <div class="space-y-4">
-            <button onclick="toggleUserList()" class="w-full bg-white border-2 border-slate-900 p-5 rounded-3xl font-black flex justify-between items-center px-6">
+            <button onclick="toggleUserList()" class="w-full bg-white border-2 border-slate-900 p-5 rounded-3xl font-black flex justify-between items-center px-6 shadow-sm">
                 <span>إدارة الموظفين</span>
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
             </button>
@@ -81,7 +88,9 @@
                 <span>إضافة موظف جديد</span>
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             </button>
-            <button onclick="resetDataByDate()" class="w-full text-red-500 text-[10px] font-black opacity-50">♻️ تصفير بيانات الفترة</button>
+            <div class="text-center">
+                <button onclick="resetDataByDate()" class="text-red-400 text-[10px] font-black opacity-60">♻️ تصفير بيانات الفترة المحددة</button>
+            </div>
         </div>
 
         <div id="user_list_section" class="hidden space-y-3">
@@ -89,37 +98,49 @@
         </div>
     </div>
 
-    <!-- مودال التعديل والإضافة -->
+    <!-- المودال الشامل (إضافة وتعديل) -->
     <div id="user_modal" class="modal">
-        <div class="bg-white w-full max-w-sm p-6 rounded-[2.5rem] space-y-3 shadow-2xl relative">
-            <h3 id="modal_title" class="font-black text-center text-slate-800">بيانات الموظف</h3>
+        <div class="bg-white w-full max-w-sm p-6 rounded-[2.5rem] space-y-3 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <h3 id="modal_title" class="font-black text-center text-slate-800 text-lg">بيانات الموظف</h3>
             <input id="m_id" type="hidden">
             
-            <input id="m_name" placeholder="الاسم" class="w-full p-3.5 bg-slate-50 rounded-2xl font-bold border-none">
+            <input id="m_name" placeholder="الاسم الكامل" class="w-full p-4 bg-slate-50 rounded-2xl font-bold border-none outline-none">
+            
             <div class="grid grid-cols-2 gap-2">
-                <input id="m_pass" placeholder="السر" class="w-full p-3.5 bg-slate-50 rounded-2xl font-bold border-none">
-                <input id="m_code" placeholder="الكود" class="w-full p-3.5 bg-slate-50 rounded-2xl font-bold border-none">
+                <input id="m_pass" placeholder="كلمة السر" class="w-full p-4 bg-slate-50 rounded-2xl font-bold border-none outline-none">
+                <input id="m_code" placeholder="الكود" class="w-full p-4 bg-slate-50 rounded-2xl font-bold border-none outline-none">
             </div>
 
-            <select id="m_role" onchange="handleModalRole()" class="w-full p-3.5 bg-slate-50 rounded-2xl font-bold border-none">
+            <label class="text-[10px] font-black text-slate-400 mr-2">الوظيفة</label>
+            <select id="m_role" onchange="handleModalRole()" class="w-full p-4 bg-slate-50 rounded-2xl font-bold border-none outline-none">
                 <option value="ردود">ردود</option><option value="مروج">مروج</option><option value="متابعة">متابعة</option>
             </select>
 
-            <div id="m_redod_only" class="space-y-3 bg-blue-50 p-4 rounded-2xl">
-                <div class="grid grid-cols-2 gap-2">
-                    <select id="m_shift_main" onchange="updateShiftDetail()" class="w-full p-3 rounded-xl border-none font-bold text-xs">
-                        <option value="شفت كامل">شفت كامل</option><option value="نصف شفت">نصف شفت</option>
-                    </select>
-                    <select id="m_shift_sub" class="w-full p-3 rounded-xl border-none font-bold text-xs">
-                        <option value="صباحي">صباحي</option><option value="مسائي">مسائي</option>
+            <div id="m_redod_only" class="space-y-3 bg-blue-50/50 p-4 rounded-2xl border border-blue-100">
+                <div class="grid grid-cols-1 gap-2">
+                    <label class="text-[10px] font-black text-blue-400">نوع الشفت</label>
+                    <select id="m_shift_main" onchange="toggleSubShift()" class="w-full p-3.5 rounded-xl border-none font-bold text-xs">
+                        <option value="شفت كامل">شفت كامل</option>
+                        <option value="نصف شفت">نصف شفت</option>
                     </select>
                 </div>
-                <select id="m_team" class="w-full p-3 rounded-xl border-none font-bold text-xs"></select>
+                
+                <!-- يظهر فقط في حال اختيار نصف شفت -->
+                <div id="sub_shift_container" class="hidden">
+                    <label class="text-[10px] font-black text-blue-400">الفترة</label>
+                    <select id="m_shift_sub" class="w-full p-3.5 rounded-xl border-none font-bold text-xs bg-white">
+                        <option value="صباحي">صباحي</option>
+                        <option value="مسائي">مسائي</option>
+                    </select>
+                </div>
+
+                <label class="text-[10px] font-black text-blue-400">التيم</label>
+                <select id="m_team" class="w-full p-3.5 rounded-xl border-none font-bold text-xs bg-white"></select>
             </div>
 
-            <input id="m_sal" type="number" placeholder="الراتب" class="w-full p-3.5 bg-slate-50 rounded-2xl font-bold border-none">
+            <input id="m_sal" type="number" placeholder="الراتب الأساسي" class="w-full p-4 bg-slate-50 rounded-2xl font-bold border-none outline-none">
 
-            <div class="flex gap-2">
+            <div class="flex gap-2 pt-2">
                 <button onclick="saveUser()" class="flex-1 bg-slate-900 text-white p-4 rounded-2xl font-black">حفظ</button>
                 <button onclick="closeModal()" class="flex-1 bg-slate-100 p-4 rounded-2xl font-black text-slate-400">إلغاء</button>
             </div>
@@ -132,7 +153,12 @@
         function toggleUserList() { document.getElementById('user_list_section').classList.toggle('hidden'); }
         function closeModal() { document.getElementById('user_modal').classList.remove('active'); }
         function handleModalRole() { document.getElementById('m_redod_only').style.display = (document.getElementById('m_role').value === 'ردود') ? 'block' : 'none'; }
-        function updateShiftDetail() { /* Logic handled in save */ }
+        
+        // إظهار وإخفاء مربع (صباحي/مسائي) حسب الشفت
+        function toggleSubShift() {
+            const isHalf = document.getElementById('m_shift_main').value === 'نصف شفت';
+            document.getElementById('sub_shift_container').style.display = isHalf ? 'block' : 'none';
+        }
 
         async function loadTeamsList() {
             const { data } = await sb.from('teams').select('*');
@@ -153,8 +179,8 @@
                 let s = exps.filter(e => e.target_team === t.team_name).reduce((a,b)=>a+Number(b.amount_spent),0);
                 let b = reports.filter(r => users.find(u=>u.username===r.employee_username && u.team===t.team_name)).reduce((a,b)=>a+Number(b.bookings_count),0);
                 ts+=s; tb+=b;
-                return `<tr class="border-b"><td class="p-3 text-right">${t.team_name}</td><td>${s}</td><td>${b}</td><td class="text-blue-600">${b? (s/b).toFixed(0):0}</td>
-                <td><button onclick="editTeamName('${t.id}','${t.team_name}')" class="text-blue-500 hover:scale-110 transition">✎</button></td></tr>`;
+                return `<tr class="border-b"><td class="p-3 text-right font-black">${t.team_name}</td><td>${s}</td><td>${b}</td><td class="text-blue-600">${b? (s/b).toFixed(0):0}</td>
+                <td><button onclick="editTeamName('${t.id}','${t.team_name}')" class="text-blue-500 text-lg">✎</button></td></tr>`;
             }).join('');
 
             document.getElementById('team_foot').innerHTML = `<tr><td class="p-3 text-right">الإجمالي</td><td>${ts}</td><td>${tb}</td><td>${tb?(ts/tb).toFixed(0):0}</td><td>-</td></tr>`;
@@ -165,7 +191,6 @@
                 let b = ur.reduce((a,b)=>a+Number(b.bookings_count),0);
                 let w = ur.reduce((a,b)=>a+Number(b.confirmed_count),0);
                 
-                // حساب المكافآت التلقائي
                 let points = 0;
                 if(u.shift_type?.includes("كامل")) {
                     if(w >= 50) points = 2; else if(w >= 30) points = 1;
@@ -173,16 +198,16 @@
                     if(w >= 25) points = 2; else if(w >= 15) points = 1;
                 }
 
-                return `<tr class="border-b"><td class="p-3 text-right">${u.username}</td><td class="text-slate-400 font-normal">${days} يوم</td><td>${b}</td><td class="text-emerald-600">${w}</td><td class="text-blue-600 font-black">${points} نقطة</td></tr>`;
+                return `<tr class="border-b"><td class="p-3 text-right font-black">${u.username}</td><td class="text-slate-400">${days} يوم</td><td>${b}</td><td class="text-emerald-600">${w}</td><td class="text-blue-600 font-black">${points} نقطة</td></tr>`;
             }).join('');
 
             document.getElementById('detailed_user_list').innerHTML = users.map(u => `
                 <div class="bg-white p-4 rounded-3xl border flex justify-between items-center shadow-sm">
                     <div class="text-right">
-                        <div class="font-black text-sm">${u.username} <span class="text-[8px] bg-slate-100 px-1 rounded">${u.user_job_role}</span></div>
-                        <div class="text-[10px] text-slate-400 font-bold">${u.shift_type} | تيم: ${u.team}</div>
+                        <div class="font-black text-sm">${u.username} <span class="text-[8px] bg-slate-50 px-1 rounded text-slate-400">${u.user_job_role}</span></div>
+                        <div class="text-[10px] text-slate-400 font-bold">${u.shift_type || '-'} | تيم: ${u.team || '-'}</div>
                     </div>
-                    <button onclick='openEditModal(${JSON.stringify(u)})' class="bg-slate-50 px-4 py-2 rounded-xl text-[10px] font-black border">تعديل ⚙️</button>
+                    <button onclick='openEditModal(${JSON.stringify(u)})' class="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-[10px] font-black">تعديل ⚙️</button>
                 </div>`).join('');
         }
 
@@ -195,6 +220,16 @@
             document.getElementById('m_role').value = u.user_job_role;
             document.getElementById('m_sal').value = u.salary;
             document.getElementById('m_team').value = u.team || '';
+            
+            // ضبط الشفت في المودال
+            if(u.shift_type?.includes("نصف")) {
+                document.getElementById('m_shift_main').value = "نصف شفت";
+                document.getElementById('m_shift_sub').value = u.shift_type.includes("صباحي") ? "صباحي" : "مسائي";
+            } else {
+                document.getElementById('m_shift_main').value = "شفت كامل";
+            }
+            
+            toggleSubShift();
             handleModalRole();
             document.getElementById('user_modal').classList.add('active');
         }
@@ -203,11 +238,14 @@
             document.getElementById('m_id').value = "";
             document.getElementById('m_name').value = "";
             loadTeamsList();
+            toggleSubShift();
             document.getElementById('user_modal').classList.add('active');
         }
 
         async function saveUser() {
-            const shift = document.getElementById('m_shift_main').value + " (" + document.getElementById('m_shift_sub').value + ")";
+            const isHalf = document.getElementById('m_shift_main').value === 'نصف شفت';
+            const finalShift = isHalf ? `نصف (${document.getElementById('m_shift_sub').value})` : "شفت كامل";
+            
             const obj = {
                 username: document.getElementById('m_name').value,
                 password: document.getElementById('m_pass').value,
@@ -215,7 +253,7 @@
                 user_job_role: document.getElementById('m_role').value,
                 salary: document.getElementById('m_sal').value,
                 team: (document.getElementById('m_role').value==='ردود'? document.getElementById('m_team').value : '-'),
-                shift_type: (document.getElementById('m_role').value==='ردود'? shift : '-'),
+                shift_type: (document.getElementById('m_role').value==='ردود'? finalShift : '-'),
                 role: 'موظف'
             };
             const id = document.getElementById('m_id').value;
@@ -225,17 +263,17 @@
         }
 
         async function editTeamName(id, old) {
-            const { value: n } = await Swal.fire({ title: 'تعديل التيم', input: 'text', inputValue: old, confirmButtonColor: '#0f172a' });
+            const { value: n } = await Swal.fire({ title: 'تعديل التيم', input: 'text', inputValue: old });
             if(n) { await sb.from('teams').update({ team_name: n }).eq('id', id); loadAllData(); }
         }
 
         async function addNewTeam() {
-            const { value: t } = await Swal.fire({ title: 'تيم جديد', input: 'text', confirmButtonColor: '#0f172a' });
+            const { value: t } = await Swal.fire({ title: 'تيم جديد', input: 'text' });
             if(t) { await sb.from('teams').insert([{team_name: t}]); loadAllData(); }
         }
 
         async function resetDataByDate() {
-            const { isConfirmed } = await Swal.fire({ title: 'تنبيه!', text: 'سيتم مسح البيانات للفترة المحددة', icon: 'warning', showCancelButton: true });
+            const { isConfirmed } = await Swal.fire({ title: 'تصفير؟', text: 'سيتم مسح حجوزات ومصاريف الفترة', icon: 'warning', showCancelButton: true });
             if(isConfirmed) {
                 const from = document.getElementById('d_from').value, to = document.getElementById('d_to').value;
                 await sb.from('bookings_reports').delete().gte('report_date', from).lte('report_date', to);
@@ -243,6 +281,8 @@
                 loadAllData();
             }
         }
+
+        function logout() { localStorage.clear(); location.reload(); }
 
         window.onload = () => {
             const n = new Date().toISOString().split('T')[0];
