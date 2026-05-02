@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>نظام الموظفين - صلاح الخليفة</title>
+    <title>نظام الموظفين - BUSINESS SYSTEM</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -15,23 +15,24 @@
         .grad-purple { background: linear-gradient(135deg, #7c3aed, #5b21b6); }
         .input-style { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1rem; width: 100%; font-weight: bold; outline: none; transition: 0.3s; }
         .hidden { display: none; }
-        /* أنيميشن بسيط للتحميل */
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
+        /* شاشة التحميل */
+        #loader { fixed: inset-0; background: white; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; position: fixed; width: 100%; height: 100%; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #2563eb; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="min-h-screen">
 
-    <div id="auth_check" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center">
-        <div class="loader mb-4"></div>
-        <p class="text-slate-500 font-bold">جاري التحقق من الهوية...</p>
+    <div id="loader">
+        <div class="spinner"></div>
+        <p class="mt-4 font-bold text-slate-600">جاري التحقق من الجلسة...</p>
     </div>
 
     <div id="responder_screen" class="hidden pb-10">
         <header class="grad-blue text-white p-8 rounded-b-[3rem] shadow-xl text-center space-y-4">
             <div class="flex justify-between items-center">
-                <button onclick="logout()" class="bg-white/20 p-2 rounded-lg text-xs">خروج</button>
-                <span class="font-black text-lg">لوحة الردود</span>
+                <button onclick="logout()" class="bg-white/20 p-2 rounded-lg text-xs font-bold">خروج</button>
+                <span class="font-black text-lg italic">BUSINESS SYSTEM</span>
                 <div class="w-10"></div>
             </div>
             <div class="py-2">
@@ -47,7 +48,7 @@
             <div class="grid grid-cols-2 gap-3">
                 <div class="stat-card">
                     <p class="text-[10px] font-bold text-slate-400">الراتب الأساسي</p>
-                    <p id="r_salary" class="text-xl font-black">0</p>
+                    <p id="r_salary" class="text-xl font-black text-slate-800">0</p>
                 </div>
                 <div class="stat-card">
                     <p class="text-[10px] font-bold text-slate-400">مكافآت الشهر</p>
@@ -55,12 +56,13 @@
                 </div>
             </div>
 
-            <div class="stat-card flex justify-around py-6">
-                <div class="text-center">
+            <div class="stat-card flex justify-around py-6 text-center">
+                <div>
                     <p class="text-[10px] text-slate-400 font-bold">حجوزات الشهر</p>
                     <p id="r_total_book" class="text-2xl font-black text-blue-600">0</p>
                 </div>
-                <div class="text-center border-r pr-8">
+                <div class="border-r border-slate-100 h-10 my-auto"></div>
+                <div>
                     <p class="text-[10px] text-slate-400 font-bold">واصل الشهر</p>
                     <p id="r_total_confirm" class="text-2xl font-black text-emerald-600">0</p>
                 </div>
@@ -69,8 +71,8 @@
             <div class="stat-card space-y-4">
                 <h3 class="font-black text-sm text-slate-600 border-b pb-2">تقرير الحجوزات اليومي</h3>
                 <input type="date" id="r_date" class="input-style">
-                <input type="number" id="r_book_val" class="input-style" placeholder="أدخل عدد الحجوزات">
-                <button onclick="submitResponderReport()" class="w-full grad-blue text-white py-4 rounded-xl font-black">حفظ الحجوزات</button>
+                <input type="number" id="r_book_val" class="input-style" placeholder="أدخل عدد الحجوزات اليوم">
+                <button onclick="submitResponderReport()" class="w-full grad-blue text-white py-4 rounded-xl font-black shadow-lg active:scale-95 transition-all">حفظ التقرير</button>
             </div>
         </main>
     </div>
@@ -78,8 +80,8 @@
     <div id="followup_screen" class="hidden pb-10">
         <header class="grad-purple text-white p-8 rounded-b-[3rem] shadow-xl text-center">
             <div class="flex justify-between items-center mb-4">
-                <button onclick="logout()" class="bg-white/20 p-2 rounded-lg text-xs">خروج</button>
-                <span class="font-black text-lg">لوحة المتابعة</span>
+                <button onclick="logout()" class="bg-white/20 p-2 rounded-lg text-xs font-bold">خروج</button>
+                <span class="font-black text-lg italic text-white/50">FOLLOW-UP PANEL</span>
                 <div class="w-10"></div>
             </div>
             <h2 id="f_name" class="text-2xl font-black">--</h2>
@@ -87,72 +89,79 @@
 
         <main class="px-4 -mt-8 space-y-4">
             <div class="stat-card space-y-4">
-                <h3 class="font-black text-sm text-center">تحديث واصل الموظفين (تراكمي)</h3>
-                <input type="date" id="f_date" class="input-style">
-                <select id="f_user_select" class="input-style"></select>
-                <input type="number" id="f_confirm_val" class="input-style" placeholder="عدد الواصل الجديد">
-                <button onclick="submitFollowupReport()" class="w-full grad-purple text-white py-4 rounded-xl font-black">تحديث المجموع</button>
+                <h3 class="font-black text-sm text-center text-slate-600 border-b pb-2">تحديث واصل الموظفين (تراكمي)</h3>
+                <div class="space-y-3">
+                    <label class="text-xs font-bold text-slate-400 block mr-2">تاريخ العملية</label>
+                    <input type="date" id="f_date" class="input-style">
+                    
+                    <label class="text-xs font-bold text-slate-400 block mr-2">اختيار الموظف</label>
+                    <select id="f_user_select" class="input-style"></select>
+                    
+                    <label class="text-xs font-bold text-slate-400 block mr-2">عدد الواصل الجديد</label>
+                    <input type="number" id="f_confirm_val" class="input-style" placeholder="مثال: 5">
+                </div>
+                <button onclick="submitFollowupReport()" class="w-full grad-purple text-white py-4 rounded-xl font-black shadow-lg active:scale-95 transition-all">إضافة للمجموع</button>
             </div>
         </main>
     </div>
 
     <script>
-        const sb = supabase.createClient('https://iqagigpqwwtvriqvlfbv.supabase.co', 'sb_publishable_5xbaPlWHgjeeaIwceEFRrQ_d9aZ6Zax');
+        const _SB_URL = 'https://iqagigpqwwtvriqvlfbv.supabase.co';
+        const _SB_KEY = 'sb_publishable_5xbaPlWHgjeeaIwceEFRrQ_d9aZ6Zax';
+        const sb = supabase.createClient(_SB_URL, _SB_KEY);
+
         let currentUser = null;
 
-        // دالة التحقق من تسجيل الدخول عند فتح الصفحة
+        // 1. التحقق من الهوية فور التحميل
         window.onload = function() {
-            const savedData = localStorage.getItem('loggedUser');
+            const session = localStorage.getItem('user_session');
             
-            if (!savedData) {
-                // إذا لم يجد بيانات، يعيده للرئيسية بعد ثانية واحدة للتأكد
-                setTimeout(() => {
-                    if (!localStorage.getItem('loggedUser')) {
-                        window.location.href = 'index.html';
-                    } else {
-                        startApp();
-                    }
-                }, 1000);
+            if (!session) {
+                window.location.href = 'index.html'; // العودة إذا لم يسجل دخول
+                return;
+            }
+
+            currentUser = JSON.parse(session);
+            document.getElementById('loader').classList.add('hidden');
+
+            // التوجيه حسب الدور الوظيفي (job_role أو user_job_role حسب جدولك)
+            const role = currentUser.user_job_role || currentUser.role;
+            
+            if (role === 'ردود') {
+                initResponder();
+            } else if (role === 'متابعة') {
+                initFollowup();
             } else {
-                startApp();
+                Swal.fire('تنبيه', 'هذه الصفحة مخصصة للموظفين فقط', 'warning').then(() => logout());
             }
         };
 
-        function startApp() {
-            currentUser = JSON.parse(localStorage.getItem('loggedUser'));
-            document.getElementById('auth_check').classList.add('hidden'); // إخفاء شاشة التحميل
-
-            if (currentUser.user_job_role === 'ردود') {
-                showResponder();
-            } else if (currentUser.user_job_role === 'متابعة') {
-                showFollowup();
-            } else {
-                Swal.fire('خطأ', 'ليس لديك صلاحية دخول الموظفين', 'error').then(() => logout());
-            }
-        }
-
         function logout() {
-            localStorage.removeItem('loggedUser');
+            localStorage.removeItem('user_session');
             window.location.href = 'index.html';
         }
 
-        // --- وظائف الردود ---
-        async function showResponder() {
+        // --- وظائف قسم الردود ---
+        async function initResponder() {
             document.getElementById('responder_screen').classList.remove('hidden');
             document.getElementById('r_name').innerText = currentUser.username;
-            document.getElementById('r_code').innerText = `كود: ${currentUser.employee_code}`;
-            document.getElementById('r_team').innerText = `تيم: ${currentUser.team}`;
+            document.getElementById('r_code').innerText = `كود: ${currentUser.employee_code || '---'}`;
+            document.getElementById('r_team').innerText = `تيم: ${currentUser.team || 'غير محدد'}`;
             document.getElementById('r_date').value = new Date().toISOString().split('T')[0];
             
-            updateResponderStats();
+            loadResponderStats();
         }
 
-        async function updateResponderStats() {
+        async function loadResponderStats() {
             const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
-            const { data: reports } = await sb.from('bookings_reports').select('*').eq('employee_username', currentUser.username).gte('report_date', startOfMonth);
+            
+            const { data: reports } = await sb.from('bookings_reports')
+                .select('*')
+                .eq('employee_username', currentUser.username)
+                .gte('report_date', startOfMonth);
 
-            const totalBook = reports?.reduce((s, r) => s + Number(r.bookings_count), 0) || 0;
-            const totalConfirm = reports?.reduce((s, r) => s + Number(r.confirmed_count), 0) || 0;
+            const totalBook = reports?.reduce((s, r) => s + Number(r.bookings_count || 0), 0) || 0;
+            const totalConfirm = reports?.reduce((s, r) => s + Number(r.confirmed_count || 0), 0) || 0;
 
             document.getElementById('r_salary').innerText = currentUser.salary || 0;
             document.getElementById('r_total_book').innerText = totalBook;
@@ -164,26 +173,39 @@
             const val = document.getElementById('r_book_val').value;
             if(!val) return;
 
-            const { data: existing } = await sb.from('bookings_reports').select('*').eq('employee_username', currentUser.username).eq('report_date', date).single();
+            const { data: existing } = await sb.from('bookings_reports')
+                .select('*')
+                .eq('employee_username', currentUser.username)
+                .eq('report_date', date)
+                .single();
 
             if (existing) {
                 await sb.from('bookings_reports').update({ bookings_count: val }).eq('id', existing.id);
-                Swal.fire('تم التحديث', 'تم استبدال الرقم القديم بالجديد', 'success');
+                Swal.fire('تم التحديث', 'تم تعديل حجوزات اليوم بنجاح', 'success');
             } else {
-                await sb.from('bookings_reports').insert([{ employee_username: currentUser.username, report_date: date, bookings_count: val, confirmed_count: 0, team: currentUser.team }]);
+                await sb.from('bookings_reports').insert([{ 
+                    employee_username: currentUser.username, 
+                    report_date: date, 
+                    bookings_count: val, 
+                    confirmed_count: 0, 
+                    team: currentUser.team 
+                }]);
                 Swal.fire('تم الحفظ', 'تم تسجيل تقريرك اليوم بنجاح', 'success');
             }
-            updateResponderStats();
+            loadResponderStats();
+            document.getElementById('r_book_val').value = "";
         }
 
-        // --- وظائف المتابعة ---
-        async function showFollowup() {
+        // --- وظائف قسم المتابعة ---
+        async function initFollowup() {
             document.getElementById('followup_screen').classList.remove('hidden');
-            document.getElementById('f_name').innerText = `المتابعة: ${currentUser.username}`;
+            document.getElementById('f_name').innerText = currentUser.username;
             document.getElementById('f_date').value = new Date().toISOString().split('T')[0];
             
             const { data: users } = await sb.from('users').select('*').eq('user_job_role', 'ردود');
-            document.getElementById('f_user_select').innerHTML = users.map(u => `<option value="${u.username}">${u.username} (${u.team})</option>`).join('');
+            document.getElementById('f_user_select').innerHTML = users.map(u => 
+                `<option value="${u.username}">${u.username} (${u.team || 'بدون تيم'})</option>`
+            ).join('');
         }
 
         async function submitFollowupReport() {
@@ -192,15 +214,24 @@
             const val = Number(document.getElementById('f_confirm_val').value);
             if(!val) return;
 
-            const { data: existing } = await sb.from('bookings_reports').select('*').eq('employee_username', target).eq('report_date', date).single();
+            const { data: existing } = await sb.from('bookings_reports')
+                .select('*')
+                .eq('employee_username', target)
+                .eq('report_date', date)
+                .single();
 
             if (existing) {
-                const newTotal = Number(existing.confirmed_count) + val;
+                const newTotal = Number(existing.confirmed_count || 0) + val;
                 await sb.from('bookings_reports').update({ confirmed_count: newTotal }).eq('id', existing.id);
-                Swal.fire('تراكمي', `تمت الإضافة لـ ${target}. المجموع اليوم: ${newTotal}`, 'success');
+                Swal.fire('تمت الإضافة', `إجمالي الواصل لـ ${target} اليوم أصبح: ${newTotal}`, 'success');
             } else {
-                await sb.from('bookings_reports').insert([{ employee_username: target, report_date: date, confirmed_count: val, bookings_count: 0 }]);
-                Swal.fire('تم الحفظ', 'تم تسجيل واصل جديد بنجاح', 'success');
+                await sb.from('bookings_reports').insert([{ 
+                    employee_username: target, 
+                    report_date: date, 
+                    confirmed_count: val, 
+                    bookings_count: 0 
+                }]);
+                Swal.fire('تم البدء', 'تم تسجيل أول واصل للموظف اليوم', 'success');
             }
             document.getElementById('f_confirm_val').value = "";
         }
