@@ -27,6 +27,7 @@
 
     <main class="px-4 -mt-8 space-y-6 max-w-4xl mx-auto">
         
+        <!-- إحصائيات الإنجاز الشهري -->
         <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="stat-card border-r-4 border-r-blue-500 text-center">
                 <p class="text-xs font-bold text-slate-400 mb-1">إجمالي المصرف الشهري</p>
@@ -42,9 +43,10 @@
             </div>
         </section>
 
+        <!-- ملخص الأداء لليوم المحدد (تعديل العنوان ليصبح ديناميكي) -->
         <section class="stat-card space-y-4">
             <div class="flex items-center justify-between border-b pb-3">
-                <h3 class="font-black text-slate-700 underline decoration-emerald-500 decoration-4">ملخص نتائج التاريخ المختار</h3>
+                <h3 id="dynamic_report_title" class="font-black text-slate-700 underline decoration-emerald-500 decoration-4 text-lg">تقرير يوم: --</h3>
             </div>
             <div class="grid grid-cols-3 gap-2 text-center">
                 <div><p class="text-[10px] font-bold text-slate-400">صرف اليوم</p><p id="d_spent" class="font-black text-lg">0</p></div>
@@ -53,6 +55,7 @@
             </div>
         </section>
 
+        <!-- جدول أداء التيمات -->
         <section class="stat-card overflow-hidden p-0">
             <div class="p-4 bg-slate-50 border-b font-black text-xs text-slate-500">أداء التيمات في التاريخ المحدد</div>
             <div class="overflow-x-auto">
@@ -70,25 +73,27 @@
             </div>
         </section>
 
-        <section class="stat-card space-y-4 bg-emerald-50/50 border-emerald-100 ring-2 ring-emerald-500/20">
-            <h3 class="font-black text-emerald-800 text-center text-lg">تغذية البيانات اليومية</h3>
+        <!-- منطقة إدخال وتغذية المصاريف (إصلاح الزحف والمحاذاة) -->
+        <section class="stat-card space-y-6 bg-emerald-50/50 border-emerald-100 ring-2 ring-emerald-500/20">
+            <h3 class="font-black text-emerald-800 text-center text-xl">تغذية البيانات اليومية</h3>
             <div class="space-y-4">
-                <div>
-                    <label class="text-[10px] font-bold text-emerald-600 mr-2 uppercase">1. اختر التاريخ</label>
-                    <input type="date" id="p_date" onchange="loadPromoterData()" class="w-full p-4 bg-white border-2 border-emerald-100 rounded-2xl font-bold outline-none focus:border-emerald-500 transition-all text-center">
+                
+                <div class="flex flex-col items-start w-full">
+                    <label class="text-[11px] font-black text-emerald-600 mb-1 pr-1 italic">1. اختر التاريخ</label>
+                    <input type="date" id="p_date" onchange="loadPromoterData()" class="w-full p-4 bg-white border-2 border-emerald-100 rounded-2xl font-bold outline-none focus:border-emerald-500 transition-all text-center text-lg shadow-sm">
                 </div>
 
-                <div>
-                    <label class="text-[10px] font-bold text-emerald-600 mr-2 uppercase">2. اختر التيم</label>
-                    <select id="p_team_select" onchange="checkExistingExpense()" class="w-full p-4 bg-white border-2 border-emerald-100 rounded-2xl font-bold outline-none focus:border-emerald-500 transition-all"></select>
+                <div class="flex flex-col items-start w-full">
+                    <label class="text-[11px] font-black text-emerald-600 mb-1 pr-1 italic">2. اختر التيم</label>
+                    <select id="p_team_select" onchange="checkExistingExpense()" class="w-full p-4 bg-white border-2 border-emerald-100 rounded-2xl font-bold outline-none focus:border-emerald-500 transition-all shadow-sm text-right"></select>
                 </div>
 
-                <div>
-                    <label class="text-[10px] font-bold text-emerald-600 mr-2 uppercase">3. مبلغ الصرف</label>
-                    <input type="number" id="p_amount_input" placeholder="0.00" class="w-full p-4 bg-white border-2 border-emerald-100 rounded-2xl font-bold text-center text-3xl outline-none focus:border-emerald-500 transition-all text-emerald-700">
+                <div class="flex flex-col items-start w-full">
+                    <label class="text-[11px] font-black text-emerald-600 mb-1 pr-1 italic">3. مبلغ الصرف</label>
+                    <input type="number" id="p_amount_input" placeholder="0.00" class="w-full p-4 bg-white border-2 border-emerald-100 rounded-2xl font-bold text-center text-3xl outline-none focus:border-emerald-500 transition-all text-emerald-700 shadow-sm">
                 </div>
 
-                <button onclick="submitExpense()" class="w-full grad-emerald text-white py-5 rounded-2xl font-black text-xl shadow-xl shadow-emerald-200 active:scale-95 transition-transform">حفظ وإرسال التقرير</button>
+                <button onclick="submitExpense()" class="w-full grad-emerald text-white py-5 rounded-2xl font-black text-xl shadow-xl shadow-emerald-200 active:scale-[0.98] transition-all mt-2">حفظ وإرسال التقرير</button>
             </div>
         </section>
 
@@ -114,6 +119,9 @@
 
         async function loadPromoterData() {
             const selectedDate = document.getElementById('p_date').value;
+            // تحديث عنوان التقرير بالتاريخ المختار
+            document.getElementById('dynamic_report_title').innerText = `تقرير يوم: ${selectedDate}`;
+
             const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
             
             const { data: dayExp } = await sb.from('marketing_expenses').select('*').eq('expense_date', selectedDate);
