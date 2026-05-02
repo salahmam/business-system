@@ -126,7 +126,7 @@
             renderUI(finalPoints, manualP, reports.length, todayData, totalB_Month, totalC_Month, 'blue', 'Action Center', 'saveDaily');
         }
 
-        // --- واجهة المتابعة (الكاملة) ---
+        // --- واجهة المتابعة (تم التعديل هنا لجلب الرمز مع الاسم) ---
         async function initFollowup() {
             const today = new Date().toISOString().split('T')[0];
             const startMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
@@ -143,13 +143,14 @@
 
             renderUI(manualB - manualP, manualP, workingDays, null, null, null, 'emerald', 'Follow-up Control', 'saveFollowup');
             
-            const { data } = await sb.from('users').select('username').eq('user_job_role', 'ردود');
+            // تعديل: جلب username و employee_code
+            const { data } = await sb.from('users').select('username, employee_code').eq('user_job_role', 'ردود');
             if(data) document.getElementById('target_area').innerHTML = `
                 <div class="text-center w-full">
                     <label class="text-[10px] text-slate-500 mb-1 block">اختيار موظف الردود</label>
                     <select id="f_select" class="input-premium font-bold text-sm">
                         <option value="">-- اختر الموظف --</option>
-                        ${data.map(i => `<option value="${i.username}">${i.username}</option>`).join('')}
+                        ${data.map(i => `<option value="${i.username}">${i.username} (${i.employee_code || 'بدون كود'})</option>`).join('')}
                     </select>
                 </div>`;
         }
