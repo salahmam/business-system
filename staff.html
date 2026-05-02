@@ -1,187 +1,314 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <!-- نفس الرأس والتنسيقات بدون تغيير -->
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة الموظف | BUSINESS SYSTEM</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>نظام صلاح الخليفة - الموظفين</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Tajawal', sans-serif; background: #f8fafc; color: #1e293b; overflow-x: hidden; }
-        .glass-card { background: white; border-radius: 2.5rem; box-shadow: 0 15px 35px -5px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; transition: all 0.4s ease; }
-        .stat-box { border-right: 5px solid; transition: all 0.3s ease; }
-        .stat-box:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-in { animation: fadeIn 0.6s ease forwards; }
-        input, select { transition: all 0.3s ease; text-align: center; }
-        .date-container { display: flex; justify-content: center; align-items: center; }
+        body { font-family: 'Tajawal', sans-serif; background-color: #f1f5f9; }
+        .login-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 2rem; box-shadow: 0 20px 50px rgba(0,0,0,0.1); }
+        .stat-card { background: white; border-radius: 1.5rem; padding: 1.25rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+        .grad-blue { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+        .grad-purple { background: linear-gradient(135deg, #7c3aed, #5b21b6); }
+        .input-style { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1rem; width: 100%; font-weight: bold; outline: none; transition: 0.3s; }
+        .input-style:focus { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+        .hidden { display: none; }
     </style>
 </head>
-<body class="pb-10">
-    <header class="bg-slate-900 text-white p-6 sticky top-0 z-50 shadow-2xl rounded-b-[3rem] flex justify-between items-center">
-        <div class="flex items-center gap-4">
-            <div id="user_initial" class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center font-black text-xl shadow-lg border border-white/20">..</div>
-            <div class="text-right">
-                <h2 id="u_name_display" class="font-black text-lg leading-tight text-right">تحميل...</h2>
-                <p id="u_role_display" class="text-[10px] text-blue-400 font-bold uppercase text-right"></p>
+<body class="min-h-screen">
+
+    <!-- 1. شاشة تسجيل الدخول -->
+    <div id="login_screen" class="min-h-screen flex items-center justify-center p-6">
+        <div class="login-card w-full max-w-md p-8 space-y-6 text-center">
+            <div class="space-y-2">
+                <h1 class="text-3xl font-black text-slate-800">صلاح الخليفة</h1>
+                <p class="text-slate-400 font-bold text-sm">بوابة الدخول الموحدة</p>
+            </div>
+            <div class="space-y-4 text-right">
+                <div>
+                    <label class="text-xs font-black text-slate-500 mr-2">اسم المستخدم</label>
+                    <input type="text" id="user_input" class="input-style text-center" placeholder="أدخل اسمك">
+                </div>
+                <div>
+                    <label class="text-xs font-black text-slate-500 mr-2">كلمة السر</label>
+                    <input type="password" id="pass_input" class="input-style text-center" placeholder="••••••••">
+                </div>
+                <button onclick="handleLogin()" class="w-full grad-blue text-white py-4 rounded-2xl font-black text-lg shadow-lg shadow-blue-200 active:scale-95 transition-all">دخول النظام</button>
             </div>
         </div>
-        <button onclick="localStorage.clear(); location.href='index.html'" class="bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white px-6 py-2 rounded-2xl border border-red-500/20 transition-all font-black text-sm active:scale-90">خروج</button>
-    </header>
+    </div>
 
-    <div class="p-5 max-w-lg mx-auto space-y-6 pt-8 animate-in">
-        <div id="stats_grid" class="grid grid-cols-2 gap-4">
-            <div class="glass-card p-4 stat-box border-blue-500">
-                <span class="text-[10px] text-slate-400 font-black block mb-1">الراتب</span>
-                <span id="stat_salary" class="text-lg font-black text-slate-800">0</span>
+    <!-- 2. واجهة موظف الردود -->
+    <div id="responder_screen" class="hidden pb-10">
+        <header class="grad-blue text-white p-8 rounded-b-[3rem] shadow-xl text-center space-y-4">
+            <div class="flex justify-between items-center">
+                <button onclick="location.reload()" class="bg-white/20 p-2 rounded-lg text-xs">خروج</button>
+                <span class="font-black text-lg">لوحة الردود</span>
+                <div class="w-10"></div>
             </div>
-            <div class="glass-card p-4 stat-box border-amber-500">
-                <span class="text-[10px] text-slate-400 font-black block mb-1">النقاط ⭐</span>
-                <span id="stat_bonus" class="text-lg font-black text-amber-600">0</span>
+            <div class="py-4">
+                <h2 id="r_name" class="text-2xl font-black">أهلاً بك، ..</h2>
+                <div class="flex justify-center gap-4 text-[10px] mt-2 opacity-90 font-bold">
+                    <span id="r_code" class="bg-black/20 px-3 py-1 rounded-full">كود: --</span>
+                    <span id="r_team" class="bg-black/20 px-3 py-1 rounded-full">تيم: --</span>
+                </div>
             </div>
-            <div id="box_total" class="glass-card p-4 stat-box border-emerald-500">
-                <span class="text-[10px] text-slate-400 font-black block mb-1">حجوزاتي اليوم</span>
-                <span id="stat_total_books" class="text-lg font-black text-emerald-600">0</span>
-            </div>
-            <div id="box_confirmed" class="glass-card p-4 stat-box border-indigo-500">
-                <span class="text-[10px] text-slate-400 font-black block mb-1">واصل اليوم</span>
-                <span id="stat_confirmed" class="text-lg font-black text-indigo-600">0</span>
-            </div>
-            <div id="box_overall_confirmed" class="glass-card p-4 stat-box border-purple-500 col-span-2 bg-purple-50/20">
-                <span class="text-[10px] text-slate-400 font-black block mb-1 uppercase">إجمالي الواصل (تراكمي)</span>
-                <span id="stat_overall_confirmed" class="text-2xl font-black text-purple-700">0</span>
-            </div>
-        </div>
+        </header>
 
-        <div class="glass-card p-8 space-y-8 relative overflow-hidden border-t-8 border-t-blue-600">
-            <div class="space-y-2 text-center">
-                <label class="text-[11px] font-black text-slate-400 block uppercase tracking-widest">تاريخ التقرير</label>
-                <div class="date-container">
-                    <input type="date" id="dt" onchange="loadStats()" class="w-full max-w-[200px] p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold text-slate-700 outline-none focus:border-blue-500 focus:bg-white shadow-inner">
+        <main class="px-4 -mt-8 space-y-4">
+            <!-- صف الرواتب -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="stat-card">
+                    <p class="text-[10px] font-bold text-slate-400">الراتب الأساسي</p>
+                    <p id="r_salary" class="text-xl font-black text-slate-800">0</p>
+                </div>
+                <div class="stat-card">
+                    <p class="text-[10px] font-bold text-slate-400">المكافآت (الشهر)</p>
+                    <p id="r_bonus" class="text-xl font-black text-emerald-600">0</p>
                 </div>
             </div>
 
-            <div id="fol" class="hidden space-y-2 text-right">
-                <label class="text-[11px] font-black text-amber-600 block text-center uppercase">اختر الموظف (الردود):</label>
-                <select id="slst" class="w-full p-4 bg-amber-50 border-2 border-amber-100 rounded-2xl font-black text-center text-amber-800 outline-none shadow-sm cursor-pointer"></select>
-            </div>
-
-            <div class="space-y-4">
-                <label id="cnt_label" class="text-xs font-black text-blue-600 block text-center uppercase tracking-widest">الكمية المنجزة</label>
-                <div class="relative group">
-                    <input type="number" id="cnt" placeholder="0" class="w-full bg-slate-50 p-10 rounded-[2.5rem] text-center text-7xl font-black text-slate-800 outline-none border-2 border-dashed border-slate-200 focus:border-blue-300 focus:bg-white transition-all placeholder:opacity-10">
+            <!-- صف الأداء -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="stat-card border-r-4 border-r-blue-500">
+                    <p class="text-[10px] font-bold text-slate-400">أيام العمل</p>
+                    <p id="r_days" class="text-xl font-black text-slate-800">0</p>
+                </div>
+                <div class="stat-card border-r-4 border-r-red-500">
+                    <p class="text-[10px] font-bold text-slate-400">الخصومات</p>
+                    <p id="r_penalty" class="text-xl font-black text-red-600">0</p>
                 </div>
             </div>
 
-            <button onclick="send()" id="btn_send" class="w-full bg-slate-900 text-white py-6 rounded-[2rem] font-black text-xl shadow-xl hover:bg-blue-600 active:scale-95 transition-all flex items-center justify-center gap-3">
-                إرسال البيانات ✅
-            </button>
-            <p id="msg" class="text-center font-bold text-sm p-4 rounded-2xl hidden transition-all duration-500"></p>
-        </div>
+            <!-- صف الحجوزات -->
+            <div class="stat-card flex justify-around items-center py-6">
+                <div class="text-center">
+                    <p class="text-[10px] font-bold text-slate-400">إجمالي الحجوزات</p>
+                    <p id="r_total_book" class="text-2xl font-black text-blue-600">0</p>
+                </div>
+                <div class="w-px h-10 bg-slate-100"></div>
+                <div class="text-center">
+                    <p class="text-[10px] font-bold text-slate-400">إجمالي الواصل</p>
+                    <p id="r_total_confirm" class="text-2xl font-black text-emerald-600">0</p>
+                </div>
+            </div>
+
+            <!-- منطقة التقرير -->
+            <div class="stat-card space-y-4">
+                <h3 class="font-black text-slate-700 border-b pb-2 text-sm">إرسال التقرير اليومي</h3>
+                <div class="space-y-3">
+                    <input type="date" id="r_date" class="input-style">
+                    <input type="number" id="r_book_val" class="input-style" placeholder="عدد الحجوزات اليوم">
+                    <button onclick="submitResponderReport()" class="w-full grad-blue text-white py-4 rounded-xl font-black shadow-lg">حفظ التقرير</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 3. واجهة موظف المتابعة -->
+    <div id="followup_screen" class="hidden pb-10">
+        <header class="grad-purple text-white p-8 rounded-b-[3rem] shadow-xl text-center">
+            <div class="flex justify-between items-center mb-4">
+                <button onclick="location.reload()" class="bg-white/20 p-2 rounded-lg text-xs">خروج</button>
+                <span class="font-black text-lg">لوحة المتابعة</span>
+                <div class="w-10"></div>
+            </div>
+            <h2 id="f_name" class="text-2xl font-black">المتابعة: ..</h2>
+        </header>
+
+        <main class="px-4 -mt-8 space-y-4">
+            <!-- ملخص المتابعة -->
+            <div class="grid grid-cols-4 gap-2">
+                <div class="stat-card p-2 text-center col-span-1">
+                    <p class="text-[8px] font-bold text-slate-400">راتب</p>
+                    <p id="f_salary" class="text-xs font-black">0</p>
+                </div>
+                <div class="stat-card p-2 text-center col-span-1">
+                    <p class="text-[8px] font-bold text-slate-400">مكافأة</p>
+                    <p id="f_bonus" class="text-xs font-black text-emerald-600">0</p>
+                </div>
+                <div class="stat-card p-2 text-center col-span-1">
+                    <p class="text-[8px] font-bold text-slate-400">أيام</p>
+                    <p id="f_days" class="text-xs font-black">0</p>
+                </div>
+                <div class="stat-card p-2 text-center col-span-1">
+                    <p class="text-[8px] font-bold text-slate-400">خصم</p>
+                    <p id="f_penalty" class="text-xs font-black text-red-500">0</p>
+                </div>
+            </div>
+
+            <!-- منطقة عمل المتابعة -->
+            <div class="stat-card space-y-4">
+                <h3 class="font-black text-slate-700 border-b pb-2 text-sm text-center">تأكيد واصل الموظفين</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 mr-2">تاريخ المراجعة</label>
+                        <input type="date" id="f_date" class="input-style">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 mr-2">اختر موظف الردود</label>
+                        <select id="f_user_select" class="input-style"></select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 mr-2">عدد الطلبات الواصل</label>
+                        <input type="number" id="f_confirm_val" class="input-style" placeholder="أدخل الرقم">
+                    </div>
+                    <button onclick="submitFollowupReport()" class="w-full grad-purple text-white py-4 rounded-xl font-black shadow-lg">تحديث الواصل التراكمي</button>
+                </div>
+            </div>
+        </main>
     </div>
 
     <script>
         const sb = supabase.createClient('https://iqagigpqwwtvriqvlfbv.supabase.co', 'sb_publishable_5xbaPlWHgjeeaIwceEFRrQ_d9aZ6Zax');
-        const u = JSON.parse(localStorage.getItem('user_session'));
+        let currentUser = null;
 
-        window.onload = async () => {
-            if(!u) { location.href = 'index.html'; return; }
-            document.getElementById('user_initial').innerText = u.username.charAt(0).toUpperCase();
-            document.getElementById('u_name_display').innerText = u.username;
-            document.getElementById('u_role_display').innerText = `${u.user_job_role} | ${u.employee_code}`;
-            document.getElementById('dt').valueAsDate = new Date();
+        // دالة تسجيل الدخول
+        async function handleLogin() {
+            const user = document.getElementById('user_input').value;
+            const pass = document.getElementById('pass_input').value;
 
-            if(u.user_job_role === 'متابعة') {
-                document.getElementById('box_total').classList.add('hidden');
-                document.getElementById('box_confirmed').classList.add('hidden');
-                document.getElementById('box_overall_confirmed').classList.add('hidden');
-                document.getElementById('fol').classList.remove('hidden');
-                document.getElementById('cnt_label').innerText = "عدد الواصل";
+            const { data, error } = await sb.from('users').select('*').eq('username', user).eq('password', pass).single();
+
+            if (data) {
+                currentUser = data;
+                document.getElementById('login_screen').classList.add('hidden');
                 
-                const { data } = await sb.from('users').select('username, employee_code').eq('user_job_role','ردود');
-                const selectList = document.getElementById('slst');
-                data.forEach(s => { 
-                    let o = document.createElement('option'); o.value = s.username; 
-                    o.text = `👤 ${s.username} (${s.employee_code})`; 
-                    selectList.add(o); 
-                });
-            }
-            loadStats();
-        };
-
-        async function loadStats() {
-            const selectedDate = document.getElementById('dt').value;
-            const { data: reports } = await sb.from('bookings_reports').select('*').eq('employee_username', u.username);
-            const { data: adjData } = await sb.from('adjustments').select('amount, type').eq('user_id', u.id);
-
-            let points = 0;
-            let todayBooks = 0, todayConfirmed = 0, overallConfirmed = 0;
-
-            if(reports) reports.forEach(r => {
-                const conf = Number(r.confirmed_count || 0);
-                overallConfirmed += conf;
-                
-                // احتساب النقاط حسب نظامك (للموظف نفسه)
-                if(u.shift_type === 'شفت كامل') {
-                    if(conf >= 50) points += 2; else if(conf >= 30) points += 1;
+                if (data.user_job_role === 'مدير') {
+                    Swal.fire('أهلاً يا زعيم', 'سيتم تحويلك للوحة الإدارة', 'success').then(() => {
+                        window.location.href = 'لوحة_الادارة.html'; // استبدله برابط صفحة الادارة
+                    });
+                } else if (data.user_job_role === 'ردود') {
+                    showResponder();
+                } else if (data.user_job_role === 'متابعة') {
+                    showFollowup();
                 } else {
-                    if(conf >= 25) points += 2; else if(conf >= 15) points += 1;
+                    Swal.fire('أهلاً بك', 'واجهة المروج قيد التطوير حالياً', 'info');
                 }
-
-                if(r.report_date === selectedDate) {
-                    todayBooks = (r.bookings_count || 0);
-                    todayConfirmed = conf;
-                }
-            });
-
-            if(adjData) adjData.forEach(a => { if(a.type === 'bonus') points += Number(a.amount); });
-
-            document.getElementById('stat_salary').innerText = `${(u.salary || 0).toLocaleString()} د.ع`;
-            if(u.user_job_role !== 'متابعة') {
-                document.getElementById('stat_total_books').innerText = todayBooks;
-                document.getElementById('stat_confirmed').innerText = todayConfirmed;
-                document.getElementById('stat_overall_confirmed').innerText = overallConfirmed;
+            } else {
+                Swal.fire('خطأ', 'الاسم أو كلمة السر غير صحيحة', 'error');
             }
-            document.getElementById('stat_bonus').innerText = points + " ⭐";
         }
 
-        async function send() {
-            const btn = document.getElementById('btn_send');
-            const c = parseInt(document.getElementById('cnt').value);
-            const d = document.getElementById('dt').value;
-            const targetUser = (u.user_job_role === 'متابعة') ? document.getElementById('slst').value : u.username;
-            
-            if(isNaN(c) || c < 0) return;
-            btn.disabled = true; btn.innerText = "جاري الحفظ...";
+        // إعدادات التاريخ (بداية ونهاية الشهر الحالي للتصفير)
+        function getMonthBounds() {
+            const now = new Date();
+            const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+            const end = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+            return { start, end };
+        }
 
-            const { data: existing } = await sb.from('bookings_reports').select('*').eq('employee_username', targetUser).eq('report_date', d).maybeSingle();
+        // واجهة الردود
+        async function showResponder() {
+            document.getElementById('responder_screen').classList.remove('hidden');
+            document.getElementById('r_name').innerText = `أهلاً بك، ${currentUser.username}`;
+            document.getElementById('r_code').innerText = `كود: ${currentUser.employee_code}`;
+            document.getElementById('r_team').innerText = `تيم: ${currentUser.team}`;
+            document.getElementById('r_date').value = new Date().toISOString().split('T')[0];
             
-            let reportData = { employee_username: targetUser, report_date: d };
+            const bounds = getMonthBounds();
             
-            if(u.user_job_role === 'ردود') {
-                reportData.bookings_count = (existing ? (existing.bookings_count || 0) : 0) + c;
-                reportData.confirmed_count = existing ? existing.confirmed_count : 0;
+            // جلب بيانات الشهر الحالي فقط (للتصفير التلقائي)
+            const { data: reports } = await sb.from('bookings_reports').select('*').eq('employee_username', currentUser.username).gte('report_date', bounds.start);
+            const { data: bonuses } = await sb.from('bonuses').select('*').eq('employee_username', currentUser.username).gte('bonus_date', bounds.start);
+            const { data: penalties } = await sb.from('penalties').select('*').eq('employee_username', currentUser.username).gte('penalty_date', bounds.start);
+
+            // الحسابات
+            const totalBookings = reports.reduce((s, r) => s + Number(r.bookings_count), 0);
+            const totalConfirmed = reports.reduce((s, r) => s + Number(r.confirmed_count), 0);
+            const manualBonus = bonuses.reduce((s, b) => s + Number(b.bonus_amount), 0);
+            const totalPenalty = penalties.reduce((s, p) => s + Number(p.penalty_amount), 0);
+            const workingDays = new Set(reports.map(r => r.report_date)).size;
+
+            // حساب المكافأة التلقائية
+            let autoBonus = 0;
+            if(currentUser.shift_type?.includes("كامل")) {
+                if(totalConfirmed >= 50) autoBonus = 2; else if(totalConfirmed >= 30) autoBonus = 1;
             } else {
-                reportData.confirmed_count = (existing ? (existing.confirmed_count || 0) : 0) + c;
-                reportData.bookings_count = existing ? existing.bookings_count : 0;
+                if(totalConfirmed >= 25) autoBonus = 2; else if(totalConfirmed >= 15) autoBonus = 1;
             }
 
-            const { error } = await sb.from('bookings_reports').upsert([reportData], { onConflict: 'employee_username,report_date' });
-            
-            const msgBox = document.getElementById('msg');
-            msgBox.classList.remove('hidden');
-            if(!error) {
-                msgBox.innerText = `✅ تم التحديث بنجاح`;
-                msgBox.className = "text-center font-bold text-emerald-600 bg-emerald-50 p-4 rounded-2xl border border-emerald-100";
-                loadStats();
-                document.getElementById('cnt').value = "";
+            // عرض البيانات
+            document.getElementById('r_salary').innerText = currentUser.salary;
+            document.getElementById('r_bonus').innerText = autoBonus + manualBonus;
+            document.getElementById('r_days').innerText = workingDays;
+            document.getElementById('r_penalty').innerText = totalPenalty;
+            document.getElementById('r_total_book').innerText = totalBookings;
+            document.getElementById('r_total_confirm').innerText = totalConfirmed;
+        }
+
+        // إرسال تقرير الردود (استبدال)
+        async function submitResponderReport() {
+            const date = document.getElementById('r_date').value;
+            const book = document.getElementById('r_book_val').value;
+            if(!book) return;
+
+            // التحقق من وجود تقرير سابق لنفس اليوم
+            const { data: existing } = await sb.from('bookings_reports').select('*').eq('employee_username', currentUser.username).eq('report_date', date).single();
+
+            if (existing) {
+                await sb.from('bookings_reports').update({ bookings_count: book }).eq('id', existing.id);
+                Swal.fire('تم التحديث', 'تم تحديث بيانات اليوم بنجاح', 'success');
             } else {
-                msgBox.innerText = "❌ فشل التحديث";
-                msgBox.className = "text-center font-bold text-red-600 bg-red-50 p-4 rounded-2xl border border-red-100";
+                await sb.from('bookings_reports').insert([{
+                    employee_username: currentUser.username,
+                    report_date: date,
+                    bookings_count: book,
+                    confirmed_count: 0
+                }]);
+                Swal.fire('تم الحفظ', 'تم تسجيل تقريرك اليوم، استمر!', 'success');
             }
-            btn.disabled = false; btn.innerText = "إرسال البيانات ✅";
+            showResponder();
+        }
+
+        // واجهة المتابعة
+        async function showFollowup() {
+            document.getElementById('followup_screen').classList.remove('hidden');
+            document.getElementById('f_name').innerText = `المتابعة: ${currentUser.username}`;
+            document.getElementById('f_date').value = new Date().toISOString().split('T')[0];
+
+            // جلب قائمة موظفي الردود
+            const { data: users } = await sb.from('users').select('*').eq('user_job_role', 'ردود');
+            document.getElementById('f_user_select').innerHTML = users.map(u => `<option value="${u.username}">${u.username} (${u.employee_code}) - ${u.team}</option>`).join('');
+
+            // جلب ملخص المتابعة (راتب ومكافآت)
+            const bounds = getMonthBounds();
+            const { data: reports } = await sb.from('bookings_reports').select('*').eq('employee_username', currentUser.username).gte('report_date', bounds.start);
+            const { data: bonuses } = await sb.from('bonuses').select('*').eq('employee_username', currentUser.username).gte('bonus_date', bounds.start);
+            
+            document.getElementById('f_salary').innerText = currentUser.salary;
+            document.getElementById('f_bonus').innerText = bonuses.reduce((s, b) => s + Number(b.bonus_amount), 0);
+            document.getElementById('f_days').innerText = new Set(reports.map(r => r.report_date)).size;
+            document.getElementById('f_penalty').innerText = 0; // للمتابعة عادة لا يوجد خصم تلقائي
+        }
+
+        // إرسال تقرير المتابعة (تراكمي)
+        async function submitFollowupReport() {
+            const date = document.getElementById('f_date').value;
+            const targetUser = document.getElementById('f_user_select').value;
+            const confirmVal = Number(document.getElementById('f_confirm_val').value);
+            if(!confirmVal) return;
+
+            const { data: existing } = await sb.from('bookings_reports').select('*').eq('employee_username', targetUser).eq('report_date', date).single();
+
+            if (existing) {
+                const newTotal = Number(existing.confirmed_count) + confirmVal;
+                await sb.from('bookings_reports').update({ confirmed_count: newTotal }).eq('id', existing.id);
+                Swal.fire('تم التحديث التراكمي', `تم تحديث واصل ${targetUser} ليصبح المجموع: ${newTotal}`, 'success');
+            } else {
+                await sb.from('bookings_reports').insert([{
+                    employee_username: targetUser,
+                    report_date: date,
+                    bookings_count: 0,
+                    confirmed_count: confirmVal
+                }]);
+                Swal.fire('تم الإرسال', 'تم تسجيل الواصل بنجاح', 'success');
+            }
+            document.getElementById('f_confirm_val').value = "";
         }
     </script>
 </body>
