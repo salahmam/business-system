@@ -3,62 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>نظام صلاح الخليفة v4.1</title>
+    <title>نظام صلاح الخليفة v4.2</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; }
+        body { font-family: 'Tajawal', sans-serif; background-color: #f1f5f9; }
         .glass-card { background: white; border-radius: 2.5rem; border: 1px solid #e2e8f0; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05); }
         .loader { border-top-color: #3b82f6; animation: spinner 0.6s linear infinite; }
         @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(8px); z-index: 1000; align-items: center; justify-content: center; padding: 1rem; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px); z-index: 1000; align-items: center; justify-content: center; padding: 1rem; }
         .modal.active { display: flex; }
     </style>
 </head>
 <body class="pb-24">
 
-    <header class="p-6 flex justify-between items-center bg-white border-b sticky top-0 z-[100]">
+    <!-- الهيدر -->
+    <header class="p-6 flex justify-between items-center bg-white border-b sticky top-0 z-[100] shadow-sm">
         <div>
             <h1 class="text-2xl font-black text-slate-900">صلاح الخليفة</h1>
-            <span class="text-[10px] text-blue-500 font-bold tracking-widest uppercase">Management System V4.1</span>
+            <span class="text-[10px] text-blue-500 font-bold tracking-widest uppercase">Management System V4.2</span>
         </div>
-        <div class="flex gap-2">
-            <button onclick="location.reload()" class="w-12 h-12 flex items-center justify-center rounded-2xl bg-slate-50 text-blue-600 border border-slate-200">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path></svg>
-            </button>
-        </div>
+        <button onclick="location.reload()" class="w-12 h-12 flex items-center justify-center rounded-2xl bg-slate-50 text-blue-600 border border-slate-200">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path></svg>
+        </button>
     </header>
 
-    <div class="p-4 space-y-8 max-w-lg mx-auto">
+    <div class="p-4 space-y-6 max-w-lg mx-auto">
 
-        <div class="glass-card p-8 border-blue-50 relative overflow-hidden">
-            <div class="grid grid-cols-2 gap-6 mb-6">
-                <div class="text-right">
-                    <label class="text-xs font-black text-slate-400 mr-2 mb-2 block">من تاريخ</label>
-                    <input type="date" id="d_from" class="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold text-center outline-none ring-2 ring-transparent focus:ring-blue-500/20">
+        <!-- فلاتر التاريخ -->
+        <div class="glass-card p-6 border-blue-100">
+            <div class="grid grid-cols-2 gap-4 mb-5">
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 block mb-1 mr-2 italic">FROM DATE</label>
+                    <input type="date" id="d_from" class="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold text-center outline-none">
                 </div>
-                <div class="text-right">
-                    <label class="text-xs font-black text-slate-400 mr-2 mb-2 block">إلى تاريخ</label>
-                    <input type="date" id="d_to" class="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold text-center outline-none ring-2 ring-transparent focus:ring-blue-500/20">
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 block mb-1 mr-2 italic">TO DATE</label>
+                    <input type="date" id="d_to" class="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-bold text-center outline-none">
                 </div>
             </div>
-            <button id="update_btn" onclick="loadAllData()" class="w-full bg-slate-900 text-white py-5 rounded-[1.8rem] font-black text-sm shadow-xl flex items-center justify-center gap-3 active:scale-95 transition-all">
+            <button id="update_btn" onclick="loadAllData()" class="w-full bg-slate-900 text-white py-5 rounded-[1.8rem] font-black text-sm shadow-xl flex items-center justify-center gap-3 active:scale-[0.98] transition-all">
                 <span id="btn_text">تحديث البيانات والنتائج</span>
-                <div id="btn_loader" class="hidden loader w-5 h-5 border-2 border-slate-300 rounded-full"></div>
+                <div id="btn_loader" class="hidden loader w-5 h-5 border-2 border-white/30 rounded-full"></div>
             </button>
         </div>
 
-        <div class="glass-card overflow-hidden">
+        <!-- أداء التيمات -->
+        <div class="glass-card overflow-hidden border-none shadow-md">
             <div class="p-5 bg-slate-50 border-b flex justify-between items-center">
                 <h3 class="font-black text-xs text-slate-500 italic">TEAM PERFORMANCE</h3>
-                <button onclick="addNewTeam()" class="text-blue-600 font-bold text-[10px] bg-blue-50 px-4 py-2 rounded-xl">+ إضافة تيم</button>
+                <button onclick="addNewTeam()" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-[10px] font-black shadow-lg shadow-blue-100">إضافة تيم +</button>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-[11px] text-center">
                     <thead class="bg-slate-50 text-slate-400 font-bold border-b">
-                        <tr><th class="p-4 text-right">التيم</th><th>المصرف</th><th>الحجوزات</th><th>CPL</th><th>⚙️</th></tr>
+                        <tr><th class="p-4 text-right">التيم</th><th>المصرف</th><th>الحجوزات</th><th>CPL</th><th class="w-10">⚙️</th></tr>
                     </thead>
                     <tbody id="team_table" class="divide-y font-bold text-slate-700"></tbody>
                     <tfoot id="team_foot" class="bg-slate-900 text-white font-black"></tfoot>
@@ -66,13 +67,14 @@
             </div>
         </div>
 
-        <div class="glass-card overflow-hidden">
+        <!-- أداء الموظفين -->
+        <div class="glass-card overflow-hidden border-none shadow-md">
             <div class="p-5 bg-slate-50 border-b">
-                <h3 class="font-black text-xs text-slate-500 italic uppercase">Employee Incentives & Performance</h3>
+                <h3 class="font-black text-xs text-slate-500 italic uppercase">Employee Incentives</h3>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-[10px] text-center">
-                    <thead class="bg-slate-50 text-slate-400 font-bold border-b uppercase">
+                    <thead class="bg-slate-50 text-slate-400 font-bold border-b">
                         <tr>
                             <th class="p-4 text-right">الموظف</th>
                             <th>التيم</th>
@@ -81,7 +83,7 @@
                             <th class="text-emerald-600">واصل</th>
                             <th class="text-red-500">خصم</th>
                             <th class="text-blue-500">مكافأة</th>
-                            <th class="bg-blue-50 text-blue-700">الصافي</th>
+                            <th class="bg-blue-50 text-blue-700">صافي النقاط</th>
                         </tr>
                     </thead>
                     <tbody id="redod_table" class="divide-y font-bold text-slate-700"></tbody>
@@ -89,37 +91,142 @@
             </div>
         </div>
 
-        <div class="space-y-4">
-            <button onclick="toggleUserList()" class="w-full bg-white border-2 border-slate-900 p-6 rounded-[2.5rem] font-black flex justify-between items-center px-10 shadow-sm active:scale-95 transition-all">
-                <span>📂 إدارة شؤون الموظفين</span>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+        <!-- أزرار الإدارة -->
+        <div class="space-y-4 pt-4">
+            <button onclick="toggleUserList()" class="w-full bg-white border-2 border-slate-900 p-6 rounded-[2.5rem] font-black flex justify-between items-center px-10 shadow-lg active:scale-95 transition-all">
+                <span class="text-lg">📂 إدارة شؤون الموظفين</span>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
             </button>
-            <div id="user_list_section" class="hidden space-y-3 animate-in fade-in slide-in-from-top-4 duration-300">
+            <div id="user_list_section" class="hidden space-y-3 px-2">
                 <div id="detailed_user_list" class="space-y-3"></div>
             </div>
+
             <button onclick="openAddModal()" class="w-full bg-blue-600 text-white p-6 rounded-[2.5rem] font-black shadow-2xl shadow-blue-200 flex justify-between items-center px-10 active:scale-95 transition-all">
-                <span>➕ تسجيل موظف جديد</span>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <span class="text-lg">➕ تسجيل موظف جديد</span>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             </button>
+        </div>
+    </div>
+
+    <!-- مودال الموظف -->
+    <div id="user_modal" class="modal">
+        <div class="bg-white w-full max-w-sm p-8 rounded-[3.5rem] space-y-5 shadow-2xl relative">
+            <h3 id="modal_title" class="font-black text-center text-slate-900 text-xl italic">إضافة موظف</h3>
+            <input id="m_id" type="hidden">
+            <div class="space-y-4">
+                <input id="m_name" type="text" placeholder="الاسم الكامل" class="w-full p-4 bg-slate-50 rounded-2xl font-bold border-none">
+                <div class="grid grid-cols-2 gap-3">
+                    <input id="m_pass" type="text" placeholder="كلمة السر" class="w-full p-4 bg-slate-50 rounded-2xl font-bold border-none text-center">
+                    <input id="m_code" type="text" placeholder="الكود" class="w-full p-4 bg-slate-50 rounded-2xl font-bold border-none text-center">
+                </div>
+                <select id="m_role" onchange="handleModalRole()" class="w-full p-4 bg-slate-50 rounded-2xl font-black border-none text-sm">
+                    <option value="ردود">ردود</option>
+                    <option value="مروج">مروج</option>
+                    <option value="متابعة">متابعة</option>
+                </select>
+                <div id="m_redod_only" class="space-y-4 bg-blue-50/50 p-5 rounded-[2.5rem]">
+                    <select id="m_shift_main" onchange="toggleSubShift()" class="w-full p-3 rounded-xl border-none font-bold text-xs">
+                        <option value="شفت كامل">شفت كامل</option>
+                        <option value="نصف شفت">نصف شفت</option>
+                    </select>
+                    <select id="m_shift_sub" class="hidden w-full p-3 rounded-xl border-none font-bold text-xs bg-white">
+                        <option value="صباحي">صباحي</option>
+                        <option value="مسائي">مسائي</option>
+                    </select>
+                    <select id="m_team" class="w-full p-3 rounded-xl border-none font-bold text-xs bg-white"></select>
+                </div>
+                <input id="m_sal" type="number" placeholder="الراتب الأساسي" class="w-full p-4 bg-slate-50 rounded-2xl font-bold border-none text-center">
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button onclick="saveUser()" class="flex-1 bg-slate-900 text-white p-5 rounded-2xl font-black shadow-lg active:scale-95">حفظ</button>
+                <button onclick="closeModal()" class="bg-slate-100 p-5 rounded-2xl font-black text-slate-400">إلغاء</button>
+            </div>
+            <button id="del_btn" onclick="deleteUser()" class="hidden w-full text-red-500 font-bold text-xs pt-2">حذف الموظف نهائياً</button>
         </div>
     </div>
 
     <script>
         const sb = supabase.createClient('https://iqagigpqwwtvriqvlfbv.supabase.co', 'sb_publishable_5xbaPlWHgjeeaIwceEFRrQ_d9aZ6Zax');
 
+        // الدوال الأساسية
+        function toggleUserList() { document.getElementById('user_list_section').classList.toggle('hidden'); }
+        function closeModal() { document.getElementById('user_modal').classList.remove('active'); }
+        function handleModalRole() { document.getElementById('m_redod_only').style.display = (document.getElementById('m_role').value === 'ردود') ? 'block' : 'none'; }
+        function toggleSubShift() { document.getElementById('m_shift_sub').style.display = (document.getElementById('m_shift_main').value === 'نصف شفت' ? 'block' : 'none'); }
+
+        async function loadTeamsList() {
+            const { data } = await sb.from('teams').select('*');
+            document.getElementById('m_team').innerHTML = data.map(t => `<option value="${t.team_name}">${t.team_name}</option>`).join('');
+        }
+
+        function openAddModal() {
+            document.getElementById('m_id').value = "";
+            document.getElementById('m_name').value = "";
+            document.getElementById('m_pass').value = "";
+            document.getElementById('m_code').value = "";
+            document.getElementById('m_sal').value = "";
+            document.getElementById('modal_title').innerText = "إضافة موظف جديد";
+            document.getElementById('del_btn').classList.add('hidden');
+            loadTeamsList();
+            document.getElementById('user_modal').classList.add('active');
+        }
+
+        async function openEditModal(u) {
+            await loadTeamsList();
+            document.getElementById('m_id').value = u.id;
+            document.getElementById('m_name').value = u.username;
+            document.getElementById('m_pass').value = u.password;
+            document.getElementById('m_code').value = u.employee_code;
+            document.getElementById('m_role').value = u.user_job_role;
+            document.getElementById('m_sal').value = u.salary;
+            document.getElementById('m_team').value = u.team || '';
+            document.getElementById('modal_title').innerText = "تعديل الموظف";
+            document.getElementById('del_btn').classList.remove('hidden');
+            handleModalRole();
+            document.getElementById('user_modal').classList.add('active');
+        }
+
+        async function saveUser() {
+            const id = document.getElementById('m_id').value;
+            const shift = document.getElementById('m_shift_main').value === 'نصف شفت' ? `نصف (${document.getElementById('m_shift_sub').value})` : "شفت كامل";
+            const obj = {
+                username: document.getElementById('m_name').value,
+                password: document.getElementById('m_pass').value,
+                employee_code: document.getElementById('m_code').value,
+                user_job_role: document.getElementById('m_role').value,
+                salary: document.getElementById('m_sal').value,
+                team: document.getElementById('m_team').value,
+                shift_type: shift,
+                role: 'موظف'
+            };
+
+            if(!obj.username) return Swal.fire('خطأ', 'يرجى كتابة الاسم', 'error');
+
+            if(id) await sb.from('users').update(obj).eq('id', id);
+            else await sb.from('users').insert([obj]);
+
+            closeModal(); loadAllData();
+            Swal.fire({ icon: 'success', title: 'تم بنجاح', timer: 1000 });
+        }
+
+        async function deleteUser() {
+            const id = document.getElementById('m_id').value;
+            if(confirm('هل أنت متأكد من الحذف؟')) {
+                await sb.from('users').delete().eq('id', id);
+                closeModal(); loadAllData();
+            }
+        }
+
         async function loadAllData() {
             const btn = document.getElementById('update_btn');
             const loader = document.getElementById('btn_loader');
-            const text = document.getElementById('btn_text');
             const from = document.getElementById('d_from').value;
             const to = document.getElementById('d_to').value;
 
-            if(!from || !to) return Swal.fire('تنبيه', 'يرجى تحديد التاريخ أولاً', 'info');
+            if(!from || !to) return;
 
-            // تفعيل حالة التحميل
-            btn.disabled = true;
             loader.classList.remove('hidden');
-            text.innerText = 'جاري التحديث...';
+            btn.disabled = true;
 
             try {
                 const { data: users } = await sb.from('users').select('*').neq('role','مدير');
@@ -129,91 +236,73 @@
                 const { data: bonuses } = await sb.from('bonuses').select('*').gte('bonus_date', from).lte('bonus_date', to);
                 const { data: penalties } = await sb.from('penalties').select('*').gte('penalty_date', from).lte('penalty_date', to);
 
-                // معالجة جدول التيمات
+                // جدول التيمات
                 let ts=0, tb=0;
                 document.getElementById('team_table').innerHTML = teams.map(t => {
                     let s = exps.filter(e => e.target_team === t.team_name).reduce((a,b)=>a+Number(b.amount_spent),0);
                     let b = reports.filter(r => users.find(u=>u.username===r.employee_username && u.team===t.team_name)).reduce((a,b)=>a+Number(b.bookings_count),0);
                     ts+=s; tb+=b;
-                    return `<tr class="border-b"><td class="p-4 text-right font-black text-slate-800">${t.team_name}</td><td>${s}</td><td>${b}</td><td class="text-blue-600 font-black">${b? (s/b).toFixed(1):0}</td><td><button onclick="editTeamName('${t.id}','${t.team_name}')" class="text-blue-300">✎</button></td></tr>`;
+                    return `<tr class="border-b"><td class="p-4 text-right font-black">${t.team_name}</td><td>${s}</td><td>${b}</td><td class="text-blue-600">${b?(s/b).toFixed(1):0}</td><td><button onclick="editTeamName('${t.id}')">✎</button></td></tr>`;
                 }).join('');
-                document.getElementById('team_foot').innerHTML = `<tr><td class="p-4 text-right italic">الإجمالي العام</td><td>${ts}</td><td>${tb}</td><td>${tb?(ts/tb).toFixed(1):0}</td><td>-</td></tr>`;
+                document.getElementById('team_foot').innerHTML = `<tr><td class="p-4 text-right">الإجمالي</td><td>${ts}</td><td>${tb}</td><td>${tb?(ts/tb).toFixed(1):0}</td><td>-</td></tr>`;
 
-                // معالجة جدول الموظفين المطور
+                // جدول الموظفين
                 document.getElementById('redod_table').innerHTML = users.filter(u=>u.user_job_role==='ردود').map(u => {
                     const ur = reports.filter(r => r.employee_username === u.username);
-                    const w = ur.reduce((a,b)=>a+Number(b.confirmed_count),0);
-                    const h = ur.reduce((a,b)=>a+Number(b.bookings_count),0);
+                    const confirmed = ur.reduce((a,b)=>a+Number(b.confirmed_count),0);
+                    const bookings = ur.reduce((a,b)=>a+Number(b.bookings_count),0);
                     const days = new Set(ur.map(r=>r.report_date)).size;
-                    
-                    // حساب النقاط التلقائية
-                    let autoP = 0;
-                    if(u.shift_type?.includes("كامل")) { if(w >= 50) autoP = 2; else if(w >= 30) autoP = 1; }
-                    else { if(w >= 25) autoP = 2; else if(w >= 15) autoP = 1; }
-
                     const manualB = bonuses.filter(b => b.employee_username === u.username).reduce((a,b)=>a+Number(b.bonus_amount),0);
                     const manualP = penalties.filter(p => p.employee_username === u.username).reduce((a,b)=>a+Number(p.penalty_amount),0);
-                    const net = autoP + manualB - manualP;
+                    
+                    let autoP = 0;
+                    if(u.shift_type?.includes("كامل")) { if(confirmed >= 50) autoP = 2; else if(confirmed >= 30) autoP = 1; }
+                    else { if(confirmed >= 25) autoP = 2; else if(confirmed >= 15) autoP = 1; }
 
-                    return `<tr class="border-b hover:bg-slate-50 transition-colors">
-                        <td class="p-4 text-right font-black text-slate-800">${u.username}</td>
-                        <td class="text-slate-400 font-bold">${u.team || '-'}</td>
-                        <td>${days} ي</td>
-                        <td>${h}</td>
-                        <td class="text-emerald-600">${w}</td>
-                        <td class="text-red-500">${manualP}</td>
-                        <td class="text-blue-500">${manualB}</td>
-                        <td class="bg-blue-50/50 text-blue-700 font-black">${net} pts</td>
+                    return `<tr class="border-b hover:bg-slate-50">
+                        <td class="p-4 text-right font-black">${u.username}</td>
+                        <td class="text-slate-400 uppercase">${u.team || '-'}</td>
+                        <td>${days}</td><td>${bookings}</td><td class="text-emerald-600">${confirmed}</td>
+                        <td class="text-red-500">${manualP}</td><td class="text-blue-500">${manualB}</td>
+                        <td class="bg-blue-50 text-blue-700 font-black">${autoP + manualB - manualP} pts</td>
                     </tr>`;
                 }).join('');
 
-                // تحديث قائمة المربعات
-                updateUserCards(users);
+                // قائمة الموظفين
+                document.getElementById('detailed_user_list').innerHTML = users.map(u => `
+                    <div class="bg-white p-5 rounded-[2rem] border border-slate-100 flex justify-between items-center shadow-sm">
+                        <div class="text-right">
+                            <div class="font-black text-slate-800 text-sm">${u.username}</div>
+                            <div class="text-[9px] text-slate-400 font-bold uppercase mt-1">${u.user_job_role} | ${u.team || '-'}</div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick='addP("${u.username}", "bonus")' class="w-10 h-10 flex items-center justify-center bg-emerald-50 text-emerald-600 rounded-xl font-black">+</button>
+                            <button onclick='addP("${u.username}", "penalty")' class="w-10 h-10 flex items-center justify-center bg-red-50 text-red-500 rounded-xl font-black">-</button>
+                            <button onclick='openEditModal(${JSON.stringify(u)})' class="bg-slate-900 text-white px-5 py-2 rounded-xl text-[10px] font-black">تعديل</button>
+                        </div>
+                    </div>`).join('');
 
             } catch (err) {
-                Swal.fire('خطأ', 'حدث خلل أثناء جلب البيانات', 'error');
+                console.error(err);
             } finally {
-                // إنهاء حالة التحميل
-                setTimeout(() => {
-                    btn.disabled = false;
-                    loader.classList.add('hidden');
-                    text.innerText = 'تحديث البيانات والنتائج';
-                }, 500);
+                setTimeout(() => { loader.classList.add('hidden'); btn.disabled = false; }, 500);
             }
         }
 
-        function updateUserCards(users) {
-            document.getElementById('detailed_user_list').innerHTML = users.map(u => `
-                <div class="bg-white p-5 rounded-[2rem] border border-slate-100 flex justify-between items-center shadow-sm">
-                    <div class="text-right">
-                        <div class="font-black text-slate-800 text-sm">${u.username}</div>
-                        <div class="text-[9px] text-slate-400 font-bold uppercase mt-1">${u.user_job_role} | ${u.team || 'بدون تيم'}</div>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick='addPoints("${u.username}", "bonus")' class="w-10 h-10 flex items-center justify-center bg-emerald-50 text-emerald-600 rounded-xl font-black">+</button>
-                        <button onclick='addPoints("${u.username}", "penalty")' class="w-10 h-10 flex items-center justify-center bg-red-50 text-red-500 rounded-xl font-black">-</button>
-                        <button onclick='openEditModal(${JSON.stringify(u)})' class="bg-slate-900 text-white px-5 py-2 rounded-xl text-[10px] font-black">تعديل</button>
-                    </div>
-                </div>`).join('');
-        }
-
-        async function addPoints(name, type) {
-            const title = type === 'bonus' ? 'إضافة نقاط مكافأة' : 'خصم نقاط';
-            const { value: pts } = await Swal.fire({ title, input: 'number', confirmButtonColor: '#0f172a' });
+        async function addP(name, type) {
+            const { value: pts } = await Swal.fire({ title: 'عدد النقاط', input: 'number', confirmButtonColor: '#0f172a' });
             if (pts) {
                 const table = type === 'bonus' ? 'bonuses' : 'penalties';
                 const col = type === 'bonus' ? 'bonus_amount' : 'penalty_amount';
-                const dateCol = type === 'bonus' ? 'bonus_date' : 'penalty_date';
-                await sb.from(table).insert([{ employee_username: name, [col]: pts, [dateCol]: new Date().toISOString().split('T')[0] }]);
+                await sb.from(table).insert([{ employee_username: name, [col]: pts, [type+'_date']: new Date().toISOString().split('T')[0] }]);
                 loadAllData();
             }
         }
 
-        function toggleUserList() { document.getElementById('user_list_section').classList.toggle('hidden'); }
         window.onload = () => {
-            const now = new Date().toISOString().split('T')[0];
-            document.getElementById('d_from').value = now;
-            document.getElementById('d_to').value = now;
+            const n = new Date().toISOString().split('T')[0];
+            document.getElementById('d_from').value = n;
+            document.getElementById('d_to').value = n;
             loadAllData();
         };
     </script>
