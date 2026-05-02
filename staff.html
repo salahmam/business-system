@@ -3,142 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BUSINESS SYSTEM - الموظفين</title>
+    <title>نظام الموظفين - BUSINESS SYSTEM</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
-        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 2rem; }
-        .grad-blue { background: linear-gradient(135deg, #1e40af, #2563eb); }
-        .grad-purple { background: linear-gradient(135deg, #5b21b6, #7c3aed); }
-        .input-style { background: #f1f5f9; border: 2px solid transparent; border-radius: 1.25rem; padding: 1.2rem; width: 100%; font-weight: 700; outline: none; transition: 0.3s; text-align: center; }
-        .input-style:focus { border-color: #2563eb; background: white; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
-        .btn-large { padding: 1.2rem; border-radius: 1.25rem; font-weight: 900; font-size: 1.1rem; transition: all 0.2s; box-shadow: 0 10px 20px -5px rgba(0,0,0,0.2); }
-        .btn-large:active { transform: scale(0.95); }
-        .hidden { display: none; }
-        #loader { position: fixed; inset: 0; background: white; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .stat-label { font-size: 0.75rem; font-weight: 900; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
-        .stat-value { font-size: 1.5rem; font-weight: 900; color: #1e293b; }
+        body { font-family: 'Tajawal', sans-serif; background-color: #f1f5f9; }
+        .stat-card { background: white; border-radius: 1.5rem; padding: 1.25rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+        .grad-blue { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+        .grad-purple { background: linear-gradient(135deg, #7c3aed, #5b21b6); }
+        .input-style { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1rem; width: 100%; font-weight: bold; outline: none; }
+        #loader { position: fixed; inset: 0; background: white; z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #2563eb; border-radius: 50%; width: 45px; height: 45px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
     <div id="loader">
-        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600"></div>
-        <p class="mt-4 font-black text-slate-600 italic">BUSINESS SYSTEM</p>
+        <div class="spinner"></div>
+        <p class="mt-4 font-bold text-slate-600 italic">BUSINESS SYSTEM</p>
+        <p id="error_msg" class="text-red-500 text-xs mt-2 hidden">يبدو أن هناك مشكلة في البيانات..</p>
+        <button id="emergency_btn" onclick="logout()" class="hidden mt-4 bg-slate-200 px-4 py-2 rounded-lg text-xs font-bold">العودة لتسجيل الدخول</button>
     </div>
 
-    <div id="responder_screen" class="hidden min-h-screen pb-12">
-        <header class="grad-blue text-white p-10 rounded-b-[3.5rem] shadow-2xl text-center relative">
-            <button onclick="logout()" class="absolute top-8 right-6 bg-white/20 p-3 rounded-2xl">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-            </button>
-            <div class="pt-4">
-                <h1 id="r_welcome" class="text-3xl font-black mb-2">أهلاً بك</h1>
-                <div class="flex justify-center gap-2">
-                    <span id="r_code_tag" class="bg-black/20 px-4 py-1.5 rounded-full text-xs font-bold">كود: --</span>
-                    <span id="r_team_tag" class="bg-black/20 px-4 py-1.5 rounded-full text-xs font-bold">تيم: --</span>
-                </div>
-            </div>
-        </header>
-
-        <main class="px-5 -mt-10 space-y-5">
-            <div class="glass-card p-6 grid grid-cols-2 gap-4">
-                <div class="text-center border-l border-slate-100">
-                    <p class="stat-label">راتب الشهر</p>
-                    <p id="r_salary" class="stat-value">0</p>
-                </div>
-                <div class="text-center">
-                    <p class="stat-label">إجمالي المكافآت</p>
-                    <p id="r_bonus" class="stat-value text-emerald-600">0</p>
-                </div>
-            </div>
-
-            <div class="glass-card p-6 grid grid-cols-2 gap-4">
-                <div class="text-center border-l border-slate-100">
-                    <p class="stat-label">أيام العمل</p>
-                    <p id="r_days" class="stat-value text-blue-600">0</p>
-                </div>
-                <div class="text-center">
-                    <p class="stat-label">سجل الخصومات</p>
-                    <p id="r_penalty" class="stat-value text-red-500">0</p>
-                </div>
-            </div>
-
-            <div class="glass-card p-8 flex justify-around items-center shadow-lg">
-                <div class="text-center">
-                    <p class="stat-label">إجمالي الحجوزات</p>
-                    <p id="r_total_book" class="text-4xl font-black text-blue-700">0</p>
-                </div>
-                <div class="h-12 w-px bg-slate-200"></div>
-                <div class="text-center">
-                    <p class="stat-label">إجمالي الواصل</p>
-                    <p id="r_total_confirm" class="text-4xl font-black text-emerald-600">0</p>
-                </div>
-            </div>
-
-            <div class="glass-card p-6 space-y-4">
-                <h3 class="font-black text-slate-700 text-lg border-b pb-3">ثبت تقريرك اليومي</h3>
-                <div class="space-y-4">
-                    <input type="date" id="r_date" class="input-style">
-                    <input type="number" id="r_book_input" class="input-style" placeholder="عدد الحجوزات اليوم">
-                    <button onclick="submitResponderReport()" class="w-full grad-blue text-white btn-large">تحديث التقرير اليومي</button>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <div id="followup_screen" class="hidden min-h-screen pb-12">
-        <header class="grad-purple text-white p-10 rounded-b-[3.5rem] shadow-2xl text-center relative">
-            <button onclick="logout()" class="absolute top-8 right-6 bg-white/20 p-3 rounded-2xl">خروج</button>
-            <div class="pt-4 text-right pr-4">
-                <h1 id="f_welcome" class="text-2xl font-black">لوحة المتابعة</h1>
-                <p class="opacity-80 font-bold" id="f_personal_info">--</p>
-            </div>
-        </header>
-
-        <main class="px-5 -mt-8 space-y-5">
-            <div class="glass-card p-6 space-y-5 shadow-xl">
-                <div class="text-center border-b pb-4">
-                    <h3 class="font-black text-slate-800">تأكيد واصل الموظفين</h3>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Logic: Cumulative (تراكمي)</p>
-                </div>
-                
-                <div class="space-y-4 text-right">
-                    <div>
-                        <label class="text-xs font-black text-slate-500 mr-2">تاريخ العملية</label>
-                        <input type="date" id="f_date" class="input-style">
-                    </div>
-
-                    <div>
-                        <label class="text-xs font-black text-slate-500 mr-2">اختر الموظف (ردود)</label>
-                        <select id="f_user_select" class="input-style bg-white border-2 border-slate-100"></select>
-                    </div>
-
-                    <div>
-                        <label class="text-xs font-black text-slate-500 mr-2">عدد الواصل الجديد للإضافة (+)</label>
-                        <input type="number" id="f_confirm_input" class="input-style" placeholder="0">
-                    </div>
-
-                    <button onclick="submitFollowupReport()" class="w-full grad-purple text-white btn-large mt-4">إضافة للمجموع التراكمي</button>
-                </div>
-            </div>
-
-            <div class="glass-card p-6 grid grid-cols-2 gap-4 opacity-80">
-                <div class="text-center border-l border-slate-100">
-                    <p class="stat-label">راتبك</p>
-                    <p id="f_salary" class="text-lg font-black">0</p>
-                </div>
-                <div class="text-center">
-                    <p class="stat-label">مكافآتك</p>
-                    <p id="f_bonus" class="text-lg font-black text-emerald-600">0</p>
-                </div>
-            </div>
-        </main>
+    <div id="main_content" class="hidden min-h-screen">
+        <div id="ui_placeholder"></div>
     </div>
 
     <script>
@@ -146,132 +37,132 @@
         const _SB_KEY = 'sb_publishable_5xbaPlWHgjeeaIwceEFRrQ_d9aZ6Zax';
         const sb = supabase.createClient(_SB_URL, _SB_KEY);
 
-        let user = null;
-
-        window.onload = async function() {
-            const session = localStorage.getItem('user_session');
-            if (!session) { window.location.href = 'index.html'; return; }
-            
-            user = JSON.parse(session);
-            document.getElementById('loader').classList.add('hidden');
-
-            const role = user.user_job_role || user.role;
-
-            if (role === 'ردود') {
-                initResponder();
-            } else if (role === 'متابعة') {
-                initFollowup();
-            } else {
-                Swal.fire('خطأ', 'غير مسموح لك بدخول هذه الواجهة', 'error').then(logout);
-            }
-        };
+        // زر الطوارئ يظهر إذا تأخر التحميل
+        setTimeout(() => {
+            document.getElementById('emergency_btn').classList.remove('hidden');
+            document.getElementById('error_msg').classList.remove('hidden');
+        }, 5000);
 
         function logout() {
-            localStorage.removeItem('user_session');
+            localStorage.clear();
             window.location.href = 'index.html';
         }
 
-        // --- وظائف الردود ---
-        async function initResponder() {
-            document.getElementById('responder_screen').classList.remove('hidden');
-            document.getElementById('r_welcome').innerText = `أهلاً، ${user.username}`;
-            document.getElementById('r_code_tag').innerText = `كود: ${user.employee_code || 'N/A'}`;
-            document.getElementById('r_team_tag').innerText = `تيم: ${user.team || 'عام'}`;
-            document.getElementById('r_date').value = new Date().toISOString().split('T')[0];
-            fetchResponderData();
-        }
+        // الوظيفة الرئيسية التي تعمل فوراً
+        (async function validateAndStart() {
+            try {
+                const session = localStorage.getItem('user_session');
+                
+                if (!session) {
+                    Swal.fire('خطأ', 'لم يتم العثور على جلسة دخول', 'error').then(logout);
+                    return;
+                }
 
-        async function fetchResponderData() {
-            const now = new Date();
-            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+                const user = JSON.parse(session);
+                // تحديد الدور (نتأكد من role أو user_job_role)
+                const role = user.user_job_role || user.role;
 
-            // 1. جلب التقارير (حجوزات وواصل)
-            const { data: reports } = await sb.from('bookings_reports')
-                .select('*')
-                .eq('employee_username', user.username)
-                .gte('report_date', firstDay);
+                if (role === 'ردود') {
+                    renderResponderUI(user);
+                } else if (role === 'متابعة') {
+                    renderFollowupUI(user);
+                } else {
+                    Swal.fire('تنبيه', 'نوع الحساب غير مخصص لهذه الصفحة', 'info').then(logout);
+                    return;
+                }
 
-            const totalBook = reports?.reduce((s, r) => s + Number(r.bookings_count || 0), 0) || 0;
-            const totalConfirm = reports?.reduce((s, r) => s + Number(r.confirmed_count || 0), 0) || 0;
-            const workingDays = reports?.length || 0;
+                // إخفاء اللودر وإظهار المحتوى
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('main_content').classList.remove('hidden');
 
-            // 2. جلب المكافآت والخصومات (بافتراض وجود جداول لها)
-            const { data: bonuses } = await sb.from('bonuses').select('amount').eq('employee_username', user.username).gte('date', firstDay);
-            const totalBonus = bonuses?.reduce((s, b) => s + Number(b.amount || 0), 0) || 0;
-
-            const { data: penalties } = await sb.from('penalties').select('points').eq('employee_username', user.username).gte('date', firstDay);
-            const totalPenalty = penalties?.reduce((s, p) => s + Number(p.points || 0), 0) || 0;
-
-            // تحديث الواجهة
-            document.getElementById('r_salary').innerText = (user.salary || 0).toLocaleString();
-            document.getElementById('r_bonus').innerText = totalBonus.toLocaleString();
-            document.getElementById('r_days').innerText = workingDays;
-            document.getElementById('r_penalty').innerText = totalPenalty;
-            document.getElementById('r_total_book').innerText = totalBook;
-            document.getElementById('r_total_confirm').innerText = totalConfirm;
-        }
-
-        async function submitResponderReport() {
-            const date = document.getElementById('r_date').value;
-            const count = document.getElementById('r_book_input').value;
-            if(!count) return;
-
-            // منطق الاستبدال (Replace)
-            const { data: existing } = await sb.from('bookings_reports').select('id').eq('employee_username', user.username).eq('report_date', date).single();
-
-            if (existing) {
-                await sb.from('bookings_reports').update({ bookings_count: count }).eq('id', existing.id);
-                Swal.fire({ icon: 'success', title: 'تم التحديث', text: 'تم تحديث تقرير اليوم بنجاح واستبدال الرقم القديم', timer: 2000 });
-            } else {
-                await sb.from('bookings_reports').insert([{ employee_username: user.username, report_date: date, bookings_count: count, confirmed_count: 0, team: user.team }]);
-                Swal.fire({ icon: 'success', title: 'تم الحفظ', text: 'تم تسجيل تقريرك بنجاح', timer: 2000 });
+            } catch (err) {
+                console.error(err);
+                Swal.fire('خطأ برمي', 'حدث خطأ في قراءة البيانات', 'error');
             }
-            
-            if(window.navigator.vibrate) window.navigator.vibrate(100);
-            document.getElementById('r_book_input').value = "";
-            fetchResponderData();
+        })();
+
+        // بناء واجهة الردود
+        function renderResponderUI(user) {
+            document.getElementById('ui_placeholder').innerHTML = `
+                <header class="grad-blue text-white p-8 rounded-b-[3rem] shadow-xl text-center">
+                    <div class="flex justify-between items-center mb-6">
+                        <button onclick="logout()" class="bg-white/20 p-2 rounded-lg text-xs font-bold">خروج</button>
+                        <span class="font-black">STAFF PANEL</span>
+                        <div class="w-10"></div>
+                    </div>
+                    <h2 class="text-2xl font-black">${user.username}</h2>
+                    <p class="text-[10px] opacity-80 font-bold mt-1">كود: ${user.employee_code || '---'} | تيم: ${user.team || 'عام'}</p>
+                </header>
+                <main class="px-4 -mt-8 space-y-4">
+                    <div class="grid grid-cols-2 gap-3 text-center">
+                        <div class="stat-card"><p class="text-[10px] text-slate-400 font-bold">الراتب</p><p class="text-xl font-black">${user.salary || 0}</p></div>
+                        <div class="stat-card"><p class="text-[10px] text-slate-400 font-bold">المكافآت</p><p class="text-xl font-black text-emerald-600">0</p></div>
+                    </div>
+                    <div class="stat-card space-y-4">
+                        <h3 class="font-black text-sm text-slate-600 border-b pb-2">تقرير الحجوزات اليومي</h3>
+                        <input type="date" id="r_date" class="input-style" value="${new Date().toISOString().split('T')[0]}">
+                        <input type="number" id="r_book_val" class="input-style" placeholder="عدد حجوزات اليوم">
+                        <button onclick="saveReport('${user.username}', '${user.team}')" class="w-full grad-blue text-white py-4 rounded-xl font-black">حفظ التقرير</button>
+                    </div>
+                </main>
+            `;
         }
 
-        // --- وظائف المتابعة ---
-        async function initFollowup() {
-            document.getElementById('followup_screen').classList.remove('hidden');
-            document.getElementById('f_welcome').innerText = `المتابعة: ${user.username}`;
-            document.getElementById('f_personal_info').innerText = `${user.team || 'عام'} | كود: ${user.employee_code || '---'}`;
-            document.getElementById('f_date').value = new Date().toISOString().split('T')[0];
-            
-            // جلب قائمة موظفي الردود
-            const { data: responders } = await sb.from('users').select('username, employee_code, team').eq('user_job_role', 'ردود');
-            document.getElementById('f_user_select').innerHTML = responders.map(r => 
-                `<option value="${r.username}">${r.username} (${r.employee_code}) - ${r.team}</option>`
-            ).join('');
-
-            // بيانات المتابعة الشخصية
-            document.getElementById('f_salary').innerText = (user.salary || 0).toLocaleString();
-            const firstDay = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
-            const { data: b } = await sb.from('bonuses').select('amount').eq('employee_username', user.username).gte('date', firstDay);
-            document.getElementById('f_bonus').innerText = (b?.reduce((s, r) => s + Number(r.amount), 0) || 0).toLocaleString();
+        // بناء واجهة المتابعة
+        async function renderFollowupUI(user) {
+            document.getElementById('ui_placeholder').innerHTML = `
+                <header class="grad-purple text-white p-8 rounded-b-[3rem] shadow-xl text-center">
+                    <div class="flex justify-between items-center mb-6">
+                        <button onclick="logout()" class="bg-white/20 p-2 rounded-lg text-xs font-bold">خروج</button>
+                        <span class="font-black">FOLLOW-UP</span>
+                        <div class="w-10"></div>
+                    </div>
+                    <h2 class="text-2xl font-black">${user.username}</h2>
+                </header>
+                <main class="px-4 -mt-8 space-y-4">
+                    <div class="stat-card space-y-4 text-right">
+                        <h3 class="font-black text-sm text-center text-slate-600 border-b pb-2">تحديث واصل الموظفين</h3>
+                        <input type="date" id="f_date" class="input-style" value="${new Date().toISOString().split('T')[0]}">
+                        <select id="f_user_select" class="input-style"><option>جاري تحميل الموظفين...</option></select>
+                        <input type="number" id="f_confirm_val" class="input-style" placeholder="عدد الواصل الجديد">
+                        <button onclick="saveFollowup()" class="w-full grad-purple text-white py-4 rounded-xl font-black">إرسال التحديث</button>
+                    </div>
+                </main>
+            `;
+            // تحميل قائمة الموظفين
+            const { data } = await sb.from('users').select('username').eq('user_job_role', 'ردود');
+            if (data) {
+                document.getElementById('f_user_select').innerHTML = data.map(u => `<option value="${u.username}">${u.username}</option>`).join('');
+            }
         }
 
-        async function submitFollowupReport() {
+        // دوال الحفظ (Supabase)
+        async function saveReport(username, team) {
+            const date = document.getElementById('r_date').value;
+            const val = document.getElementById('r_book_val').value;
+            if(!val) return;
+            const { error } = await sb.from('bookings_reports').upsert([{ 
+                employee_username: username, report_date: date, bookings_count: val, team: team 
+            }], { onConflict: 'employee_username,report_date' });
+            
+            if(!error) Swal.fire('تم', 'تم حفظ التقرير', 'success');
+            else Swal.fire('خطأ', 'فشل الاتصال بـ Supabase', 'error');
+        }
+
+        async function saveFollowup() {
             const date = document.getElementById('f_date').value;
             const target = document.getElementById('f_user_select').value;
-            const newVal = Number(document.getElementById('f_confirm_input').value);
-            if(!newVal) return;
-
-            // منطق التراكمي (Cumulative)
+            const val = Number(document.getElementById('f_confirm_val').value);
+            if(!val) return;
+            
             const { data: ex } = await sb.from('bookings_reports').select('*').eq('employee_username', target).eq('report_date', date).single();
+            const newTotal = (ex ? Number(ex.confirmed_count) : 0) + val;
+            
+            const { error } = await sb.from('bookings_reports').upsert([{ 
+                employee_username: target, report_date: date, confirmed_count: newTotal 
+            }], { onConflict: 'employee_username,report_date' });
 
-            if (ex) {
-                const total = Number(ex.confirmed_count || 0) + newVal;
-                await sb.from('bookings_reports').update({ confirmed_count: total }).eq('id', ex.id);
-                Swal.fire({ icon: 'success', title: 'تم التحديث التراكمي', text: `تم تحديث واصل [${target}] ليصبح المجموع الكلي: ${total}` });
-            } else {
-                await sb.from('bookings_reports').insert([{ employee_username: target, report_date: date, confirmed_count: newVal, bookings_count: 0 }]);
-                Swal.fire({ icon: 'success', title: 'تم فتح تقرير', text: `تم تسجيل أول واصل لـ [${target}] لهذا اليوم` });
-            }
-
-            if(window.navigator.vibrate) window.navigator.vibrate(100);
-            document.getElementById('f_confirm_input').value = "";
+            if(!error) Swal.fire('تم', `تحديث واصل ${target} بنجاح`, 'success');
         }
     </script>
 </body>
