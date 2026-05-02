@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>صلاح الخليفة | الإدارة المتكاملة</title>
+    <!-- المكتبات -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -20,12 +21,30 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; padding: 1rem; }
         .modal.active { display: flex; }
-        /* تحسين ملمس الأزرار للأيفون */
+        
+        /* إصلاح زحف مربعات التاريخ وتحسين مظهرها */
+        input[type="date"] {
+            position: relative;
+            text-align: center;
+            appearance: none;
+            -webkit-appearance: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* تعديل محاذاة النص داخل المربع للآيفون والكمبيوتر */
+        input[type="date"]::-webkit-date-and-time-value {
+            text-align: center;
+            width: 100%;
+        }
+
         button:active { transform: scale(0.96); transition: 0.1s; }
     </style>
 </head>
 <body class="pb-10">
 
+    <!-- Header المطور -->
     <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 p-4 flex justify-between items-center">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 app-gradient-blue rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
@@ -48,6 +67,7 @@
 
     <main class="p-4 space-y-6 max-w-2xl mx-auto">
 
+        <!-- الفلاتر والتحكم -->
         <section class="glass-card p-5 space-y-4">
             <div class="grid grid-cols-2 gap-3">
                 <div class="space-y-1">
@@ -71,6 +91,7 @@
             </button>
         </section>
 
+        <!-- الجدول 1: التيمات -->
         <section class="glass-card overflow-hidden">
             <div class="p-4 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
                 <h3 class="font-black text-[11px] text-slate-500 uppercase tracking-widest">Team Performance</h3>
@@ -92,6 +113,7 @@
             </div>
         </section>
 
+        <!-- الجدول 2: الموظفين -->
         <section class="glass-card overflow-hidden">
             <div class="p-4 border-b border-slate-50 bg-slate-50/50">
                 <h3 class="font-black text-[11px] text-slate-500 uppercase tracking-widest">Employee Analytics Board</h3>
@@ -115,6 +137,7 @@
             </div>
         </section>
 
+        <!-- الإدارة السريعة -->
         <section class="space-y-3">
             <button onclick="toggleUserList()" class="w-full glass-card p-5 flex justify-between items-center px-6 transition-all active:bg-slate-50">
                 <div class="flex items-center gap-4">
@@ -136,6 +159,7 @@
         </section>
     </main>
 
+    <!-- Modal -->
     <div id="user_modal" class="modal">
         <div class="bg-white w-full max-w-sm p-6 rounded-[2rem] space-y-5 shadow-2xl overflow-y-auto max-h-[90vh]">
             <div class="text-center">
