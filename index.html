@@ -119,8 +119,14 @@
                         showConfirmButton: false,
                         timer: 1000,
                     }).then(() => {
-                        const target = { 'مدير': 'admin.html', 'مروج': 'promoter.html' };
-                        window.location.href = target[data.role] || 'staff.html';
+                        // التعديل المطلوب لربط المسمى الوظيفي بالصفحات الصحيحة
+                        const target = { 
+                            'مدير': 'admin.html', 
+                            'مروج': 'promoter.html',
+                            'ردود': 'staff.html',
+                            'متابعة': 'staff.html'
+                        };
+                        window.location.href = target[data.user_job_role] || 'staff.html';
                     });
                 } else {
                     throw new Error();
