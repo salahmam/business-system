@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>صلاح الخليفة | الإدارة المتكاملة</title>
-    <!-- المكتبات -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -27,7 +26,6 @@
 </head>
 <body class="pb-10">
 
-    <!-- Header المطور -->
     <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100 p-4 flex justify-between items-center">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 app-gradient-blue rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
@@ -50,7 +48,6 @@
 
     <main class="p-4 space-y-6 max-w-2xl mx-auto">
 
-        <!-- الفلاتر والتحكم -->
         <section class="glass-card p-5 space-y-4">
             <div class="grid grid-cols-2 gap-3">
                 <div class="space-y-1">
@@ -74,7 +71,6 @@
             </button>
         </section>
 
-        <!-- الجدول 1: التيمات -->
         <section class="glass-card overflow-hidden">
             <div class="p-4 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
                 <h3 class="font-black text-[11px] text-slate-500 uppercase tracking-widest">Team Performance</h3>
@@ -96,7 +92,6 @@
             </div>
         </section>
 
-        <!-- الجدول 2: الموظفين -->
         <section class="glass-card overflow-hidden">
             <div class="p-4 border-b border-slate-50 bg-slate-50/50">
                 <h3 class="font-black text-[11px] text-slate-500 uppercase tracking-widest">Employee Analytics Board</h3>
@@ -120,7 +115,6 @@
             </div>
         </section>
 
-        <!-- الإدارة السريعة -->
         <section class="space-y-3">
             <button onclick="toggleUserList()" class="w-full glass-card p-5 flex justify-between items-center px-6 transition-all active:bg-slate-50">
                 <div class="flex items-center gap-4">
@@ -142,7 +136,6 @@
         </section>
     </main>
 
-    <!-- Modal -->
     <div id="user_modal" class="modal">
         <div class="bg-white w-full max-w-sm p-6 rounded-[2rem] space-y-5 shadow-2xl overflow-y-auto max-h-[90vh]">
             <div class="text-center">
@@ -218,7 +211,10 @@
         const sb = supabase.createClient('https://iqagigpqwwtvriqvlfbv.supabase.co', 'sb_publishable_5xbaPlWHgjeeaIwceEFRrQ_d9aZ6Zax');
 
         // --- إصلاح تسجيل الخروج ---
-        function logout() { localStorage.clear(); location.href = 'index.html'; }
+        function logout() {
+            localStorage.clear();
+            location.href = 'index.html';
+        }
         
         // --- إضافة دالة تعديل التيم (التي كانت ناقصة) ---
         async function editTeam(oldName) {
@@ -266,7 +262,11 @@
             const sec = document.getElementById('user_list_section');
             const icon = document.getElementById('chevron_icon');
             sec.classList.toggle('hidden');
-            icon.style.transform = sec.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+            if (sec.classList.contains('hidden')) {
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                icon.style.transform = 'rotate(180deg)';
+            }
         }
 
         function handleShiftUI() {
@@ -279,17 +279,22 @@
             document.getElementById('m_redod_fields').style.display = isRedod ? 'block' : 'none';
         }
 
-        function closeModal() { document.getElementById('user_modal').classList.remove('active'); }
+        function closeModal() {
+            document.getElementById('user_modal').classList.remove('active');
+        }
 
         async function loadAllData() {
             const btn = document.getElementById('update_btn');
             const loader = document.getElementById('btn_loader');
             const from = document.getElementById('d_from').value;
             const to = document.getElementById('d_to').value;
+
             if(!from || !to) return Swal.fire('تنبيه', 'يرجى اختيار التاريخ أولاً', 'warning');
+
             loader.classList.remove('hidden');
             btn.disabled = true;
             document.getElementById('btn_text').innerText = 'جاري مزامنة البيانات...';
+
             try {
                 const { data: users } = await sb.from('users').select('*').neq('role','مدير');
                 const { data: teams } = await sb.from('teams').select('*');
@@ -297,9 +302,11 @@
                 const { data: expenses } = await sb.from('marketing_expenses').select('*').gte('expense_date', from).lte('expense_date', to);
                 const { data: bonuses } = await sb.from('bonuses').select('*').gte('bonus_date', from).lte('bonus_date', to);
                 const { data: penalties } = await sb.from('penalties').select('*').gte('penalty_date', from).lte('penalty_date', to);
+
                 renderTeams(teams, users, reports, expenses);
                 renderEmployeeStats(users, reports, bonuses, penalties);
                 renderUserCards(users);
+
             } catch (error) {
                 Swal.fire('خطأ في الاتصال', 'تعذر جلب البيانات من السيرفر', 'error');
             } finally {
@@ -310,15 +317,20 @@
         }
 
         function renderTeams(teams, users, reports, expenses) {
-            let totalS = 0, totalB = 0;
+            let totalS = 0;
+            let totalB = 0;
+            
             const html = teams.map(t => {
                 const spent = expenses.filter(e => e.target_team === t.team_name).reduce((sum, current) => sum + Number(current.amount_spent), 0);
                 const bookings = reports.filter(r => {
                     const u = users.find(user => user.username === r.employee_username);
                     return u && u.team === t.team_name;
                 }).reduce((sum, current) => sum + Number(current.bookings_count), 0);
-                totalS += spent; totalB += bookings;
+                
+                totalS += spent; 
+                totalB += bookings;
                 const cpl = bookings > 0 ? (spent / bookings).toFixed(1) : 0;
+
                 return `
                 <tr class="border-b border-slate-50">
                     <td class="p-3 text-right">
@@ -332,8 +344,15 @@
                     <td class="text-blue-600 font-black">${cpl}</td>
                 </tr>`;
             }).join('');
+
             document.getElementById('team_table').innerHTML = html;
-            document.getElementById('team_foot').innerHTML = `<tr><td class="p-3 text-right italic">الإجمالي العام</td><td>${totalS}</td><td>${totalB}</td><td>${totalB > 0 ? (totalS / totalB).toFixed(1) : 0}</td></tr>`;
+            document.getElementById('team_foot').innerHTML = `
+                <tr>
+                    <td class="p-3 text-right italic">الإجمالي العام</td>
+                    <td>${totalS}</td>
+                    <td>${totalB}</td>
+                    <td>${totalB > 0 ? (totalS / totalB).toFixed(1) : 0}</td>
+                </tr>`;
         }
 
         function renderEmployeeStats(users, reports, bonuses, penalties) {
@@ -342,19 +361,33 @@
                 const bookings = userReports.reduce((s, r) => s + Number(r.bookings_count), 0);
                 const confirmed = userReports.reduce((s, r) => s + Number(r.confirmed_count), 0);
                 const workingDays = new Set(userReports.map(r => r.report_date)).size;
+                
                 let autoBonus = 0;
                 if(u.shift_type?.includes("كامل")) {
-                    if(confirmed >= 50) autoBonus = 2; else if(confirmed >= 30) autoBonus = 1;
+                    if(confirmed >= 50) autoBonus = 2;
+                    else if(confirmed >= 30) autoBonus = 1;
                 } else {
-                    if(confirmed >= 25) autoBonus = 2; else if(confirmed >= 15) autoBonus = 1;
+                    if(confirmed >= 25) autoBonus = 2;
+                    else if(confirmed >= 15) autoBonus = 1;
                 }
+
                 const manualBonus = bonuses.filter(b => b.employee_username === u.username).reduce((s, b) => s + Number(b.bonus_amount), 0);
                 const manualPenalty = penalties.filter(p => p.employee_username === u.username).reduce((s, p) => s + Number(p.penalty_amount), 0);
                 const finalPoints = autoBonus + manualBonus - manualPenalty;
+
                 return `
                 <tr class="border-b border-slate-50 hover:bg-slate-50">
-                    <td class="p-3 text-right"><div class="font-black text-slate-800">${u.username}</div><div class="text-[8px] text-slate-400 uppercase">${u.team || '-'}</div></td>
-                    <td>${workingDays}</td><td>${bookings}</td><td class="text-emerald-600 font-bold">${confirmed}</td><td>${autoBonus}</td><td>${manualBonus}</td><td>${manualPenalty}</td><td class="bg-blue-50/50 font-black text-slate-900 text-xs">${finalPoints}</td>
+                    <td class="p-3 text-right">
+                        <div class="font-black text-slate-800">${u.username}</div>
+                        <div class="text-[8px] text-slate-400 uppercase">${u.team || '-'}</div>
+                    </td>
+                    <td>${workingDays}</td>
+                    <td>${bookings}</td>
+                    <td class="text-emerald-600 font-bold">${confirmed}</td>
+                    <td class="text-blue-500">${autoBonus}</td>
+                    <td class="text-blue-500">${manualBonus}</td>
+                    <td class="text-red-400">${manualPenalty}</td>
+                    <td class="bg-blue-50/50 font-black text-slate-900 text-xs">${finalPoints}</td>
                 </tr>`;
             }).join('');
             document.getElementById('stats_table').innerHTML = html;
@@ -363,7 +396,10 @@
         function renderUserCards(users) {
             document.getElementById('detailed_user_list').innerHTML = users.map(u => `
                 <div class="glass-card p-4 flex justify-between items-center shadow-sm border-slate-100">
-                    <div><div class="font-black text-slate-800 text-xs">${u.username}</div><div class="text-[9px] font-bold text-slate-400 mt-0.5 uppercase">${u.user_job_role} | ${u.shift_type || 'غير محدد'}</div></div>
+                    <div>
+                        <div class="font-black text-slate-800 text-xs">${u.username}</div>
+                        <div class="text-[9px] font-bold text-slate-400 mt-0.5 uppercase">${u.user_job_role} | ${u.shift_type || 'غير محدد'}</div>
+                    </div>
                     <div class="flex gap-2">
                         <button onclick='addQuickPoint("${u.username}", "bonus")' class="w-8 h-8 flex items-center justify-center bg-blue-50 text-blue-600 rounded-lg font-black">+</button>
                         <button onclick='addQuickPoint("${u.username}", "penalty")' class="w-8 h-8 flex items-center justify-center bg-red-50 text-red-500 rounded-lg font-black">-</button>
@@ -375,12 +411,24 @@
 
         async function addQuickPoint(name, type) {
             const title = type === 'bonus' ? 'إضافة مكافأة يدوية' : 'إضافة خصم يدوي';
-            const { value: pts } = await Swal.fire({ title: title, input: 'number', inputPlaceholder: 'أدخل عدد النقاط', confirmButtonText: 'حفظ', confirmButtonColor: '#0f172a' });
+            const { value: pts } = await Swal.fire({
+                title: title,
+                input: 'number',
+                inputPlaceholder: 'أدخل عدد النقاط',
+                confirmButtonText: 'حفظ',
+                confirmButtonColor: '#0f172a'
+            });
+
             if (pts) {
                 const table = type === 'bonus' ? 'bonuses' : 'penalties';
                 const col = type === 'bonus' ? 'bonus_amount' : 'penalty_amount';
                 const dateCol = type === 'bonus' ? 'bonus_date' : 'penalty_date';
-                await sb.from(table).insert([{ employee_username: name, [col]: pts, [dateCol]: new Date().toISOString().split('T')[0] }]);
+
+                await sb.from(table).insert([{
+                    employee_username: name,
+                    [col]: pts,
+                    [dateCol]: new Date().toISOString().split('T')[0]
+                }]);
                 loadAllData();
             }
         }
@@ -393,8 +441,10 @@
             document.getElementById('m_sal').value = "";
             document.getElementById('modal_title').innerText = "تسجيل موظف جديد";
             document.getElementById('del_btn').classList.add('hidden');
+            
             const { data: teams } = await sb.from('teams').select('*');
             document.getElementById('m_team').innerHTML = teams.map(t => `<option value="${t.team_name}">${t.team_name}</option>`).join('');
+            
             handleModalRole();
             document.getElementById('user_modal').classList.add('active');
         }
@@ -410,10 +460,14 @@
             document.getElementById('m_team').value = u.team || '';
             document.getElementById('modal_title').innerText = "تعديل بيانات الموظف";
             document.getElementById('del_btn').classList.remove('hidden');
+
             if(u.shift_type?.includes("نصف")) {
                 document.getElementById('m_shift_type').value = "نصف شفت";
                 document.getElementById('m_shift_time').value = u.shift_type.includes("صباحي") ? "صباحي" : "مسائي";
-            } else { document.getElementById('m_shift_type').value = "شفت كامل"; }
+            } else {
+                document.getElementById('m_shift_type').value = "شفت كامل";
+            }
+            
             handleModalRole();
             handleShiftUI();
         }
@@ -421,33 +475,78 @@
         async function saveUser() {
             const id = document.getElementById('m_id').value;
             let shift = document.getElementById('m_shift_type').value;
-            if(shift === 'نصف شفت') shift = `نصف (${document.getElementById('m_shift_time').value})`;
-            const userData = { username: document.getElementById('m_name').value, password: document.getElementById('m_pass').value, employee_code: document.getElementById('m_code').value, user_job_role: document.getElementById('m_role').value, salary: document.getElementById('m_sal').value, team: document.getElementById('m_team').value, shift_type: shift, role: 'موظف' };
-            if(id) await sb.from('users').update(userData).eq('id', id); else await sb.from('users').insert([userData]);
-            closeModal(); loadAllData(); Swal.fire('تم الحفظ', 'تمت العملية بنجاح', 'success');
+            if(shift === 'نصف شفت') {
+                shift = `نصف (${document.getElementById('m_shift_time').value})`;
+            }
+
+            const userData = {
+                username: document.getElementById('m_name').value,
+                password: document.getElementById('m_pass').value,
+                employee_code: document.getElementById('m_code').value,
+                user_job_role: document.getElementById('m_role').value,
+                salary: document.getElementById('m_sal').value,
+                team: document.getElementById('m_team').value,
+                shift_type: shift,
+                role: 'موظف'
+            };
+
+            if(id) {
+                await sb.from('users').update(userData).eq('id', id);
+            } else {
+                await sb.from('users').insert([userData]);
+            }
+
+            closeModal();
+            loadAllData();
+            Swal.fire('تم الحفظ', 'تمت العملية بنجاح', 'success');
         }
 
         async function clearDatabaseByDate() {
             const from = document.getElementById('d_from').value;
             const to = document.getElementById('d_to').value;
+
             if(!from || !to) return Swal.fire('خطأ', 'حدد التاريخ أولاً', 'error');
-            const result = await Swal.fire({ title: 'تصفير البيانات؟', text: `سيتم حذف الحجوزات والمصاريف والمكافآت من ${from} إلى ${to}. هذا الإجراء لا يمكن التراجع عنه!`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'نعم، احذف الآن', cancelButtonText: 'إلغاء' });
+
+            const result = await Swal.fire({
+                title: 'تصفير البيانات؟',
+                text: `سيتم حذف الحجوزات والمصاريف والمكافآت من ${from} إلى ${to}. هذا الإجراء لا يمكن التراجع عنه!`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'نعم، احذف الآن',
+                cancelButtonText: 'إلغاء'
+            });
+
             if (result.isConfirmed) {
                 try {
                     await sb.from('bookings_reports').delete().gte('report_date', from).lte('report_date', to);
                     await sb.from('marketing_expenses').delete().gte('expense_date', from).lte('expense_date', to);
                     await sb.from('bonuses').delete().gte('bonus_date', from).lte('bonus_date', to);
                     await sb.from('penalties').delete().gte('penalty_date', from).lte('penalty_date', to);
+                    
                     Swal.fire('تم التصفير', 'تم حذف بيانات الفترة المحددة بنجاح', 'success');
                     loadAllData();
-                } catch (e) { Swal.fire('فشل', 'حدث خطأ أثناء الحذف', 'error'); }
+                } catch (e) {
+                    Swal.fire('فشل', 'حدث خطأ أثناء الحذف', 'error');
+                }
             }
         }
 
         async function deleteUser() {
             const id = document.getElementById('m_id').value;
-            const result = await Swal.fire({ title: 'حذف الموظف؟', text: "سيتم حذف الموظف نهائياً من قاعدة البيانات", icon: 'error', showCancelButton: true, confirmButtonText: 'حذف نهائي' });
-            if (result.isConfirmed) { await sb.from('users').delete().eq('id', id); closeModal(); loadAllData(); }
+            const result = await Swal.fire({
+                title: 'حذف الموظف؟',
+                text: "سيتم حذف الموظف نهائياً من قاعدة البيانات",
+                icon: 'error',
+                showCancelButton: true,
+                confirmButtonText: 'حذف نهائي'
+            });
+
+            if (result.isConfirmed) {
+                await sb.from('users').delete().eq('id', id);
+                closeModal();
+                loadAllData();
+            }
         }
 
         window.onload = resetDates;
