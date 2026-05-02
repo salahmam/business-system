@@ -3,167 +3,229 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BUSINESS SYSTEM - PREMIUM</title>
+    <title>BUSINESS SYSTEM - STAFF</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --bg-dark: #0f172a; --card-dark: #1e293b; --accent-blue: #38bdf8; --accent-gold: #fbbf24; }
+        :root { --bg-dark: #0f172a; --card-dark: #1e293b; --accent-blue: #38bdf8; }
         body { font-family: 'Tajawal', sans-serif; background-color: var(--bg-dark); color: white; margin: 0; overflow-x: hidden; }
         .premium-card { background: linear-gradient(145deg, #1e293b, #0f172a); border: 1px solid rgba(255,255,255,0.1); border-radius: 2rem; }
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); border-radius: 1.5rem; }
         .input-premium { background: #1e293b; border: 1px solid #334155; border-radius: 1rem; padding: 1rem; color: white; width: 100%; outline: none; text-align: center; }
-        #loader { position: fixed; inset: 0; background: var(--bg-dark); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        #loader { position: fixed; inset: 0; background: var(--bg-dark); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; }
         .animate-spin-custom { border: 4px solid #1e293b; border-top: 4px solid #38bdf8; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
+    <!-- شاشة التحميل (image_3.png) -->
     <div id="loader">
         <div class="animate-spin-custom"></div>
-        <h1 class="mt-4 font-black italic text-blue-400 tracking-widest">BUSINESS SYSTEM</h1>
-        <button onclick="forceShow()" class="mt-8 text-[10px] text-slate-500 underline">هل استغرق التحميل وقتاً طويلاً؟ اضغط هنا</button>
+        <h1 class="mt-4 font-black italic text-blue-400 tracking-widest text-lg">BUSINESS SYSTEM</h1>
     </div>
 
     <div id="main_ui" class="hidden opacity-0 transition-opacity duration-500">
+        <!-- Header -->
         <header class="p-4">
             <div class="premium-card p-5 flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div id="user_initial" class="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center font-bold shadow-lg shadow-blue-900/40 text-xl">?</div>
+                    <div id="user_initial" class="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center font-bold text-xl shadow-lg shadow-blue-900/40">?</div>
                     <div>
-                        <h2 id="user_full_name" class="text-sm font-black italic">Loading...</h2>
+                        <h2 id="user_full_name" class="text-sm font-black italic">--</h2>
                         <span id="user_role_label" class="text-[9px] text-blue-400 font-bold uppercase tracking-tighter">--</span>
                     </div>
                 </div>
-                <button onclick="logout()" class="p-2 text-slate-500"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg></button>
+                <button onclick="logout()" class="p-2 text-slate-500 active:text-red-400 transition-colors">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4m7 14l5-5-5-5m5 5H9"></path></svg>
+                </button>
             </div>
         </header>
 
-        <div id="dynamic_content" class="px-4 space-y-4"></div>
+        <div id="dynamic_content" class="px-4 space-y-4 pb-10"></div>
     </div>
 
     <script>
-        const _SB_URL = 'https://iqagigpqwwtvriqvlfbv.supabase.co';
-        const _SB_KEY = 'sb_publishable_5xbaPlWHgjeeaIwceEFRrQ_d9aZ6Zax';
-        const sb = supabase.createClient(_SB_URL, _SB_KEY);
-        let u = null;
-
-        // وظيفة الإظهار القسري في حال فشل السيرفر
-        function forceShow() {
-            document.getElementById('loader').style.display = 'none';
-            document.getElementById('main_ui').classList.remove('hidden');
-            document.getElementById('main_ui').classList.add('opacity-100');
-        }
+        const sb = supabase.createClient('https://iqagigpqwwtvriqvlfbv.supabase.co', 'sb_publishable_5xbaPlWHgjeeaIwceEFRrQ_d9aZ6Zax');
+        let currentUser = null;
 
         window.onload = async () => {
+            const session = localStorage.getItem('user_session');
+            if (!session) { window.location.href = 'index.html'; return; }
+            currentUser = JSON.parse(session);
+
             try {
-                const session = localStorage.getItem('user_session');
-                if(!session) { window.location.href='index.html'; return; }
-                u = JSON.parse(session);
-                
-                document.getElementById('user_full_name').innerText = u.username;
-                document.getElementById('user_initial').innerText = u.username[0].toUpperCase();
-                document.getElementById('user_role_label').innerText = u.role || u.user_job_role;
+                // تحديث واجهة المستخدم بالبيانات الأساسية
+                document.getElementById('user_full_name').innerText = currentUser.username;
+                document.getElementById('user_initial').innerText = currentUser.username[0].toUpperCase();
+                document.getElementById('user_role_label').innerText = `${currentUser.user_job_role} | ${currentUser.team || 'بدون تيم'}`;
 
-                const role = u.role || u.user_job_role;
-                if(role === 'ردود') await renderResponder();
-                else if(role === 'متابعة') await renderFollowup();
-                else forceShow();
+                if (currentUser.user_job_role === 'ردود') {
+                    await renderResponderUI();
+                } else if (currentUser.user_job_role === 'متابعة') {
+                    await renderFollowupUI();
+                }
 
-                forceShow(); // إخفاء اللودر بعد الانتهاء
-            } catch (e) {
-                console.error(e);
-                forceShow();
+                // إخفاء اللودر وإظهار المحتوى
+                hideLoader();
+            } catch (err) {
+                console.error("Error loading data:", err);
+                hideLoader(); // إظهار الصفحة حتى لو حدث خطأ
             }
         };
 
-        async function renderResponder() {
+        function hideLoader() {
+            document.getElementById('loader').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('main_ui').classList.remove('hidden');
+                setTimeout(() => document.getElementById('main_ui').classList.add('opacity-100'), 50);
+            }, 500);
+        }
+
+        async function renderResponderUI() {
             const today = new Date().toISOString().split('T')[0];
             const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
 
-            // جلب البيانات مع محاولة معالجة الأخطاء (Try-Catch)
-            let reports = [];
-            try {
-                const { data } = await sb.from('bookings_reports').select('*').eq('employee_username', u.username).gte('report_date', startOfMonth);
-                reports = data || [];
-            } catch(e) {}
+            // جلب البيانات
+            const { data: reports } = await sb.from('bookings_reports').select('*').eq('employee_username', currentUser.username).gte('report_date', startOfMonth);
+            const { data: bonuses } = await sb.from('bonuses').select('*').eq('employee_username', currentUser.username).gte('bonus_date', startOfMonth);
+            const { data: penalties } = await sb.from('penalties').select('*').eq('employee_username', currentUser.username).gte('penalty_date', startOfMonth);
 
-            const totalB = reports.reduce((s, r) => s + Number(r.bookings_count || 0), 0);
-            const totalC = reports.reduce((s, r) => s + Number(r.confirmed_count || 0), 0);
-            const todayData = reports.find(r => r.report_date === today) || { bookings_count: 0, confirmed_count: 0 };
+            const safeReports = reports || [];
+            const todayData = safeReports.find(r => r.report_date === today) || { bookings_count: 0, confirmed_count: 0 };
+            const totalConfirmed = safeReports.reduce((s, r) => s + Number(r.confirmed_count || 0), 0);
+
+            // حساب النقاط التلقائية بناءً على منطق الأدمن (كامل / نصف)
+            let autoPoints = 0;
+            const shift = currentUser.shift_type || "";
+            if (shift.includes("كامل")) {
+                if (totalConfirmed >= 50) autoPoints = 2;
+                else if (totalConfirmed >= 30) autoPoints = 1;
+            } else if (shift.includes("نصف")) {
+                if (totalConfirmed >= 25) autoPoints = 2;
+                else if (totalConfirmed >= 15) autoPoints = 1;
+            }
+
+            const manualBonus = (bonuses || []).reduce((s, b) => s + Number(b.bonus_amount), 0);
+            const manualPenalty = (penalties || []).reduce((s, p) => s + Number(p.penalty_amount), 0);
+            const finalPoints = autoPoints + manualBonus - manualPenalty;
 
             document.getElementById('dynamic_content').innerHTML = `
-                <div class="premium-card p-6 text-center shadow-2xl">
+                <!-- كرت النقاط والراتب -->
+                <div class="premium-card p-6 text-center shadow-2xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10"><svg width="80" height="80" fill="white" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg></div>
                     <p class="text-[10px] font-bold text-slate-500 uppercase mb-4 tracking-widest">إحصائيات الأداء المالي</p>
                     <div class="flex justify-around items-center">
                         <div class="text-center">
-                            <p class="text-[9px] text-slate-500 mb-1">الراتب</p>
-                            <p class="text-lg font-black text-slate-200">${u.salary || 0}</p>
+                            <p class="text-[9px] text-slate-500 mb-1 italic">الراتب الأساسي</p>
+                            <p class="text-lg font-black text-slate-200">${currentUser.salary || 0}</p>
                         </div>
-                        <div class="w-20 h-20 rounded-full border-2 border-amber-500/30 flex flex-col items-center justify-center shadow-[0_0_20px_rgba(251,191,36,0.1)]">
-                            <span class="text-2xl font-black text-amber-400">0</span>
-                            <span class="text-[8px] font-bold text-amber-600">نقطة</span>
+                        <div class="w-24 h-24 rounded-full border-4 border-blue-500/20 flex flex-col items-center justify-center shadow-[0_0_30px_rgba(56,189,248,0.2)] bg-blue-500/5">
+                            <span class="text-3xl font-black text-blue-400">${finalPoints}</span>
+                            <span class="text-[8px] font-bold text-blue-600 tracking-widest uppercase">Point</span>
                         </div>
                         <div class="text-center">
-                            <p class="text-[9px] text-slate-500 mb-1">أيام العمل</p>
-                            <p class="text-lg font-black text-slate-200">${reports.length}</p>
+                            <p class="text-[9px] text-slate-500 mb-1 italic">أيام العمل</p>
+                            <p class="text-lg font-black text-slate-200">${safeReports.length}</p>
                         </div>
                     </div>
                 </div>
 
+                <!-- إحصائيات اليوم -->
                 <div class="grid grid-cols-2 gap-3">
-                    <div class="glass p-4 text-center">
-                        <p class="text-[9px] text-slate-500 font-bold mb-1 italic">حجوزات اليوم</p>
-                        <p class="text-xl font-black text-sky-400">${todayData.bookings_count}</p>
+                    <div class="glass p-5 text-center">
+                        <p class="text-[10px] text-slate-500 font-bold mb-1">حجوزات اليوم</p>
+                        <p class="text-2xl font-black text-sky-400">${todayData.bookings_count}</p>
                     </div>
-                    <div class="glass p-4 text-center">
-                        <p class="text-[9px] text-slate-500 font-bold mb-1 italic">واصل اليوم</p>
-                        <p class="text-xl font-black text-emerald-400">${todayData.confirmed_count}</p>
+                    <div class="glass p-5 text-center">
+                        <p class="text-[10px] text-slate-500 font-bold mb-1">واصل اليوم</p>
+                        <p class="text-2xl font-black text-emerald-400">${todayData.confirmed_count}</p>
                     </div>
                 </div>
 
+                <!-- مدخلات التقرير -->
                 <div class="premium-card p-6 space-y-4">
-                    <h3 class="text-xs font-bold border-r-2 border-sky-500 pr-2">تقرير الحجوزات</h3>
-                    <input type="number" id="r_val" class="input-premium text-2xl font-black" placeholder="0">
-                    <button onclick="saveR()" class="w-full py-4 rounded-xl bg-sky-600 text-white font-black shadow-lg shadow-sky-900/40 active:scale-95 transition-all">إرسال التقرير اليومي</button>
+                    <h3 class="text-xs font-bold border-r-4 border-blue-500 pr-3">تحديث تقرير الحجوزات اليومي</h3>
+                    <div class="space-y-1">
+                        <label class="text-[10px] text-slate-500 pr-2">أدخل عدد الحجوزات الجديدة فقط</label>
+                        <input type="number" id="r_val" class="input-premium text-2xl font-black" placeholder="0" inputmode="numeric">
+                    </div>
+                    <button onclick="saveReport()" class="w-full py-4 rounded-2xl bg-blue-600 text-white font-black shadow-lg shadow-blue-900/40 active:scale-95 transition-all">إرسال التقرير الآن</button>
                 </div>
             `;
         }
 
-        async function renderFollowup() {
+        async function renderFollowupUI() {
             document.getElementById('dynamic_content').innerHTML = `
                 <div class="premium-card p-6 space-y-4">
-                    <h3 class="text-xs font-bold border-r-2 border-amber-500 pr-2">تحديث واصل الموظفين</h3>
-                    <select id="f_select" class="input-premium text-right font-bold"></select>
-                    <input type="number" id="f_val" class="input-premium text-xl font-black" placeholder="+ أضف واصل">
-                    <button onclick="saveF()" class="w-full py-4 rounded-xl bg-amber-500 text-black font-black shadow-lg shadow-amber-900/20 active:scale-95 transition-all">تحديث الحساب</button>
+                    <h3 class="text-xs font-bold border-r-4 border-emerald-500 pr-3">تحديث "الواصل" للموظفين</h3>
+                    <div class="space-y-3">
+                        <select id="f_select" class="input-premium font-bold text-sm"></select>
+                        <input type="number" id="f_val" class="input-premium text-xl font-black" placeholder="+ أضف العدد الواصل" inputmode="numeric">
+                    </div>
+                    <button onclick="saveFollowup()" class="w-full py-4 rounded-2xl bg-emerald-600 text-white font-black shadow-lg shadow-emerald-900/40 active:scale-95 transition-all">تحديث الحساب</button>
                 </div>
             `;
             const { data } = await sb.from('users').select('username').eq('user_job_role', 'ردود');
-            if(data) document.getElementById('f_select').innerHTML = data.map(i => `<option value="${i.username}">${i.username}</option>`).join('');
+            if (data) {
+                document.getElementById('f_select').innerHTML = `<option value="">اختر الموظف...</option>` + 
+                    data.map(i => `<option value="${i.username}">${i.username}</option>`).join('');
+            }
         }
 
-        async function saveR() {
+        async function saveReport() {
             const v = document.getElementById('r_val').value;
-            if(!v) return;
-            const d = new Date().toISOString().split('T')[0];
-            const { error } = await sb.from('bookings_reports').upsert([{ employee_username: u.username, report_date: d, bookings_count: v, team: u.team }], { onConflict: 'employee_username,report_date' });
-            if(!error) { Swal.fire('تم', 'تم حفظ التقرير', 'success').then(() => location.reload()); }
+            if (!v || v < 0) return Swal.fire('خطأ', 'يرجى إدخال عدد صحيح', 'error');
+            
+            const today = new Date().toISOString().split('T')[0];
+            const { error } = await sb.from('bookings_reports').upsert([
+                { 
+                    employee_username: currentUser.username, 
+                    report_date: today, 
+                    bookings_count: v, 
+                    team: currentUser.team 
+                }
+            ], { onConflict: 'employee_username,report_date' });
+
+            if (!error) {
+                Swal.fire({ title: 'تم الحفظ', icon: 'success', background: '#1e293b', color: '#fff', confirmButtonColor: '#38bdf8' })
+                .then(() => location.reload());
+            }
         }
 
-        async function saveF() {
-            const t = document.getElementById('f_select').value;
-            const v = Number(document.getElementById('f_val').value);
-            const d = new Date().toISOString().split('T')[0];
-            const { data } = await sb.from('bookings_reports').select('confirmed_count').eq('employee_username', t).eq('report_date', d).single();
-            const newT = (data ? Number(data.confirmed_count) : 0) + v;
-            await sb.from('bookings_reports').upsert([{ employee_username: t, report_date: d, confirmed_count: newT }], { onConflict: 'employee_username,report_date' });
-            Swal.fire('تم', 'تم التحديث بنجاح', 'success');
+        async function saveFollowup() {
+            const user = document.getElementById('f_select').value;
+            const val = Number(document.getElementById('f_val').value);
+            if (!user || !val) return Swal.fire('تنبيه', 'أكمل البيانات أولاً', 'warning');
+
+            const today = new Date().toISOString().split('T')[0];
+            
+            // جلب العدد الحالي أولاً
+            const { data } = await sb.from('bookings_reports')
+                .select('confirmed_count')
+                .eq('employee_username', user)
+                .eq('report_date', today)
+                .single();
+
+            const currentConfirmed = data ? Number(data.confirmed_count || 0) : 0;
+            const { error } = await sb.from('bookings_reports').upsert([
+                { 
+                    employee_username: user, 
+                    report_date: today, 
+                    confirmed_count: currentConfirmed + val 
+                }
+            ], { onConflict: 'employee_username,report_date' });
+
+            if (!error) {
+                Swal.fire({ title: 'تم التحديث', icon: 'success', background: '#1e293b', color: '#fff' });
+                document.getElementById('f_val').value = '';
+            }
         }
 
-        function logout() { localStorage.clear(); window.location.href='index.html'; }
+        function logout() { localStorage.clear(); window.location.href = 'index.html'; }
     </script>
 </body>
 </html>
