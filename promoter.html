@@ -2,191 +2,52 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>مسؤول الحملات - صلاح الخليفة</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المروج - BUSINESS SYSTEM</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Tajawal', sans-serif; background-color: #f0fdf4; }
-        .stat-card { background: white; border-radius: 1.5rem; padding: 1.25rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #dcfce7; }
-        .grad-emerald { background: linear-gradient(135deg, #10b981, #059669); }
-        .input-style { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1rem; width: 100%; font-weight: bold; outline: none; transition: 0.3s; }
-        .hidden { display: none; }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Tajawal', sans-serif; background: #f0fdf4; }</style>
 </head>
-<body class="min-h-screen">
+<body class="p-4 space-y-6">
+    <header class="bg-emerald-600 text-white p-6 rounded-2xl shadow-lg text-center">
+        <h1 id="p_name" class="text-xl font-black">جاري التحميل...</h1>
+        <p class="text-xs opacity-80">مسؤول الحملات الإعلانية</p>
+    </header>
 
-    <!-- شاشة الدخول للمروج -->
-    <div id="login_screen" class="min-h-screen flex items-center justify-center p-6">
-        <div class="bg-white w-full max-w-md p-8 rounded-[2.5rem] shadow-2xl text-center space-y-6 border-t-8 border-emerald-500">
-            <h1 class="text-3xl font-black text-slate-800">دخول المروج</h1>
-            <p class="text-slate-400 font-bold text-sm">مسؤول الحملات الإعلانية</p>
-            <div class="space-y-4">
-                <input type="text" id="user_input" class="input-style text-center" placeholder="اسم المستخدم">
-                <input type="password" id="pass_input" class="input-style text-center" placeholder="كلمة السر">
-                <button onclick="handleLogin()" class="w-full grad-emerald text-white py-4 rounded-2xl font-black text-lg shadow-lg shadow-emerald-200">دخول النظام</button>
-            </div>
+    <main class="max-w-md mx-auto space-y-4">
+        <div class="bg-white p-6 rounded-2xl shadow-sm space-y-4 border border-emerald-100">
+            <input type="date" id="p_date" class="w-full p-4 bg-slate-50 rounded-xl font-bold border outline-none">
+            <select id="p_team" class="w-full p-4 bg-slate-50 rounded-xl font-bold border outline-none"></select>
+            <input type="number" id="p_amount" placeholder="مبلغ الصرف اليومي" class="w-full p-4 bg-slate-50 rounded-xl font-bold border outline-none text-center text-2xl">
+            <button onclick="saveExp()" class="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black text-lg">حفظ التقرير</button>
         </div>
-    </div>
-
-    <!-- واجهة المروج الرئيسية -->
-    <div id="promoter_screen" class="hidden pb-10">
-        <header class="grad-emerald text-white p-8 rounded-b-[3rem] shadow-xl text-center">
-            <div class="flex justify-between items-center mb-4">
-                <button onclick="location.reload()" class="bg-white/20 p-2 rounded-lg text-xs">خروج</button>
-                <span class="font-black text-lg">لوحة الإعلانات</span>
-                <div class="w-10"></div>
-            </div>
-            <h2 id="p_name" class="text-2xl font-black">--</h2>
-            <p class="text-emerald-100 font-bold text-xs mt-1 italic">مسؤول الحملات الإعلانية</p>
-        </header>
-
-        <main class="px-4 -mt-8 space-y-4">
-            <!-- إحصائيات الإنجاز الشهري -->
-            <div class="grid grid-cols-2 gap-3">
-                <div class="stat-card">
-                    <p class="text-[10px] font-bold text-slate-400">المصرف خلال الشهر</p>
-                    <p id="p_total_spent" class="text-xl font-black text-emerald-600">0</p>
-                </div>
-                <div class="stat-card">
-                    <p class="text-[10px] font-bold text-slate-400">حجوزات التيمات</p>
-                    <p id="p_total_books" class="text-xl font-black text-blue-600">0</p>
-                </div>
-            </div>
-
-            <!-- ملخص الأداء اليومي -->
-            <div class="stat-card space-y-3 bg-emerald-50/50">
-                <div class="flex justify-between items-center border-b border-emerald-100 pb-2">
-                    <h3 class="font-black text-[11px] text-emerald-700">ملخص اليوم</h3>
-                    <input type="date" id="p_date" class="text-[10px] font-bold bg-white p-1 rounded border" onchange="loadPromoterData()">
-                </div>
-                <div class="grid grid-cols-3 text-center">
-                    <div><p class="text-[9px] text-slate-400 font-bold">المبلغ</p><p id="p_day_spent" class="font-black text-emerald-600">0</p></div>
-                    <div><p class="text-[9px] text-slate-400 font-bold">الحجوزات</p><p id="p_day_books" class="font-black text-blue-600">0</p></div>
-                    <div><p class="text-[9px] text-slate-400 font-bold">سعر الطلب</p><p id="p_day_cpl" class="font-black text-slate-800">0</p></div>
-                </div>
-            </div>
-
-            <!-- جدول أداء التيمات -->
-            <div class="stat-card p-0 overflow-hidden border-none shadow-md">
-                <table class="w-full text-center text-[11px]">
-                    <thead class="bg-slate-800 text-white font-bold">
-                        <tr><th class="p-3">التيم</th><th>المصرف</th><th>الحجوزات</th><th>CPL</th></tr>
-                    </thead>
-                    <tbody id="p_teams_table" class="divide-y divide-slate-50 font-bold text-slate-700">
-                        <!-- تظهر البيانات هنا -->
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- منطقة إدخال التقرير -->
-            <div class="stat-card space-y-4">
-                <div class="space-y-4">
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-400 mr-2 uppercase">تحديد التيم</label>
-                        <select id="p_team_select" class="input-style" onchange="checkExistingExpense()"></select>
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-400 mr-2 uppercase">مبلغ الصرف</label>
-                        <input type="number" id="p_amount_input" class="input-style text-lg" placeholder="0.00">
-                    </div>
-                    <button onclick="submitPromoterExpense()" class="w-full grad-emerald text-white py-4 rounded-2xl font-black text-lg shadow-lg">حفظ وإرسال التقرير</button>
-                </div>
-            </div>
-        </main>
-    </div>
+    </main>
 
     <script>
         const sb = supabase.createClient('https://iqagigpqwwtvriqvlfbv.supabase.co', 'sb_publishable_5xbaPlWHgjeeaIwceEFRrQ_d9aZ6Zax');
-        let currentUser = null;
+        const user = JSON.parse(localStorage.getItem('user_session'));
 
-        async function handleLogin() {
-            const user = document.getElementById('user_input').value;
-            const pass = document.getElementById('pass_input').value;
-            const { data } = await sb.from('users').select('*').eq('username', user).eq('password', pass).single();
-
-            if (data && data.user_job_role === 'مروج') {
-                currentUser = data;
-                document.getElementById('login_screen').classList.add('hidden');
-                showPromoter();
-            } else {
-                Swal.fire('دخول مرفوض', 'بياناتك غير صحيحة أو لست مروجاً', 'error');
-            }
-        }
-
-        async function showPromoter() {
-            document.getElementById('promoter_screen').classList.remove('hidden');
-            document.getElementById('p_name').innerText = currentUser.username;
+        async function init() {
+            if(!user) location.href='index.html';
+            document.getElementById('p_name').innerText = user.username;
             document.getElementById('p_date').value = new Date().toISOString().split('T')[0];
-            
             const { data: teams } = await sb.from('teams').select('*');
-            document.getElementById('p_team_select').innerHTML = teams.map(t => `<option value="${t.team_name}">${t.team_name}</option>`).join('');
-            
-            loadPromoterData();
+            document.getElementById('p_team').innerHTML = teams.map(t => `<option value="${t.team_name}">${t.team_name}</option>`).join('');
         }
 
-        async function loadPromoterData() {
+        async function saveExp() {
             const date = document.getElementById('p_date').value;
-            const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
-            
-            const { data: monthExp } = await sb.from('marketing_expenses').select('*').gte('expense_date', startOfMonth);
-            const { data: monthBooks } = await sb.from('bookings_reports').select('*').gte('report_date', startOfMonth);
-            const { data: dayExp } = await sb.from('marketing_expenses').select('*').eq('expense_date', date);
-            const { data: dayBooks } = await sb.from('bookings_reports').select('*').eq('report_date', date);
-            const { data: teamsList } = await sb.from('teams').select('*');
-
-            // حسابات الشهر
-            const totalSpent = monthExp?.reduce((s, e) => s + Number(e.amount_spent), 0) || 0;
-            const totalBooks = monthBooks?.reduce((s, b) => s + Number(b.bookings_count), 0) || 0;
-            document.getElementById('p_total_spent').innerText = totalSpent.toLocaleString();
-            document.getElementById('p_total_books').innerText = totalBooks;
-
-            // حسابات اليوم
-            const daySpent = dayExp?.reduce((s, e) => s + Number(e.amount_spent), 0) || 0;
-            const dayBooksVal = dayBooks?.reduce((s, b) => s + Number(b.bookings_count), 0) || 0;
-            document.getElementById('p_day_spent').innerText = daySpent;
-            document.getElementById('p_day_books').innerText = dayBooksVal;
-            document.getElementById('p_day_cpl').innerText = dayBooksVal > 0 ? (daySpent/dayBooksVal).toFixed(2) : "0";
-
-            // بناء جدول التيمات
-            document.getElementById('p_teams_table').innerHTML = teamsList.map(t => {
-                const tSpent = dayExp?.filter(e => e.target_team === t.team_name).reduce((s, e) => s + Number(e.amount_spent), 0) || 0;
-                const tBooks = dayBooks?.filter(b => b.team === t.team_name).reduce((s, b) => s + Number(b.bookings_count), 0) || 0;
-                const tCpl = tBooks > 0 ? (tSpent/tBooks).toFixed(2) : "0";
-                return `<tr><td class="p-3 bg-slate-50">${t.team_name}</td><td>${tSpent}</td><td>${tBooks}</td><td class="text-emerald-600">${tCpl}</td></tr>`;
-            }).join('');
-
-            checkExistingExpense();
-        }
-
-        async function checkExistingExpense() {
-            const date = document.getElementById('p_date').value;
-            const team = document.getElementById('p_team_select').value;
-            const { data } = await sb.from('marketing_expenses').select('*').eq('expense_date', date).eq('target_team', team).single();
-            document.getElementById('p_amount_input').value = data ? data.amount_spent : "";
-        }
-
-        async function submitPromoterExpense() {
-            const date = document.getElementById('p_date').value;
-            const team = document.getElementById('p_team_select').value;
-            const amount = document.getElementById('p_amount_input').value;
-            if(!amount) return;
-
+            const team = document.getElementById('p_team').value;
+            const amt = document.getElementById('p_amount').value;
+            if(!amt) return;
             const { data: existing } = await sb.from('marketing_expenses').select('*').eq('expense_date', date).eq('target_team', team).single();
-
-            if(existing) {
-                await sb.from('marketing_expenses').update({ amount_spent: amount }).eq('id', existing.id);
-                Swal.fire({ title: 'تم التحديث', text: `تعديل مصروف تيم ${team}`, icon: 'success' });
-            } else {
-                await sb.from('marketing_expenses').insert([{ expense_date: date, target_team: team, amount_spent: amount }]);
-                Swal.fire({ title: 'تم الحفظ', text: 'تم تسجيل المصروف بنجاح', icon: 'success' });
-            }
-            
-            new Audio('https://www.soundjay.com/buttons/sounds/button-3.mp3').play();
-            loadPromoterData();
+            if(existing) await sb.from('marketing_expenses').update({ amount_spent: amt }).eq('id', existing.id);
+            else await sb.from('marketing_expenses').insert([{ expense_date: date, target_team: team, amount_spent: amt }]);
+            Swal.fire('تم', 'تم الحفظ بنجاح', 'success');
         }
+        init();
     </script>
 </body>
 </html>
