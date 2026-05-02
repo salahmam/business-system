@@ -16,7 +16,6 @@
 </head>
 <body class="pb-10">
 
-    <!-- أولاً: الهوية والترحيب -->
     <header class="grad-emerald text-white p-8 rounded-b-[3rem] shadow-xl text-center space-y-2">
         <div class="flex justify-between items-center mb-4 text-xs font-bold opacity-80">
             <button onclick="location.href='index.html'" class="bg-black/20 px-4 py-2 rounded-xl text-white">تسجيل خروج</button>
@@ -28,7 +27,6 @@
 
     <main class="px-4 -mt-8 space-y-6 max-w-4xl mx-auto">
         
-        <!-- ثانياً: إحصائيات الإنجاز الشهري -->
         <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="stat-card border-r-4 border-r-blue-500 text-center">
                 <p class="text-xs font-bold text-slate-400 mb-1">إجمالي المصرف الشهري</p>
@@ -44,11 +42,9 @@
             </div>
         </section>
 
-        <!-- ثالثاً: ملخص الأداء اليومي والبحث -->
         <section class="stat-card space-y-4">
             <div class="flex items-center justify-between border-b pb-3">
-                <h3 class="font-black text-slate-700">التقرير اليومي</h3>
-                <input type="date" id="p_date" onchange="loadPromoterData()" class="bg-slate-100 p-2 rounded-lg font-bold text-sm outline-none border-none">
+                <h3 class="font-black text-slate-700 underline decoration-emerald-500 decoration-4">ملخص نتائج التاريخ المختار</h3>
             </div>
             <div class="grid grid-cols-3 gap-2 text-center">
                 <div><p class="text-[10px] font-bold text-slate-400">صرف اليوم</p><p id="d_spent" class="font-black text-lg">0</p></div>
@@ -57,7 +53,6 @@
             </div>
         </section>
 
-        <!-- رابعاً: جدول أداء التيمات -->
         <section class="stat-card overflow-hidden p-0">
             <div class="p-4 bg-slate-50 border-b font-black text-xs text-slate-500">أداء التيمات في التاريخ المحدد</div>
             <div class="overflow-x-auto">
@@ -70,26 +65,30 @@
                             <th>CPL</th>
                         </tr>
                     </thead>
-                    <tbody id="teams_table" class="divide-y font-bold text-slate-700">
-                        <!-- تظهر البيانات هنا -->
-                    </tbody>
+                    <tbody id="teams_table" class="divide-y font-bold text-slate-700"></tbody>
                 </table>
             </div>
         </section>
 
-        <!-- خامساً: منطقة إدخال وتعديل المصاريف -->
-        <section class="stat-card space-y-4 bg-emerald-50/50 border-emerald-100">
-            <h3 class="font-black text-emerald-800 text-center">إدارة وتغذية المصاريف</h3>
-            <div class="space-y-3">
+        <section class="stat-card space-y-4 bg-emerald-50/50 border-emerald-100 ring-2 ring-emerald-500/20">
+            <h3 class="font-black text-emerald-800 text-center text-lg">تغذية البيانات اليومية</h3>
+            <div class="space-y-4">
                 <div>
-                    <label class="text-[10px] font-bold text-slate-400 mr-2">اختر التيم</label>
-                    <select id="p_team_select" onchange="checkExistingExpense()" class="w-full p-4 bg-white border rounded-2xl font-bold outline-none focus:ring-2 ring-emerald-500"></select>
+                    <label class="text-[10px] font-bold text-emerald-600 mr-2 uppercase">1. اختر التاريخ</label>
+                    <input type="date" id="p_date" onchange="loadPromoterData()" class="w-full p-4 bg-white border-2 border-emerald-100 rounded-2xl font-bold outline-none focus:border-emerald-500 transition-all text-center">
                 </div>
+
                 <div>
-                    <label class="text-[10px] font-bold text-slate-400 mr-2">مبلغ الصرف</label>
-                    <input type="number" id="p_amount_input" placeholder="0.00" class="w-full p-4 bg-white border rounded-2xl font-bold text-center text-2xl outline-none focus:ring-2 ring-emerald-500">
+                    <label class="text-[10px] font-bold text-emerald-600 mr-2 uppercase">2. اختر التيم</label>
+                    <select id="p_team_select" onchange="checkExistingExpense()" class="w-full p-4 bg-white border-2 border-emerald-100 rounded-2xl font-bold outline-none focus:border-emerald-500 transition-all"></select>
                 </div>
-                <button onclick="submitExpense()" class="w-full grad-emerald text-white py-5 rounded-2xl font-black text-lg shadow-lg active:scale-95 transition-transform">إرسال البيانات</button>
+
+                <div>
+                    <label class="text-[10px] font-bold text-emerald-600 mr-2 uppercase">3. مبلغ الصرف</label>
+                    <input type="number" id="p_amount_input" placeholder="0.00" class="w-full p-4 bg-white border-2 border-emerald-100 rounded-2xl font-bold text-center text-3xl outline-none focus:border-emerald-500 transition-all text-emerald-700">
+                </div>
+
+                <button onclick="submitExpense()" class="w-full grad-emerald text-white py-5 rounded-2xl font-black text-xl shadow-xl shadow-emerald-200 active:scale-95 transition-transform">حفظ وإرسال التقرير</button>
             </div>
         </section>
 
@@ -106,7 +105,6 @@
             document.getElementById('p_date').value = new Date().toISOString().split('T')[0];
             document.getElementById('current_date_display').innerText = new Date().toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
             
-            // جلب التيمات
             const { data: teams } = await sb.from('teams').select('*');
             const select = document.getElementById('p_team_select');
             select.innerHTML = teams.map(t => `<option value="${t.team_name}">${t.team_name}</option>`).join('');
@@ -118,15 +116,11 @@
             const selectedDate = document.getElementById('p_date').value;
             const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
             
-            // 1. جلب المصاريف (لليوم وللشهر)
             const { data: dayExp } = await sb.from('marketing_expenses').select('*').eq('expense_date', selectedDate);
             const { data: monthExp } = await sb.from('marketing_expenses').select('*').gte('expense_date', startOfMonth);
-            
-            // 2. جلب الحجوزات (لليوم وللشهر)
             const { data: dayBooks } = await sb.from('bookings_reports').select('*').eq('report_date', selectedDate);
             const { data: monthBooks } = await sb.from('bookings_reports').select('*').gte('report_date', startOfMonth);
 
-            // حسابات الشهر
             const mSpentTotal = monthExp?.reduce((s, e) => s + Number(e.amount_spent), 0) || 0;
             const mBooksTotal = monthBooks?.reduce((s, b) => s + Number(b.bookings_count), 0) || 0;
             const mCplTotal = mBooksTotal > 0 ? (mSpentTotal / mBooksTotal).toFixed(2) : 0;
@@ -135,7 +129,6 @@
             document.getElementById('m_total_books').innerText = mBooksTotal.toLocaleString();
             document.getElementById('m_avg_cpl').innerText = mCplTotal;
 
-            // حسابات اليوم
             const dSpentTotal = dayExp?.reduce((s, e) => s + Number(e.amount_spent), 0) || 0;
             const dBooksTotal = dayBooks?.reduce((s, b) => s + Number(b.bookings_count), 0) || 0;
             const dCplTotal = dBooksTotal > 0 ? (dSpentTotal / dBooksTotal).toFixed(2) : 0;
@@ -144,7 +137,6 @@
             document.getElementById('d_books').innerText = dBooksTotal.toLocaleString();
             document.getElementById('d_cpl').innerText = dCplTotal;
 
-            // بناء الجدول اليومي
             const { data: allTeams } = await sb.from('teams').select('team_name');
             document.getElementById('teams_table').innerHTML = allTeams.map(t => {
                 const teamExp = dayExp?.find(e => e.target_team === t.team_name)?.amount_spent || 0;
@@ -188,7 +180,7 @@
 
             if (!error) {
                 successAudio.play();
-                Swal.fire({ title: 'تم الحفظ!', text: `تم تحديث مصروف ${team} لليوم`, icon: 'success', timer: 1500, showConfirmButton: false });
+                Swal.fire({ title: 'تم الحفظ!', text: `تم تحديث مصروف ${team} ليوم ${date}`, icon: 'success', timer: 1500, showConfirmButton: false });
                 loadPromoterData();
             } else {
                 Swal.fire('فشل', 'حدث خطأ في الاتصال بالقاعدة', 'error');
