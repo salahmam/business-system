@@ -15,7 +15,6 @@
         .premium-card { background: linear-gradient(145deg, #1e293b, #0f172a); border: 1px solid rgba(255,255,255,0.08); border-radius: 2rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
         .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); border-radius: 1.5rem; }
         
-        /* تحسين وتوسيط المدخلات */
         .input-premium { 
             background: #1e293b; 
             border: 1px solid #334155; 
@@ -24,13 +23,12 @@
             color: white; 
             width: 100%; 
             outline: none; 
-            text-align: center; /* توسيط النص الداخلي */
+            text-align: center; 
             display: block;
             margin: 0 auto;
         }
         .input-premium:focus { border-color: var(--accent-blue); box-shadow: 0 0 15px rgba(56, 189, 248, 0.1); }
         
-        /* إزالة أي انزياح في التاريخ */
         input[type="date"] {
             appearance: none;
             -webkit-appearance: none;
@@ -53,7 +51,6 @@
     </div>
 
     <div id="main_ui" class="hidden opacity-0 transition-opacity duration-700">
-        <!-- Header Section -->
         <header class="p-5">
             <div class="premium-card p-5 flex items-center justify-between">
                 <div class="flex items-center gap-4">
@@ -69,9 +66,7 @@
             </div>
         </header>
 
-        <div id="content_area" class="px-5 space-y-5 pb-10">
-            <!-- Content Injected Dynamically -->
-        </div>
+        <div id="content_area" class="px-5 space-y-5 pb-10"></div>
     </div>
 
     <script>
@@ -95,7 +90,6 @@
             setTimeout(() => document.getElementById('main_ui').classList.add('opacity-100'), 50);
         };
 
-        // --- واجهة الردود (الكاملة) ---
         async function initResponder() {
             const today = new Date().toISOString().split('T')[0];
             const startMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
@@ -111,13 +105,20 @@
             const totalC_Month = reports.reduce((s, r) => s + Number(r.confirmed_count || 0), 0);
             const totalB_Month = reports.reduce((s, r) => s + Number(r.bookings_count || 0), 0);
 
+            // تعديل المنطق: حساب النقاط بناءً على كل يوم على حدة
             let autoPoints = 0;
             const shift = u.shift_type || "";
-            if(shift.includes("كامل")) {
-                if(totalC_Month >= 50) autoPoints = 2; else if(totalC_Month >= 30) autoPoints = 1;
-            } else {
-                if(totalC_Month >= 25) autoPoints = 2; else if(totalC_Month >= 15) autoPoints = 1;
-            }
+            
+            reports.forEach(dayReport => {
+                const dayConfirmed = Number(dayReport.confirmed_count || 0);
+                if(shift.includes("كامل")) {
+                    if(dayConfirmed >= 50) autoPoints += 2; 
+                    else if(dayConfirmed >= 30) autoPoints += 1;
+                } else {
+                    if(dayConfirmed >= 25) autoPoints += 2; 
+                    else if(dayConfirmed >= 15) autoPoints += 1;
+                }
+            });
 
             const manualB = (bonRes.data || []).reduce((s, b) => s + Number(b.bonus_amount), 0);
             const manualP = (penRes.data || []).reduce((s, p) => s + Number(p.penalty_amount), 0);
@@ -126,7 +127,6 @@
             renderUI(finalPoints, manualP, reports.length, todayData, totalB_Month, totalC_Month, 'blue', 'Action Center', 'saveDaily');
         }
 
-        // --- واجهة المتابعة (تم التعديل هنا لجلب الرمز مع الاسم) ---
         async function initFollowup() {
             const today = new Date().toISOString().split('T')[0];
             const startMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
@@ -143,7 +143,6 @@
 
             renderUI(manualB - manualP, manualP, workingDays, null, null, null, 'emerald', 'Follow-up Control', 'saveFollowup');
             
-            // تعديل: جلب username و employee_code
             const { data } = await sb.from('users').select('username, employee_code').eq('user_job_role', 'ردود');
             if(data) document.getElementById('target_area').innerHTML = `
                 <div class="text-center w-full">
@@ -160,7 +159,6 @@
             const today = new Date().toISOString().split('T')[0];
 
             document.getElementById('content_area').innerHTML = `
-                <!-- البطاقة المالية -->
                 <div class="premium-card p-6">
                     <div class="flex justify-between items-center px-2 mb-6">
                         <div class="text-center"><p class="text-[9px] text-slate-500">الراتب</p><p class="text-md font-black italic">${u.salary}</p></div>
@@ -183,7 +181,6 @@
                     <div class="glass p-4 text-center"><p class="text-[9px] text-slate-400 mb-1">واصل الشهر</p><p class="text-xl font-black text-amber-400">${mC}</p></div>
                 </div>` : ''}
 
-                <!-- صندوق الإجراءات -->
                 <div class="premium-card p-6 space-y-4">
                     <h3 class="text-[10px] font-black border-r-4 border-${color}-500 pr-3 italic uppercase text-slate-400">${title}</h3>
                     <div class="space-y-4 flex flex-col items-center">
@@ -202,7 +199,6 @@
             `;
         }
 
-        // الدوال المنطقية للحفظ
         async function saveDaily() {
             const v = document.getElementById('r_val').value;
             const d = document.getElementById('r_date').value;
