@@ -72,6 +72,7 @@
     <script>
         const sb = supabase.createClient('https://iqagigpqwwtvriqvlfbv.supabase.co', 'sb_publishable_5xbaPlWHgjeeaIwceEFRrQ_d9aZ6Zax');
         let u = null;
+        let allReports = []; // لتخزين التقارير لموظف الردود
 
         window.onload = async () => {
             const session = localStorage.getItem('user_session');
@@ -100,16 +101,15 @@
                 sb.from('penalties').select('*').eq('employee_username', u.username).gte('penalty_date', startMonth)
             ]);
 
-            const reports = repRes.data || [];
-            const todayData = reports.find(r => r.report_date === today) || { bookings_count: 0, confirmed_count: 0 };
-            const totalC_Month = reports.reduce((s, r) => s + Number(r.confirmed_count || 0), 0);
-            const totalB_Month = reports.reduce((s, r) => s + Number(r.bookings_count || 0), 0);
+            allReports = repRes.data || [];
+            const todayData = allReports.find(r => r.report_date === today) || { bookings_count: 0, confirmed_count: 0 };
+            const totalC_Month = allReports.reduce((s, r) => s + Number(r.confirmed_count || 0), 0);
+            const totalB_Month = allReports.reduce((s, r) => s + Number(r.bookings_count || 0), 0);
 
             let autoPoints = 0;
             const shift = u.shift_type || "";
             
-            // الحساب اليومي للنقاط
-            reports.forEach(dayReport => {
+            allReports.forEach(dayReport => {
                 const dayConfirmed = parseInt(dayReport.confirmed_count || 0);
                 if(shift.includes("كامل")) {
                     if(dayConfirmed >= 50) autoPoints += 2; 
@@ -124,7 +124,7 @@
             const manualP = (penRes.data || []).reduce((s, p) => s + Number(p.penalty_amount), 0);
             const finalPoints = autoPoints + manualB - manualP;
 
-            renderUI(finalPoints, manualP, reports.length, todayData, totalB_Month, totalC_Month, 'blue', 'Action Center', 'saveDaily');
+            renderUI(finalPoints, manualP, allReports.length, todayData, totalB_Month, totalC_Month, 'blue', 'Action Center', 'saveDaily');
         }
 
         async function initFollowup() {
@@ -134,27 +134,46 @@
             const [bonRes, penRes, activityRes] = await Promise.all([
                 sb.from('bonuses').select('*').eq('employee_username', u.username).gte('bonus_date', startMonth),
                 sb.from('penalties').select('*').eq('employee_username', u.username).gte('penalty_date', startMonth),
-                // جلب تواريخ التقارير لمعرفة أيام العمل في المتابعة
                 sb.from('bookings_reports').select('report_date')
             ]);
 
             const manualP = (penRes.data || []).reduce((s, p) => s + Number(p.penalty_amount), 0);
             const manualB = (bonRes.data || []).reduce((s, b) => s + Number(b.bonus_amount), 0);
-            
-            // حساب أيام العمل بناءً على الأيام التي تحتوي نشاطاً في الجدول
             const workingDays = new Set((activityRes.data || []).map(r => r.report_date)).size;
 
             renderUI(manualB - manualP, manualP, workingDays, null, null, null, 'emerald', 'Follow-up Control', 'saveFollowup');
             
             const { data } = await sb.from('users').select('username, employee_code').eq('user_job_role', 'ردود');
-            if(data) document.getElementById('target_area').innerHTML = `
-                <div class="text-center w-full">
-                    <label class="text-[10px] text-slate-500 mb-1 block">اختيار موظف الردود</label>
-                    <select id="f_select" class="input-premium font-bold text-sm">
-                        <option value="">-- اختر الموظف --</option>
-                        ${data.map(i => `<option value="${i.username}">${i.username} (${i.employee_code || 'بدون كود'})</option>`).join('')}
-                    </select>
-                </div>`;
+            if(data) {
+                document.getElementById('target_area').innerHTML = `
+                    <div class="text-center w-full">
+                        <label class="text-[10px] text-slate-500 mb-1 block">اختيار موظف الردود</label>
+                        <div class="flex gap-2 w-full justify-center">
+                            <input type="text" id="prev_val" readonly placeholder="0" class="w-[30%] input-premium font-black text-amber-400 border-amber-500/30" title="العدد السابق">
+                            <select id="f_select" onchange="fetchPreviousValue()" class="w-[70%] input-premium font-bold text-xs">
+                                <option value="">-- اختر الموظف --</option>
+                                ${data.map(i => `<option value="${i.username}">${i.username} (${i.employee_code || 'بدون كود'})</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>`;
+            }
+        }
+
+        async function fetchPreviousValue() {
+            const target = document.getElementById('f_select').value;
+            const date = document.getElementById('f_date').value;
+            const display = document.getElementById('prev_val');
+            if(!target || !date) { display.value = 0; return; }
+            
+            const { data } = await sb.from('bookings_reports').select('confirmed_count').eq('employee_username', target).eq('report_date', date).single();
+            display.value = data ? (data.confirmed_count || 0) : 0;
+        }
+
+        function updateResponderStats() {
+            const selectedDate = document.getElementById('r_date').value;
+            const dayData = allReports.find(r => r.report_date === selectedDate) || { bookings_count: 0, confirmed_count: 0 };
+            document.getElementById('stat_day_bookings').innerText = dayData.bookings_count;
+            document.getElementById('stat_day_confirmed').innerText = dayData.confirmed_count;
         }
 
         function renderUI(points, penalties, days, tData, mB, mC, color, title, actionBtn) {
@@ -178,8 +197,8 @@
 
                 ${!isFollowup ? `
                 <div class="grid grid-cols-2 gap-3">
-                    <div class="glass p-4 text-center"><p class="text-[9px] text-slate-400 mb-1">حجوزات اليوم</p><p class="text-xl font-black text-sky-400">${tData.bookings_count}</p></div>
-                    <div class="glass p-4 text-center"><p class="text-[9px] text-slate-400 mb-1">واصل اليوم</p><p class="text-xl font-black text-emerald-400">${tData.confirmed_count}</p></div>
+                    <div class="glass p-4 text-center"><p class="text-[9px] text-slate-400 mb-1">حجوزات اليوم المختارة</p><p id="stat_day_bookings" class="text-xl font-black text-sky-400">${tData.bookings_count}</p></div>
+                    <div class="glass p-4 text-center"><p class="text-[9px] text-slate-400 mb-1">واصل اليوم المختارة</p><p id="stat_day_confirmed" class="text-xl font-black text-emerald-400">${tData.confirmed_count}</p></div>
                     <div class="glass p-4 text-center"><p class="text-[9px] text-slate-400 mb-1">حجوزات الشهر</p><p class="text-xl font-black text-indigo-400">${mB}</p></div>
                     <div class="glass p-4 text-center"><p class="text-[9px] text-slate-400 mb-1">واصل الشهر</p><p class="text-xl font-black text-amber-400">${mC}</p></div>
                 </div>` : ''}
@@ -189,7 +208,7 @@
                     <div class="space-y-4 flex flex-col items-center">
                         <div class="w-full text-center">
                             <label class="text-[10px] text-slate-500 mb-1 block">تاريخ التقرير</label>
-                            <input type="date" id="${isFollowup ? 'f_date' : 'r_date'}" value="${today}" class="input-premium font-bold text-sm">
+                            <input type="date" id="${isFollowup ? 'f_date' : 'r_date'}" value="${today}" onchange="${isFollowup ? 'fetchPreviousValue()' : 'updateResponderStats()'}" class="input-premium font-bold text-sm">
                         </div>
                         <div id="target_area" class="w-full"></div>
                         <div class="w-full text-center">
