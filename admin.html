@@ -386,14 +386,18 @@
                 const confirmed = userReports.reduce((s, r) => s + Number(r.confirmed_count), 0);
                 const workingDays = new Set(userReports.map(r => r.report_date)).size;
                 
+                // --- المنطق المصحح: حساب المكافأة التلقائية يومياً ---
                 let autoBonus = 0;
-                if(u.shift_type?.includes("كامل")) {
-                    if(confirmed >= 50) autoBonus = 2;
-                    else if(confirmed >= 30) autoBonus = 1;
-                } else {
-                    if(confirmed >= 25) autoBonus = 2;
-                    else if(confirmed >= 15) autoBonus = 1;
-                }
+                userReports.forEach(day => {
+                    const dailyConfirmed = parseInt(day.confirmed_count || 0);
+                    if(u.shift_type?.includes("كامل")) {
+                        if(dailyConfirmed >= 50) autoBonus += 2;
+                        else if(dailyConfirmed >= 30) autoBonus += 1;
+                    } else {
+                        if(dailyConfirmed >= 25) autoBonus += 2;
+                        else if(dailyConfirmed >= 15) autoBonus += 1;
+                    }
+                });
 
                 const manualBonus = bonuses.filter(b => b.employee_username === u.username).reduce((s, b) => s + Number(b.bonus_amount), 0);
                 const manualPenalty = penalties.filter(p => p.employee_username === u.username).reduce((s, p) => s + Number(p.penalty_amount), 0);
