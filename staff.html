@@ -105,12 +105,12 @@
             const totalC_Month = reports.reduce((s, r) => s + Number(r.confirmed_count || 0), 0);
             const totalB_Month = reports.reduce((s, r) => s + Number(r.bookings_count || 0), 0);
 
-            // تعديل المنطق: حساب النقاط بناءً على كل يوم على حدة
             let autoPoints = 0;
             const shift = u.shift_type || "";
             
+            // الحساب اليومي للنقاط
             reports.forEach(dayReport => {
-                const dayConfirmed = Number(dayReport.confirmed_count || 0);
+                const dayConfirmed = parseInt(dayReport.confirmed_count || 0);
                 if(shift.includes("كامل")) {
                     if(dayConfirmed >= 50) autoPoints += 2; 
                     else if(dayConfirmed >= 30) autoPoints += 1;
@@ -131,15 +131,18 @@
             const today = new Date().toISOString().split('T')[0];
             const startMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
 
-            const [bonRes, penRes, reportsRes] = await Promise.all([
+            const [bonRes, penRes, activityRes] = await Promise.all([
                 sb.from('bonuses').select('*').eq('employee_username', u.username).gte('bonus_date', startMonth),
                 sb.from('penalties').select('*').eq('employee_username', u.username).gte('penalty_date', startMonth),
-                sb.from('bookings_reports').select('*').eq('employee_username', u.username).gte('report_date', startMonth)
+                // جلب تواريخ التقارير لمعرفة أيام العمل في المتابعة
+                sb.from('bookings_reports').select('report_date')
             ]);
 
             const manualP = (penRes.data || []).reduce((s, p) => s + Number(p.penalty_amount), 0);
             const manualB = (bonRes.data || []).reduce((s, b) => s + Number(b.bonus_amount), 0);
-            const workingDays = (reportsRes.data || []).length;
+            
+            // حساب أيام العمل بناءً على الأيام التي تحتوي نشاطاً في الجدول
+            const workingDays = new Set((activityRes.data || []).map(r => r.report_date)).size;
 
             renderUI(manualB - manualP, manualP, workingDays, null, null, null, 'emerald', 'Follow-up Control', 'saveFollowup');
             
